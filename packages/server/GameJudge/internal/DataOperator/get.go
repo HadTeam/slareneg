@@ -33,7 +33,7 @@ func GetOriginalGameMap(mapId uint32) MapType.Map {
 	for rowNum, row := range result {
 		ret[rowNum] = make([]MapType.Block, len(row))
 		for colNum, typeId := range row {
-			ret[rowNum][colNum] = MapType.ToBlockByTypeId(uint8(typeId), MapType.BaseBlock{})
+			ret[rowNum][colNum] = MapType.ToBlockByTypeId(typeId, MapType.BaseBlock{})
 
 		}
 	}
