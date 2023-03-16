@@ -15,7 +15,7 @@ type Block interface {
 	roundEnd(roundNumber uint8) bool
 
 	// MoveRequest Ret: whether allow to move here
-	moveRequest(ownerId uint8, number uint8) (bool, Block)
+	MoveRequest(ownerId uint8, number uint8) (bool, Block)
 }
 
 type BlockPosition struct{ X, Y uint8 }

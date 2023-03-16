@@ -34,7 +34,7 @@ func (block BlockSoldier) roundStart(roundNum uint8) bool {
 	return false
 }
 
-func (block BlockSoldier) moveRequest(ownerId uint8, number uint8) (bool, Block) {
+func (block BlockSoldier) MoveRequest(ownerId uint8, number uint8) (bool, Block) {
 	if block.ownerId != ownerId {
 		if block.number < number {
 			block.ownerId = ownerId
