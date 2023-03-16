@@ -12,7 +12,7 @@ type Block interface {
 	moveRequest(ownerId uint8, number uint8) (bool, Block)
 }
 
-type BlockPosition struct{ x, y uint8 }
+type BlockPosition struct{ X, Y uint8 }
 
 type BaseBlock struct {
 	ownerId  uint8
