@@ -1,5 +1,11 @@
 package MapType
 
+type BlockMeta struct {
+	name        string
+	description string
+	blockId     uint8
+}
+
 type Block interface {
 	GetNumber() uint8
 	GetOwnerId() uint8

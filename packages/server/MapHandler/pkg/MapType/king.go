@@ -4,8 +4,14 @@ type BlockKing struct {
 	BaseBuilding
 }
 
+var blockKingMeta = BlockMeta{
+	blockId:     2,
+	name:        "king",
+	description: "",
+}
+
 func init() {
-	RegisterBlockType(2, toBlockKing)
+	RegisterBlockType(blockKingMeta, toBlockKing)
 }
 
 func toBlockKing(number uint8, ownerId uint8) Block {

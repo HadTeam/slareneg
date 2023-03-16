@@ -4,8 +4,14 @@ type BlockBlank struct {
 	BaseBlock
 }
 
+var blockBlankMeta = BlockMeta{
+	blockId:     0,
+	name:        "blank",
+	description: "",
+}
+
 func init() {
-	RegisterBlockType(0, toBlockBlank)
+	RegisterBlockType(blockBlankMeta, toBlockBlank)
 }
 
 func toBlockBlank(_ uint8, _ uint8) Block {

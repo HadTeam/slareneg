@@ -5,8 +5,14 @@ type BlockSoldier struct {
 	number uint8
 }
 
+var blockSoldierMeta = BlockMeta{
+	blockId:     1,
+	name:        "king",
+	description: "",
+}
+
 func init() {
-	RegisterBlockType(1, toBlockSoldier)
+	RegisterBlockType(blockSoldierMeta, toBlockSoldier)
 }
 
 func toBlockSoldier(number uint8, ownerId uint8) Block {
