@@ -2,30 +2,26 @@ package DataOperator
 
 import (
 	"encoding/json"
+	"server/ApiProvider/pkg/InstructionType"
 	"server/MapHandler/pkg/MapType"
 	_ "server/MapHandler/pkg/MapType"
 )
 
-type position struct{ x, y uint8 }
-type moveArg struct{ towards string }
-
-type Instruction struct {
-	action     string
-	instructor string
-	position   position
-	moveArg    moveArg
-}
-
 const exampleMap string = "[\n[0,0,0,0,2],\n[0,2,0,0,0],\n[0,0,0,0,0],\n[0,3,3,0,3],\n[0,3,0,2,0]\n]"
 
-var exampleInstruction = []Instruction{
-	{action: "move", instructor: "CornWorld", position: position{x: 1, y: 1}, moveArg: moveArg{towards: "up"}},
+var exampleInstruction = []InstructionType.Instruction{
+	InstructionType.MoveInstruction{UserId: 1, Position: MapType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
 }
 
 func GetOriginalGameMap(mapId uint32) MapType.Map {
-	// TODO: Get from the db
+	var originMapStr string
+	if mapId == 0 {
+		originMapStr = exampleMap
+	} else {
+		// TODO: Get from the db
+	}
 	var result [][]uint8
-	if json.Unmarshal([]byte(exampleMap), &result) == nil {
+	if json.Unmarshal([]byte(originMapStr), &result) == nil {
 		// TODO: Error return
 	}
 
@@ -40,7 +36,7 @@ func GetOriginalGameMap(mapId uint32) MapType.Map {
 	return MapType.Map{Blocks: ret}
 }
 
-func GetInstruction() []Instruction {
+func GetInstruction() []InstructionType.Instruction {
 	// TODO: Stop receiving new instruction
 	return exampleInstruction
 }
