@@ -18,7 +18,6 @@ func toBlockBlank(_ uint8, _ uint8) Block {
 	return Block(BlockBlank{})
 }
 
-func (BaseBlock) MoveRequest(ownerId uint8, _ uint8) (bool, Block) {
-	// TODO: Transform this block to BlockSoldier
-	return true, toBlockSoldier(ownerId, 0)
+func (BlockBlank) MoveTo(ownerId uint8, _ uint8) Block {
+	return toBlockSoldier(0, ownerId)
 }

@@ -6,16 +6,30 @@ type BlockMeta struct {
 	blockId     uint8
 }
 
+type MoveRequestType uint8
+
+const (
+	MoveRequestTypeFrom MoveRequestType = 1
+	MoveRequestTypeTo   MoveRequestType = 2
+)
+
+type MoveStatus struct {
+	AllowMoveFrom bool
+	AllowMoveTo   bool
+}
+
 type Block interface {
 	GetNumber() uint8
 	GetOwnerId() uint8
 
-	// RoundEvent Ret: whether updated(true) or not(false)
+	// Round Events
 	roundStart(roundNumber uint8) bool
 	roundEnd(roundNumber uint8) bool
 
-	// MoveRequest Ret: whether allow to move here
-	MoveRequest(ownerId uint8, number uint8) (bool, Block)
+	GetMoveStatus() MoveStatus
+	MoveFrom(number uint8)
+	// MoveTo Ret: a new block to replace this place
+	MoveTo(ownerId uint8, number uint8) Block
 }
 
 type BlockPosition struct{ X, Y uint8 }
@@ -41,4 +55,14 @@ func (BaseBlock) roundStart(_ uint8) bool {
 
 func (BaseBlock) roundEnd(_ uint8) bool {
 	return false
+}
+
+func (BaseBlock) GetMoveStatus() MoveStatus {
+	return MoveStatus{false, false}
+}
+
+func (BaseBlock) MoveFrom(_ uint8) {}
+
+func (BaseBlock) MoveTo(_ uint8, _ uint8) Block {
+	return nil
 }

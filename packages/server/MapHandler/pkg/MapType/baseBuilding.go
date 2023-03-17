@@ -14,7 +14,11 @@ func (block BaseBuilding) roundStart(_ uint8) bool {
 	return true
 }
 
-func (block BaseBuilding) MoveRequest(ownerId uint8, number uint8) (bool, Block) {
+func (block BaseBuilding) MoveFrom(number uint8) {
+	block.number -= number
+}
+
+func (block BaseBuilding) MoveTo(ownerId uint8, number uint8) Block {
 	if block.ownerId != ownerId {
 		if block.number < number {
 			block.ownerId = ownerId
@@ -25,5 +29,5 @@ func (block BaseBuilding) MoveRequest(ownerId uint8, number uint8) (bool, Block)
 	} else {
 		block.number += number
 	}
-	return true, nil
+	return nil
 }
