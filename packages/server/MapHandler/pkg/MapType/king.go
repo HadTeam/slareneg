@@ -1,5 +1,7 @@
 package MapType
 
+var _ Block = (*BlockKing)(nil)
+
 type BlockKing struct {
 	BaseBuilding
 }

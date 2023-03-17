@@ -1,5 +1,7 @@
 package MapType
 
+var _ Block = (*BlockBlank)(nil)
+
 type BlockBlank struct {
 	BaseBlock
 }

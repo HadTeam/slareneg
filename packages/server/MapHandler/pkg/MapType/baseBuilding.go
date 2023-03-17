@@ -1,5 +1,7 @@
 package MapType
 
+var _ Block = (*BaseBuilding)(nil)
+
 type BaseBuilding struct {
 	BaseBlock
 	number uint8

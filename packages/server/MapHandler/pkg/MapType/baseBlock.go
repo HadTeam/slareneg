@@ -34,6 +34,8 @@ type Block interface {
 
 type BlockPosition struct{ X, Y uint8 }
 
+var _ Block = (*BaseBlock)(nil)
+
 type BaseBlock struct {
 	ownerId  uint8
 	typeId   uint8
