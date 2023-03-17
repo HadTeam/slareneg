@@ -33,7 +33,7 @@ func GetOriginalGameMap(mapId uint32) MapType.Map {
 
 		}
 	}
-	return MapType.Map{Blocks: ret}
+	return MapType.Map{Blocks: ret, Size: MapType.MapSize{X: uint8(len(ret[0])), Y: uint8(len(ret))}, MapId: mapId}
 }
 
 func GetInstruction() []InstructionType.Instruction {

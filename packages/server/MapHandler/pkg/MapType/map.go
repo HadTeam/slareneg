@@ -5,6 +5,7 @@ type MapSize struct{ X, Y uint8 }
 type Map struct {
 	Blocks [][]Block
 	Size   MapSize
+	MapId  uint32
 }
 
 func (m Map) GetBlock(position BlockPosition) Block {
