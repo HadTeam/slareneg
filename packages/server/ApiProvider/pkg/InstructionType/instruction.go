@@ -17,4 +17,5 @@ type MoveInstruction struct {
 	UserId   uint8
 	Position MapType.BlockPosition
 	Towards  MoveTowardsType
+	Number   uint8
 }
