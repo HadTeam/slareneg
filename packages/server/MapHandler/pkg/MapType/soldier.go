@@ -7,7 +7,7 @@ type BlockSoldier struct {
 
 var blockSoldierMeta = BlockMeta{
 	blockId:     1,
-	name:        "king",
+	name:        "soldier",
 	description: "",
 }
 

@@ -9,7 +9,7 @@ func RegisterBlockType(meta BlockMeta, transFunc func(uint8, uint8) Block) {
 		transBlockTypeFunc = make(map[uint8]func(ownerId uint8, number uint8) Block)
 	}
 	transBlockTypeFunc[meta.blockId] = transFunc
-	fmt.Println("[Info] Registered a block type", "id:", meta.blockId, ", name:", meta.name, ",description:", meta.description)
+	fmt.Println("[Info] Registered a block type", "id:", meta.blockId, " name:", meta.name, " description:", meta.description)
 }
 
 func ToBlockByTypeId(typeId uint8, block Block) Block {
