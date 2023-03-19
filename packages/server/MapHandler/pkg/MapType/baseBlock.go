@@ -43,28 +43,28 @@ type BaseBlock struct {
 	position BlockPosition
 }
 
-func (BaseBlock) GetNumber() uint8 {
+func (*BaseBlock) GetNumber() uint8 {
 	return 0
 }
 
-func (block BaseBlock) GetOwnerId() uint8 {
+func (block *BaseBlock) GetOwnerId() uint8 {
 	return block.ownerId
 }
 
-func (BaseBlock) roundStart(_ uint8) bool {
+func (*BaseBlock) roundStart(_ uint8) bool {
 	return false
 }
 
-func (BaseBlock) roundEnd(_ uint8) bool {
+func (*BaseBlock) roundEnd(_ uint8) bool {
 	return false
 }
 
-func (BaseBlock) GetMoveStatus() MoveStatus {
+func (*BaseBlock) GetMoveStatus() MoveStatus {
 	return MoveStatus{false, false}
 }
 
-func (BaseBlock) MoveFrom(_ uint8) {}
+func (*BaseBlock) MoveFrom(_ uint8) {}
 
-func (BaseBlock) MoveTo(_ uint8, _ uint8) Block {
+func (*BaseBlock) MoveTo(_ uint8, _ uint8) Block {
 	return nil
 }

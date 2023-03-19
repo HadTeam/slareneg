@@ -7,20 +7,20 @@ type BaseBuilding struct {
 	number uint8
 }
 
-func (block BaseBuilding) getNumber() uint8 {
+func (block *BaseBuilding) GetNumber() uint8 {
 	return block.number
 }
 
-func (block BaseBuilding) roundStart(_ uint8) bool {
+func (block *BaseBuilding) roundStart(_ uint8) bool {
 	block.number += 1
 	return true
 }
 
-func (block BaseBuilding) MoveFrom(number uint8) {
+func (block *BaseBuilding) MoveFrom(number uint8) {
 	block.number -= number
 }
 
-func (block BaseBuilding) MoveTo(ownerId uint8, number uint8) Block {
+func (block *BaseBuilding) MoveTo(ownerId uint8, number uint8) Block {
 	if block.ownerId != ownerId {
 		if block.number < number {
 			block.ownerId = ownerId

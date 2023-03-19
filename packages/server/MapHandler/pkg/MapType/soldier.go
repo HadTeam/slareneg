@@ -19,14 +19,14 @@ func toBlockSoldier(number uint8, ownerId uint8) Block {
 	var ret BlockSoldier
 	ret.number = number
 	ret.ownerId = ownerId
-	return Block(ret)
+	return Block(&ret)
 }
 
-func (block BlockSoldier) getNumber() uint8 {
+func (block *BlockSoldier) GetNumber() uint8 {
 	return block.number
 }
 
-func (block BlockSoldier) roundStart(roundNum uint8) bool {
+func (block *BlockSoldier) roundStart(roundNum uint8) bool {
 	if (roundNum%25)-1 == 0 && roundNum != 1 {
 		block.number += 1
 		return true
@@ -34,11 +34,11 @@ func (block BlockSoldier) roundStart(roundNum uint8) bool {
 	return false
 }
 
-func (block BlockSoldier) MoveFrom(number uint8) {
+func (block *BlockSoldier) MoveFrom(number uint8) {
 	block.number -= number
 }
 
-func (block BlockSoldier) MoveTo(ownerId uint8, number uint8) Block {
+func (block *BlockSoldier) MoveTo(ownerId uint8, number uint8) Block {
 
 	if block.ownerId != ownerId {
 		if block.number < number {

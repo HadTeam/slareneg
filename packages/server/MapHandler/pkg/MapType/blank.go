@@ -17,9 +17,9 @@ func init() {
 }
 
 func toBlockBlank(_ uint8, _ uint8) Block {
-	return Block(BlockBlank{})
+	return Block(&BlockBlank{})
 }
 
-func (BlockBlank) MoveTo(ownerId uint8, _ uint8) Block {
+func (*BlockBlank) MoveTo(ownerId uint8, _ uint8) Block {
 	return toBlockSoldier(0, ownerId)
 }
