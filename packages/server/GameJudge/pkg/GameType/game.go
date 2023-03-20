@@ -8,9 +8,9 @@ type GameStatus uint8
 type GameId uint16
 
 const (
-	GameStatusWaiting GameStatus = 1
-	GameStatusRunning GameStatus = 2
-	GameStatusEnd     GameStatus = 3
+	GameStatusWaiting GameStatus = iota + 1
+	GameStatusRunning
+	GameStatusEnd
 )
 
 type Game struct {

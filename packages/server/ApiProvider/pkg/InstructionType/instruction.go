@@ -7,10 +7,10 @@ type Instruction interface{}
 type MoveTowardsType uint8
 
 const (
-	MoveTowardsLeft  MoveTowardsType = 1
-	MoveTowardsRight MoveTowardsType = 2
-	MoveTowardsUp    MoveTowardsType = 3
-	MoveTowardsDown  MoveTowardsType = 4
+	MoveTowardsLeft MoveTowardsType = iota + 1
+	MoveTowardsRight
+	MoveTowardsUp
+	MoveTowardsDown
 )
 
 type MoveInstruction struct {
