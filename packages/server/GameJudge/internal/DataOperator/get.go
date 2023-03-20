@@ -9,6 +9,9 @@ import (
 	_ "server/MapHandler/pkg/MapType"
 )
 
+// TODO: Move functions to local data source
+
+// GetOriginalGameMap TODO: Move To GameOperator
 func GetOriginalGameMap(mapId uint32) MapType.Map {
 	originMapStr := local.GetOriginalGameMapStr(mapId)
 	var result [][]uint8
