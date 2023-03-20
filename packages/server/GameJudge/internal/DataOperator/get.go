@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"server/ApiProvider/pkg/InstructionType"
 	"server/GameJudge/internal/DataOperator/local"
-	"server/GameJudge/internal/GameType"
+	"server/GameJudge/pkg/GameType"
 	"server/MapHandler/pkg/MapType"
 	_ "server/MapHandler/pkg/MapType"
 )

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"server/ApiProvider/pkg/InstructionType"
 	"server/GameJudge/internal/DataOperator"
-	"server/GameJudge/internal/GameType"
+	"server/GameJudge/pkg/GameType"
 	"server/MapHandler/pkg/MapOperator"
 	"server/MapHandler/pkg/MapType"
 )

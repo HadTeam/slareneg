@@ -2,7 +2,7 @@ package local
 
 import (
 	"server/ApiProvider/pkg/InstructionType"
-	"server/GameJudge/internal/GameType"
+	"server/GameJudge/pkg/GameType"
 	"server/MapHandler/pkg/MapType"
 )
 
