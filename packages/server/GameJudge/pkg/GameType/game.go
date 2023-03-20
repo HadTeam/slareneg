@@ -15,8 +15,10 @@ const (
 
 type Game struct {
 	Map        *MapType.Map
+	Mode       GameMode
+	Id         GameId
 	UserList   []User
 	CreateTime int64
 	Status     GameStatus
-	RoundNum   *uint8
+	RoundNum   uint8
 }
