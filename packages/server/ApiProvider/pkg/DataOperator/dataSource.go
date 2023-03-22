@@ -9,9 +9,11 @@ import (
 type DataSource interface {
 	GetOriginalMap(mapId uint32) *MapType.Map
 	GetCurrentGame(id GameType.GameId) *GameType.Game
-	GetCurrentInstruction(id GameType.GameId) []InstructionType.Instruction
 	CreateGame(game *GameType.Game) GameType.GameId
 	PutInstructions(id GameType.GameId, instructions []InstructionType.Instruction) bool
 	AnnounceGameStart(gameId GameType.GameId) bool
-	NewRound(id GameType.GameId, m *MapType.Map, turnNum uint8) bool
+
+	GetInstructionsFromTemp(id GameType.GameId, roundNum uint8) []InstructionType.Instruction
+	AchieveInstructionTemp(id GameType.GameId, roundNum uint8) bool
+	PutMap(id GameType.GameId, m *MapType.Map) bool
 }
