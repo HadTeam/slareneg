@@ -21,12 +21,14 @@ type Local struct {
 var Pool Local
 
 func init() {
-	Pool.GamePool = make(map[uint16]*GameType.Game)
-	Pool.OriginalMapStrPool = make(map[uint32]string)
-	Pool.OriginalMapStrPool[0] = "[\n[0,0,0,0,2],\n[0,2,0,0,0],\n[0,0,0,0,0],\n[0,3,3,0,3],\n[0,3,0,2,0]\n]"
+	Pool = Local{
+		GamePool:            make(map[uint16]*GameType.Game),
+		OriginalMapStrPool:  make(map[uint32]string),
+		InstructionTempPool: make(map[uint16][]InstructionType.Instruction),
+		InstructionLog:      make(map[uint16]map[uint8][]InstructionType.Instruction),
+	}
 
-	Pool.InstructionTempPool = make(map[uint16][]InstructionType.Instruction)
-	Pool.InstructionLog = make(map[uint16]map[uint8][]InstructionType.Instruction)
+	Pool.OriginalMapStrPool[0] = "[\n[0,0,0,0,2],\n[0,2,0,0,0],\n[0,0,0,0,0],\n[0,3,3,0,3],\n[0,3,0,2,0]\n]"
 }
 
 func (l *Local) GetOriginalMap(mapId uint32) *MapType.Map {

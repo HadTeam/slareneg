@@ -47,6 +47,11 @@ func NewGameJudge() *GameJudge {
 	return j
 }
 
+func Work(judge *GameJudge, id GameType.GameId) {
+	judge.gameId = id
+	judge.m <- JudgeCommandWork
+}
+
 func judgeWorking(j *GameJudge) {
 	for v := range j.m {
 		switch v {
