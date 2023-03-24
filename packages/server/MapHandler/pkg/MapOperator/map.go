@@ -7,7 +7,7 @@ import (
 
 func Str2GameMap(mapId uint32, originalMapStr string) *MapType.Map {
 	var result [][]uint8
-	if json.Unmarshal([]byte(originalMapStr), &result) == nil {
+	if json.Unmarshal([]byte(originalMapStr), &result) != nil {
 		return nil
 	}
 	size := MapType.MapSize{X: uint8(len(result[0])), Y: uint8(len(result))}
