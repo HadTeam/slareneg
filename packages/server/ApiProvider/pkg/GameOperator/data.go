@@ -7,7 +7,6 @@ import (
 
 var data DataOperator.DataSource
 
-func init() {
-	// TODO: Link data source
-
+func ApplyDataSource(source DataOperator.DataSource) {
+	data = source
 }

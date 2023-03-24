@@ -13,6 +13,11 @@ const (
 	GameStatusEnd
 )
 
+type GameScore struct {
+	Num   uint8
+	Place uint8
+}
+
 type Game struct {
 	Map        *MapType.Map
 	Mode       GameMode
