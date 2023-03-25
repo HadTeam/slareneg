@@ -23,10 +23,9 @@ func toBlockKing(number uint8, ownerId uint8) Block {
 	return Block(&ret)
 }
 
-func (block *BlockKing) roundEnd(_ uint8) bool {
+func (block *BlockKing) roundEnd(_ uint8) (bool, GameOverSign) {
 	if block.number <= 0 {
-		// TODO: Handle game-over
-		return true
+		return true, true
 	}
-	return false
+	return false, false
 }

@@ -24,7 +24,7 @@ type Block interface {
 
 	// Round Events
 	roundStart(roundNumber uint8) bool
-	roundEnd(roundNumber uint8) bool
+	roundEnd(roundNumber uint8) (bool, GameOverSign)
 
 	GetMoveStatus() MoveStatus
 	MoveFrom(number uint8)
@@ -55,8 +55,8 @@ func (*BaseBlock) roundStart(_ uint8) bool {
 	return false
 }
 
-func (*BaseBlock) roundEnd(_ uint8) bool {
-	return false
+func (*BaseBlock) roundEnd(_ uint8) (bool, GameOverSign) {
+	return false, false
 }
 
 func (*BaseBlock) GetMoveStatus() MoveStatus {

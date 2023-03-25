@@ -87,8 +87,8 @@ func judgeWorking(j *GameJudge) {
 						if !ok {
 							fmt.Printf("[Warn] Instructions execution failed\n")
 						}
-						game.Map.RoundEnd(game.RoundNum)
-						if judgeGame(game) != GameType.GameStatusRunning {
+						gameOverSign := game.Map.RoundEnd(game.RoundNum) // TODO: Refactor the way to spread the game-over sign
+						if gameOverSign || judgeGame(game) != GameType.GameStatusRunning {
 							// Game Over
 							// TODO: Announce game-over
 							game.Status = GameType.GameStatusEnd

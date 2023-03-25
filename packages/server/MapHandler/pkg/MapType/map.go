@@ -26,12 +26,18 @@ func (m *Map) RoundStart(roundNum uint8) {
 	}
 }
 
-func (m *Map) RoundEnd(roundNum uint8) {
+type GameOverSign bool
+
+func (m *Map) RoundEnd(roundNum uint8) GameOverSign {
+	var ret GameOverSign
 	for _, col := range m.Blocks {
 		for _, block := range col {
-			block.roundEnd(roundNum)
+			if _, s := block.roundEnd(roundNum); s {
+				ret = true
+			}
 		}
 	}
+	return ret
 }
 
 func (m *Map) OutputNumber() { // Only for debugging
