@@ -63,14 +63,18 @@ func judgeWorking(j *GameJudge) {
 					break
 				}
 				j.status = StatusWorking
-				t := time.NewTicker(RoundTime)
+				fmt.Printf("[Judge %d] Working for GameId %d\n", j.id, j.gameId)
 				game := data.GetCurrentGame(j.gameId)
 				game.RoundNum = 0
 				game.Map = data.GetOriginalMap(game.Map.MapId)
 				data.PutMap(j.gameId, game.Map)
+				fmt.Println("OriginalMap:")
+				game.Map.OutputNumber()
+				t := time.NewTicker(RoundTime)
 				for range t.C {
 					//Round End
 					if game.RoundNum != 0 {
+						fmt.Printf("[Round] Round %d end\n", game.RoundNum)
 						data.AchieveInstructionTemp(j.gameId, game.RoundNum)
 						instructionList := data.GetInstructionsFromTemp(j.gameId, game.RoundNum)
 
@@ -84,17 +88,18 @@ func judgeWorking(j *GameJudge) {
 							fmt.Printf("[Warn] Instructions execution failed\n")
 						}
 						game.Map.RoundEnd(game.RoundNum)
-					}
-					if judgeGame(game) != GameType.GameStatusRunning {
-						// Game Over
-						// TODO: Announce game-over
-						game.Status = GameType.GameStatusEnd
-						j.status = StatusWaiting
-						break
+						if judgeGame(game) != GameType.GameStatusRunning {
+							// Game Over
+							// TODO: Announce game-over
+							game.Status = GameType.GameStatusEnd
+							j.status = StatusWaiting
+							fmt.Printf("[Judge %d] Done for GameId %d\n", j.id, j.gameId)
+							break
+						}
 					}
 					game.RoundNum++
 					// Round Start
-					fmt.Println("Round", game.RoundNum, "start")
+					fmt.Printf("[Round] Round %d start\n", game.RoundNum)
 					game.Map.RoundStart(game.RoundNum)
 					data.PutMap(j.gameId, game.Map)
 					game.Map.OutputNumber()
