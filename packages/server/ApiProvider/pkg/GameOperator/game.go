@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// NewGame TODO: Add unit test
 func NewGame(mapId uint32, mode GameType.GameMode) GameType.GameId {
 	m := data.GetOriginalMap(mapId)
 	g := &GameType.Game{

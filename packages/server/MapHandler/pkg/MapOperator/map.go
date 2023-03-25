@@ -5,6 +5,7 @@ import (
 	"server/MapHandler/pkg/MapType"
 )
 
+// Str2GameMap TODO: Add unit test
 func Str2GameMap(mapId uint32, originalMapStr string) *MapType.Map {
 	var result [][]uint8
 	if json.Unmarshal([]byte(originalMapStr), &result) != nil {

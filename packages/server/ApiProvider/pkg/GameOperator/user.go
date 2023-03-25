@@ -1,6 +1,8 @@
 package GameOperator
 
-import "server/GameJudge/pkg/GameType"
+import (
+	"server/GameJudge/pkg/GameType"
+)
 
 func getUserFromList(userList *[]GameType.User, userId uint8) *GameType.User {
 	for i, u := range *userList {
@@ -11,6 +13,7 @@ func getUserFromList(userList *[]GameType.User, userId uint8) *GameType.User {
 	return nil
 }
 
+// UserJoin TODO: Add unit test
 func UserJoin(id GameType.GameId, user GameType.User) bool {
 	game := data.GetCurrentGame(id)
 	if game.Status == GameType.GameStatusWaiting {
@@ -35,6 +38,7 @@ func UserJoin(id GameType.GameId, user GameType.User) bool {
 	return false
 }
 
+// UserQuit TODO: Add unit test
 func UserQuit(id GameType.GameId, user GameType.User) bool {
 	game := data.GetCurrentGame(id)
 	if game.Status == GameType.GameStatusWaiting {

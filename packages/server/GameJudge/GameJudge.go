@@ -109,6 +109,7 @@ func judgeWorking(j *GameJudge) {
 	}
 }
 
+// judgeGame TODO: Add unit test
 func judgeGame(g *GameType.Game) GameType.GameStatus {
 	// Check online player number
 	onlinePlayerNum := uint8(0)
