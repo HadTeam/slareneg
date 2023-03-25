@@ -11,7 +11,7 @@ func NewGame(mapId uint32, mode GameType.GameMode) GameType.GameId {
 		Map:        m,
 		UserList:   []GameType.User{},
 		CreateTime: time.Now().UnixMicro(),
-		Status:     GameType.GameStatusRunning,
+		Status:     GameType.GameStatusWaiting,
 		RoundNum:   0,
 		Mode:       mode,
 		// The Id field will be filled in `data.CreateGame`
