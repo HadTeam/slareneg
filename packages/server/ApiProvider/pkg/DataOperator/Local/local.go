@@ -46,6 +46,7 @@ func (l *Local) CreateGame(game *GameType.Game) GameType.GameId {
 	id := uint16(rand.Uint32())
 	game.Id = GameType.GameId(id)
 	l.GamePool[id] = game
+	l.InstructionLog[id] = make(map[uint8][]InstructionType.Instruction)
 	return GameType.GameId(id)
 }
 
