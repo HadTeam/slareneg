@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"server/ApiProvider/pkg/DataOperator"
+	"server/GameJudge/internal/InstructionExecutor"
 	"server/GameJudge/pkg/GameType"
 	"time"
 )
@@ -34,6 +35,7 @@ type GameJudge struct {
 
 func ApplyDataSource(source DataOperator.DataSource) {
 	data = source
+	InstructionExecutor.ApplyDataSource(source)
 }
 
 func NewGameJudge() *GameJudge {
@@ -70,7 +72,17 @@ func judgeWorking(j *GameJudge) {
 					//Round End
 					if game.RoundNum != 0 {
 						data.AchieveInstructionTemp(j.gameId, game.RoundNum)
-						data.GetInstructionsFromTemp(j.gameId, game.RoundNum)
+						instructionList := data.GetInstructionsFromTemp(j.gameId, game.RoundNum)
+
+						ok := true
+						for _, instruction := range instructionList {
+							if !InstructionExecutor.ExecuteInstruction(j.gameId, instruction) {
+								ok = false
+							}
+						}
+						if !ok {
+							fmt.Printf("[Warn] Instructions execution failed\n")
+						}
 						game.Map.RoundEnd(game.RoundNum)
 					}
 					if judgeGame(game) != GameType.GameStatusRunning {

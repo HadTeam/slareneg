@@ -2,22 +2,17 @@ package InstructionExecutor
 
 import (
 	"fmt"
+	"server/ApiProvider/pkg/DataOperator"
 	"server/ApiProvider/pkg/InstructionType"
-	"server/GameJudge/internal/DataOperator"
 	"server/GameJudge/pkg/GameType"
 	"server/MapHandler/pkg/MapOperator"
 	"server/MapHandler/pkg/MapType"
 )
 
-func ExecuteAllInstruction(gameId GameType.GameId) bool {
-	instructionList := DataOperator.GetInstruction(gameId)
-	ret := true
-	for _, instruction := range instructionList {
-		if !ExecuteInstruction(gameId, instruction) {
-			ret = false
-		}
-	}
-	return ret
+var data DataOperator.DataSource
+
+func ApplyDataSource(source DataOperator.DataSource) {
+	data = source
 }
 
 func ExecuteInstruction(gameId GameType.GameId, instruction InstructionType.Instruction) bool {
@@ -26,7 +21,7 @@ func ExecuteInstruction(gameId GameType.GameId, instruction InstructionType.Inst
 	switch instruction.(type) {
 	case InstructionType.MoveInstruction:
 		{
-			m = DataOperator.GetCurrentMap(gameId)
+			m = data.GetCurrentGame(gameId).Map
 			ret = MapOperator.Move(m, instruction.(InstructionType.MoveInstruction))
 
 		}
