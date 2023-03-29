@@ -18,11 +18,13 @@ func main() {
 	defer exit()
 	data = &Local.Pool
 
+
+	workPool := make(chan GameType.GameId)
+
 	ApiProvider.ApplyDataSource(data)
 	GameJudge.ApplyDataSource(data)
-	j := GameJudge.NewGameJudge()
+	_ = GameJudge.NewGameJudge(workPool)
 	gameId := GameOperator.NewGame(0, GameType.GameMode1v1)
-	GameJudge.Work(j, gameId)
-	g := data.GetCurrentGame(gameId)
+	workPool <- gameId
 	<-ctx.Done()
 }

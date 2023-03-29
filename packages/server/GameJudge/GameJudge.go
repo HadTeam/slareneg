@@ -20,17 +20,11 @@ const (
 	StatusWorking
 )
 
-type JudgeCommand uint8
-
-const (
-	JudgeCommandWork JudgeCommand = iota + 1
-)
-
 type GameJudge struct {
 	gameId GameType.GameId
 	status Status
 	id     uint8
-	m      chan JudgeCommand
+	P      chan GameType.GameId
 }
 
 func ApplyDataSource(source DataOperator.DataSource) {
@@ -38,73 +32,61 @@ func ApplyDataSource(source DataOperator.DataSource) {
 	InstructionExecutor.ApplyDataSource(source)
 }
 
-func NewGameJudge() *GameJudge {
+func NewGameJudge(pool chan GameType.GameId) *GameJudge {
 	j := &GameJudge{
 		gameId: 0,
 		status: StatusWaiting,
 		id:     uint8(rand.Uint32()),
-		m:      make(chan JudgeCommand),
+		P:      pool,
 	}
 	go judgeWorking(j)
 	return j
 }
 
-func Work(judge *GameJudge, id GameType.GameId) {
-	judge.gameId = id
-	judge.m <- JudgeCommandWork
-}
-
 func judgeWorking(j *GameJudge) {
-	for v := range j.m {
-		switch v {
-		case JudgeCommandWork:
-			{
-				if j.gameId == 0 {
+	for {
+		j.gameId = <-j.P
+		j.status = StatusWorking
+		fmt.Printf("[Judge %d] Working for GameId %d\n", j.id, j.gameId)
+		game := data.GetCurrentGame(j.gameId)
+		game.RoundNum = 0
+		game.Map = data.GetOriginalMap(game.Map.MapId)
+		data.PutMap(j.gameId, game.Map)
+		fmt.Println("OriginalMap:")
+		game.Map.OutputNumber()
+		t := time.NewTicker(RoundTime)
+		for range t.C {
+			//Round End
+			if game.RoundNum != 0 {
+				fmt.Printf("[Round] Round %d end\n", game.RoundNum)
+				data.AchieveInstructionTemp(j.gameId, game.RoundNum)
+				instructionList := data.GetInstructionsFromTemp(j.gameId, game.RoundNum)
+
+				ok := true
+				for _, instruction := range instructionList {
+					if !InstructionExecutor.ExecuteInstruction(j.gameId, instruction) {
+						ok = false
+					}
+				}
+				if !ok {
+					fmt.Printf("[Warn] Instructions execution failed\n")
+				}
+				gameOverSign := game.Map.RoundEnd(game.RoundNum) // TODO: Refactor the way to spread the game-over sign
+				if gameOverSign || judgeGame(game) != GameType.GameStatusRunning {
+					// Game Over
+					// TODO: Announce game-over
+					game.Status = GameType.GameStatusEnd
+					j.status = StatusWaiting
+					fmt.Printf("[Judge %d] Done for GameId %d\n", j.id, j.gameId)
 					break
 				}
-				j.status = StatusWorking
-				fmt.Printf("[Judge %d] Working for GameId %d\n", j.id, j.gameId)
-				game := data.GetCurrentGame(j.gameId)
-				game.RoundNum = 0
-				game.Map = data.GetOriginalMap(game.Map.MapId)
-				data.PutMap(j.gameId, game.Map)
-				fmt.Println("OriginalMap:")
-				game.Map.OutputNumber()
-				t := time.NewTicker(RoundTime)
-				for range t.C {
-					//Round End
-					if game.RoundNum != 0 {
-						fmt.Printf("[Round] Round %d end\n", game.RoundNum)
-						data.AchieveInstructionTemp(j.gameId, game.RoundNum)
-						instructionList := data.GetInstructionsFromTemp(j.gameId, game.RoundNum)
-
-						ok := true
-						for _, instruction := range instructionList {
-							if !InstructionExecutor.ExecuteInstruction(j.gameId, instruction) {
-								ok = false
-							}
-						}
-						if !ok {
-							fmt.Printf("[Warn] Instructions execution failed\n")
-						}
-						gameOverSign := game.Map.RoundEnd(game.RoundNum) // TODO: Refactor the way to spread the game-over sign
-						if gameOverSign || judgeGame(game) != GameType.GameStatusRunning {
-							// Game Over
-							// TODO: Announce game-over
-							game.Status = GameType.GameStatusEnd
-							j.status = StatusWaiting
-							fmt.Printf("[Judge %d] Done for GameId %d\n", j.id, j.gameId)
-							break
-						}
-					}
-					game.RoundNum++
-					// Round Start
-					fmt.Printf("[Round] Round %d start\n", game.RoundNum)
-					game.Map.RoundStart(game.RoundNum)
-					data.PutMap(j.gameId, game.Map)
-					game.Map.OutputNumber()
-				}
 			}
+			game.RoundNum++
+			// Round Start
+			fmt.Printf("[Round] Round %d start\n", game.RoundNum)
+			game.Map.RoundStart(game.RoundNum)
+			data.PutMap(j.gameId, game.Map)
+			game.Map.OutputNumber()
 		}
 	}
 }
