@@ -121,6 +121,10 @@ func judgeGame(g *GameType.Game) GameType.GameStatus {
 	if onlinePlayerNum <= 0 {
 		return GameType.GameStatusEnd
 	}
+	if onlinePlayerNum == 1 {
+		// TODO: Announce game-over
+		return GameType.GameStatusEnd
+	}
 
 	return GameType.GameStatusRunning
 }
