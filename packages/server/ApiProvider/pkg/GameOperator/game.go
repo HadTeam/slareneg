@@ -1,7 +1,7 @@
 package GameOperator
 
 import (
-	"server/GameJudge/pkg/GameType"
+	"server/JudgePool/pkg/GameType"
 	"time"
 )
 

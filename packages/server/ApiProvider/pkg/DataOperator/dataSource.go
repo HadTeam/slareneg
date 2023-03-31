@@ -2,7 +2,7 @@ package DataOperator
 
 import (
 	"server/ApiProvider/pkg/InstructionType"
-	"server/GameJudge/pkg/GameType"
+	"server/JudgePool/pkg/GameType"
 	"server/MapHandler/pkg/MapType"
 )
 

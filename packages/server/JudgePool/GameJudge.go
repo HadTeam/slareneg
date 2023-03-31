@@ -1,11 +1,11 @@
-package GameJudge
+package JudgePool
 
 import (
 	"fmt"
 	"math/rand"
 	"server/ApiProvider/pkg/DataOperator"
-	"server/GameJudge/internal/InstructionExecutor"
-	"server/GameJudge/pkg/GameType"
+	"server/JudgePool/internal/InstructionExecutor"
+	"server/JudgePool/pkg/GameType"
 	"time"
 )
 

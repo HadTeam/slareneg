@@ -1,7 +1,7 @@
 package GameOperator
 
 import (
-	"server/GameJudge/pkg/GameType"
+	"server/JudgePool/pkg/GameType"
 )
 
 func getUserFromList(userList *[]GameType.User, userId uint8) *GameType.User {
