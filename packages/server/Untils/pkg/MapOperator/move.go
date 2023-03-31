@@ -1,8 +1,8 @@
 package MapOperator
 
 import (
-	"server/ApiProvider/pkg/InstructionType"
-	"server/MapHandler/pkg/MapType"
+	"server/Untils/pkg/InstructionType"
+	"server/Untils/pkg/MapType"
 )
 
 func isPositionLegal(position MapType.BlockPosition, size MapType.MapSize) bool {

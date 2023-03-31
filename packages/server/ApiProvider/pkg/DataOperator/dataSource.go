@@ -1,9 +1,9 @@
 package DataOperator
 
 import (
-	"server/ApiProvider/pkg/InstructionType"
-	"server/JudgePool/pkg/GameType"
-	"server/MapHandler/pkg/MapType"
+	"server/Untils/pkg/GameType"
+	"server/Untils/pkg/InstructionType"
+	"server/Untils/pkg/MapType"
 )
 
 type DataSource interface {

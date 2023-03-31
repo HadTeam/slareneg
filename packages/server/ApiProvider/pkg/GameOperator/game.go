@@ -1,18 +1,18 @@
 package GameOperator
 
 import (
-	"server/JudgePool/pkg/GameType"
+	GameType2 "server/Untils/pkg/GameType"
 	"time"
 )
 
 // NewGame TODO: Add unit test
-func NewGame(mapId uint32, mode GameType.GameMode) GameType.GameId {
+func NewGame(mapId uint32, mode GameType2.GameMode) GameType2.GameId {
 	m := data.GetOriginalMap(mapId)
-	g := &GameType.Game{
+	g := &GameType2.Game{
 		Map:        m,
-		UserList:   []GameType.User{},
+		UserList:   []GameType2.User{},
 		CreateTime: time.Now().UnixMicro(),
-		Status:     GameType.GameStatusWaiting,
+		Status:     GameType2.GameStatusWaiting,
 		RoundNum:   0,
 		Mode:       mode,
 		// The Id field will be filled in `data.CreateGame`
@@ -20,12 +20,12 @@ func NewGame(mapId uint32, mode GameType.GameMode) GameType.GameId {
 	return data.CreateGame(g)
 }
 
-func StartGame(id GameType.GameId) {
+func StartGame(id GameType2.GameId) {
 	g := data.GetCurrentGame(id)
-	g.Status = GameType.GameStatusRunning
+	g.Status = GameType2.GameStatusRunning
 	// TODO: Announce
 }
 
-func TryForceStart(id GameType.GameId) {
+func TryForceStart(id GameType2.GameId) {
 	// TODO
 }

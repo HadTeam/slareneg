@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"server/ApiProvider/pkg/DataOperator"
 	"server/JudgePool/internal/InstructionExecutor"
-	"server/JudgePool/pkg/GameType"
+	GameType2 "server/Untils/pkg/GameType"
 	"time"
 )
 
@@ -21,10 +21,10 @@ const (
 )
 
 type GameJudge struct {
-	gameId GameType.GameId
+	gameId GameType2.GameId
 	status Status
 	id     uint8
-	P      chan GameType.GameId
+	P      chan GameType2.GameId
 }
 
 func ApplyDataSource(source DataOperator.DataSource) {
@@ -32,7 +32,7 @@ func ApplyDataSource(source DataOperator.DataSource) {
 	InstructionExecutor.ApplyDataSource(source)
 }
 
-func NewGameJudge(pool chan GameType.GameId) *GameJudge {
+func NewGameJudge(pool chan GameType2.GameId) *GameJudge {
 	j := &GameJudge{
 		gameId: 0,
 		status: StatusWaiting,
@@ -72,10 +72,10 @@ func judgeWorking(j *GameJudge) {
 					fmt.Printf("[Warn] Instructions execution failed\n")
 				}
 				gameOverSign := game.Map.RoundEnd(game.RoundNum) // TODO: Refactor the way to spread the game-over sign
-				if gameOverSign || judgeGame(game) != GameType.GameStatusRunning {
+				if gameOverSign || judgeGame(game) != GameType2.GameStatusRunning {
 					// Game Over
 					// TODO: Announce game-over
-					game.Status = GameType.GameStatusEnd
+					game.Status = GameType2.GameStatusEnd
 					j.status = StatusWaiting
 					fmt.Printf("[Judge %d] Done for GameId %d\n", j.id, j.gameId)
 					break
@@ -92,21 +92,21 @@ func judgeWorking(j *GameJudge) {
 }
 
 // judgeGame TODO: Add unit test
-func judgeGame(g *GameType.Game) GameType.GameStatus {
+func judgeGame(g *GameType2.Game) GameType2.GameStatus {
 	// Check online player number
 	onlinePlayerNum := uint8(0)
 	for _, u := range g.UserList {
-		if u.Status == GameType.UserStatusConnected {
+		if u.Status == GameType2.UserStatusConnected {
 			onlinePlayerNum++
 		}
 	}
 	if onlinePlayerNum <= 0 {
-		return GameType.GameStatusEnd
+		return GameType2.GameStatusEnd
 	}
 	if onlinePlayerNum == 1 {
 		// TODO: Announce game-over
-		return GameType.GameStatusEnd
+		return GameType2.GameStatusEnd
 	}
 
-	return GameType.GameStatusRunning
+	return GameType2.GameStatusRunning
 }

@@ -1,10 +1,10 @@
 package GameOperator
 
 import (
-	"server/JudgePool/pkg/GameType"
+	GameType2 "server/Untils/pkg/GameType"
 )
 
-func getUserFromList(userList *[]GameType.User, userId uint8) *GameType.User {
+func getUserFromList(userList *[]GameType2.User, userId uint8) *GameType2.User {
 	for i, u := range *userList {
 		if u.UserId == userId {
 			return &(*userList)[i]
@@ -14,9 +14,9 @@ func getUserFromList(userList *[]GameType.User, userId uint8) *GameType.User {
 }
 
 // UserJoin TODO: Add unit test
-func UserJoin(id GameType.GameId, user GameType.User) bool {
+func UserJoin(id GameType2.GameId, user GameType2.User) bool {
 	game := data.GetCurrentGame(id)
-	if game.Status == GameType.GameStatusWaiting {
+	if game.Status == GameType2.GameStatusWaiting {
 		game.UserList = append(game.UserList, user)
 
 		if l := uint8(len(game.UserList)); l >= game.Mode.MinUserNum {
@@ -29,9 +29,9 @@ func UserJoin(id GameType.GameId, user GameType.User) bool {
 
 		return true
 	}
-	if game.Status == GameType.GameStatusRunning {
-		if u := getUserFromList(&game.UserList, user.UserId); u != nil && u.Status == GameType.UserStatusDisconnected {
-			u.Status = GameType.UserStatusConnected
+	if game.Status == GameType2.GameStatusRunning {
+		if u := getUserFromList(&game.UserList, user.UserId); u != nil && u.Status == GameType2.UserStatusDisconnected {
+			u.Status = GameType2.UserStatusConnected
 			return true
 		}
 	}
@@ -39,9 +39,9 @@ func UserJoin(id GameType.GameId, user GameType.User) bool {
 }
 
 // UserQuit TODO: Add unit test
-func UserQuit(id GameType.GameId, user GameType.User) bool {
+func UserQuit(id GameType2.GameId, user GameType2.User) bool {
 	game := data.GetCurrentGame(id)
-	if game.Status == GameType.GameStatusWaiting {
+	if game.Status == GameType2.GameStatusWaiting {
 		for i, u := range game.UserList {
 			if u.UserId == user.UserId {
 				game.UserList = append(game.UserList[i:], game.UserList[:i+1]...)
@@ -49,9 +49,9 @@ func UserQuit(id GameType.GameId, user GameType.User) bool {
 			}
 		}
 	}
-	if game.Status == GameType.GameStatusRunning {
-		if u := getUserFromList(&game.UserList, user.UserId); u != nil && u.Status == GameType.UserStatusConnected {
-			u.Status = GameType.UserStatusDisconnected
+	if game.Status == GameType2.GameStatusRunning {
+		if u := getUserFromList(&game.UserList, user.UserId); u != nil && u.Status == GameType2.UserStatusConnected {
+			u.Status = GameType2.UserStatusDisconnected
 			return true
 		}
 	}

@@ -7,8 +7,8 @@ import (
 	"server/ApiProvider/pkg/DataOperator/Local"
 	_ "server/ApiProvider/pkg/DataOperator/Local"
 	"server/ApiProvider/pkg/GameOperator"
-	"server/GameJudge"
-	"server/GameJudge/pkg/GameType"
+	"server/JudgePool"
+	"server/Untils/pkg/GameType"
 )
 
 var data DataOperator.DataSource
@@ -22,8 +22,8 @@ func main() {
 	workPool := make(chan GameType.GameId)
 
 	ApiProvider.ApplyDataSource(data)
-	GameJudge.ApplyDataSource(data)
-	_ = GameJudge.NewGameJudge(workPool)
+	JudgePool.ApplyDataSource(data)
+	_ = JudgePool.NewGameJudge(workPool)
 	gameId := GameOperator.NewGame(0, GameType.GameMode1v1)
 	workPool <- gameId
 	<-ctx.Done()

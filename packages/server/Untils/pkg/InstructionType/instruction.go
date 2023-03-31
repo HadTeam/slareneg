@@ -1,6 +1,6 @@
 package InstructionType
 
-import "server/MapHandler/pkg/MapType"
+import "server/Untils/pkg/MapType"
 
 type Instruction interface{}
 

@@ -3,10 +3,10 @@ package InstructionExecutor
 import (
 	"fmt"
 	"server/ApiProvider/pkg/DataOperator"
-	"server/ApiProvider/pkg/InstructionType"
-	"server/JudgePool/pkg/GameType"
-	"server/MapHandler/pkg/MapOperator"
-	"server/MapHandler/pkg/MapType"
+	"server/Untils/pkg/GameType"
+	"server/Untils/pkg/InstructionType"
+	"server/Untils/pkg/MapOperator"
+	"server/Untils/pkg/MapType"
 )
 
 var data DataOperator.DataSource

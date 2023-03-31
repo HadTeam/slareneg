@@ -2,7 +2,7 @@ package MapOperator
 
 import (
 	"encoding/json"
-	"server/MapHandler/pkg/MapType"
+	"server/Untils/pkg/MapType"
 )
 
 // Str2GameMap TODO: Add unit test
