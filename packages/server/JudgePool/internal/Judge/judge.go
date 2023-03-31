@@ -1,4 +1,4 @@
-package JudgePool
+package Judge
 
 import (
 	"fmt"
