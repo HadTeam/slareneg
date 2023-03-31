@@ -5,7 +5,6 @@ import (
 	"server/ApiProvider/pkg/DataOperator"
 	"server/Untils/pkg/GameType"
 	"server/Untils/pkg/InstructionType"
-	"server/Untils/pkg/MapOperator"
 	"server/Untils/pkg/MapType"
 	"sync"
 )
@@ -36,7 +35,7 @@ func init() {
 func (l *Local) GetOriginalMap(mapId uint32) *MapType.Map {
 	if l.m.TryLock() {
 		defer l.m.Unlock()
-		return MapOperator.Str2GameMap(mapId, l.OriginalMapStrPool[mapId])
+		return MapType.Str2GameMap(mapId, l.OriginalMapStrPool[mapId])
 	} else {
 		return nil
 	}

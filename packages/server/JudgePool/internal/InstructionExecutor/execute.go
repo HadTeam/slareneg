@@ -5,7 +5,6 @@ import (
 	"server/ApiProvider/pkg/DataOperator"
 	"server/Untils/pkg/GameType"
 	"server/Untils/pkg/InstructionType"
-	"server/Untils/pkg/MapOperator"
 	"server/Untils/pkg/MapType"
 )
 
@@ -22,7 +21,7 @@ func ExecuteInstruction(gameId GameType.GameId, instruction InstructionType.Inst
 	case InstructionType.MoveInstruction:
 		{
 			m = data.GetCurrentGame(gameId).Map
-			ret = MapOperator.Move(m, instruction.(InstructionType.MoveInstruction))
+			ret = m.Move(instruction.(InstructionType.MoveInstruction))
 
 		}
 	}
