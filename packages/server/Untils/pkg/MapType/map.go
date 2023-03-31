@@ -44,7 +44,7 @@ func (p *Map) RoundEnd(roundNum uint8) GameOverSign {
 	return ret
 }
 
-func (p *Map) OutputNumber() { // Only for debugging
+func OutputNumber(p *Map) { // Only for debugging
 	for _, col := range p.Blocks {
 		for _, block := range col {
 			fmt.Print(block.GetNumber())
