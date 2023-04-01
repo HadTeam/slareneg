@@ -82,8 +82,8 @@ func (l *Local) AnnounceGameStart(gameId GameType.GameId) bool {
 }
 
 var ExampleInstruction = []InstructionType.Instruction{
-	InstructionType.MoveInstruction{UserId: 1, Position: MapType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
-	InstructionType.MoveInstruction{UserId: 2, Position: MapType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
+	InstructionType.MoveInstruction{UserId: 1, Position: InstructionType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
+	InstructionType.MoveInstruction{UserId: 2, Position: InstructionType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
 }
 
 func (l *Local) GetInstructionsFromTemp(id GameType.GameId, roundNum uint8) []InstructionType.Instruction {

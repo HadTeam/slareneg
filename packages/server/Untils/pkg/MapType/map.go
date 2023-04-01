@@ -25,7 +25,7 @@ func (p *Map) SetBlock(position BlockPosition, block Block) {
 func (p *Map) RoundStart(roundNum uint8) {
 	for _, col := range p.Blocks {
 		for _, block := range col {
-			block.roundStart(roundNum)
+			block.RoundStart(roundNum)
 		}
 	}
 }
@@ -36,7 +36,7 @@ func (p *Map) RoundEnd(roundNum uint8) GameOverSign {
 	var ret GameOverSign
 	for _, col := range p.Blocks {
 		for _, block := range col {
-			if _, s := block.roundEnd(roundNum); s {
+			if _, s := block.RoundEnd(roundNum); s {
 				ret = true
 			}
 		}
@@ -85,10 +85,11 @@ func (p *Map) Move(instruction InstructionType.MoveInstruction) bool {
 	newPosition := BlockPosition{X: uint8(int(instruction.Position.X) + offsetX), Y: uint8(int(instruction.Position.Y) + offsetY)}
 	// It won't overflow 'cause the min value is 0
 
-	if !isPositionLegal(instruction.Position, p.Size) && !isPositionLegal(newPosition, p.Size) {
+	instructionPosition := BlockPosition{instruction.Position.X, instruction.Position.Y}
+	if !isPositionLegal(instructionPosition, p.Size) && !isPositionLegal(newPosition, p.Size) {
 		return false
 	}
-	thisBlock := p.GetBlock(instruction.Position)
+	thisBlock := p.GetBlock(instructionPosition)
 	if thisBlock.GetNumber() < instruction.Number {
 		return false
 	}

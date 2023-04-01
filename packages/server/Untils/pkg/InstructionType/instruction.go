@@ -1,7 +1,5 @@
 package InstructionType
 
-import "server/Untils/pkg/MapType"
-
 type Instruction interface{}
 
 type MoveTowardsType uint8
@@ -13,9 +11,13 @@ const (
 	MoveTowardsDown
 )
 
+type BlockPosition struct {
+	X, Y uint8
+}
+
 type MoveInstruction struct {
 	UserId   uint8
-	Position MapType.BlockPosition
+	Position BlockPosition
 	Towards  MoveTowardsType
 	Number   uint8
 }

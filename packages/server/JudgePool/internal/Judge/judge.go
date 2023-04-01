@@ -6,6 +6,7 @@ import (
 	"server/ApiProvider/pkg/DataOperator"
 	"server/JudgePool/internal/InstructionExecutor"
 	GameType2 "server/Untils/pkg/GameType"
+	"server/Untils/pkg/MapType"
 	"time"
 )
 
@@ -29,7 +30,6 @@ type GameJudge struct {
 
 func ApplyDataSource(source DataOperator.DataSource) {
 	data = source
-	InstructionExecutor.ApplyDataSource(source)
 }
 
 func NewGameJudge(pool chan GameType2.GameId) *GameJudge {
@@ -53,7 +53,7 @@ func judgeWorking(j *GameJudge) {
 		game.Map = data.GetOriginalMap(game.Map.MapId)
 		data.PutMap(j.gameId, game.Map)
 		fmt.Println("OriginalMap:")
-		game.Map.OutputNumber()
+		MapType.OutputNumber(game.Map)
 		t := time.NewTicker(RoundTime)
 		for range t.C {
 			//Round End
@@ -86,7 +86,7 @@ func judgeWorking(j *GameJudge) {
 			fmt.Printf("[Round] Round %d start\n", game.RoundNum)
 			game.Map.RoundStart(game.RoundNum)
 			data.PutMap(j.gameId, game.Map)
-			game.Map.OutputNumber()
+			MapType.OutputNumber(game.Map)
 		}
 	}
 }
