@@ -1,36 +1,28 @@
 > 注意：本部分的各个部分按照功能来划分
 
 后端分为以下几个部分
-- Websocket Picker
-- Game Judge
-- Data Handler
-- Authoritarian Handler
+- Api Provider
+  - Websocket Recevier
+  - HTTP Receier
+  - Game Operator
+- Game Pool
+  - Game Judge
+  - Data Saver
 
-## Websocket Picker
-外负责与 Websocket Client 通讯，内与 Etcd 交互
+共有两个储存接口
+- Temperature Data Source
+- Persistent Data Source
 
-### Websocket Server
-通过 Gorouting 与多个客户端建立连接。
+## Api Provider
 
-### Etcd Operator
-#### 游戏指令
-覆盖此玩家当前回合的游戏操作。
+### Websocket Recevier
+与 Websocket Client 通讯以接收指令，并与 Game Operator 交互以执行指令。
 
-## Game Judge
-### 回合机制
-通过一个计时器，在特定一段时间内结算旧回合、发起新回合。
-### 多玩家操作冲突判定
-在 Etcd 内存储一个 timestamp，表示 Etcd Operator 收到此游戏指令的时刻，按照 timestamp 升序排序。
+### HTTP Receiver
+负责相应 HTTP API 请求。
 
-## Data Handler
-### 游戏结束
-抽取 Etcd 中的操作信息，转存到 Mysql。
-
-### 更新评级
-定期抽取 Mysql 中的信息，计算排名。
-
-## Authoritarian Handler
-### 用户操作
+### Authoritarian Handler
+#### 用户操作
 包括以下
 - 注册
 - 登录
@@ -39,7 +31,18 @@
 - 绑定邮箱
 - 修改邮箱
 
-### 用户验证
-被调用的地方预期有
-- Websocket Server
-- Web API
+## Game Pool
+### 回合机制
+通过一个计时器，在特定一段时间内结算旧回合、发起新回合。
+
+### 多玩家操作冲突判定
+通过 Instruction Temp 机制与按时间戳排序来实现
+
+Instruction Temp 机制：在 Temperature Data Source 内设置一个回合数字段，按照回合数与玩家 ID 覆盖保存 Instruction，当回合结束时使回合数递增。
+
+### Data Saver
+#### 游戏结束时转存数据
+抽取 Temp DataSource 中的操作信息，转存到 Persistent Data Source。
+
+#### 更新评级
+定期抽取 Persistent Data Source 中的信息，计算排名。
