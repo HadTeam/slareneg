@@ -1,12 +1,11 @@
 package GameOperator
 
 import (
-	"server/ApiProvider/pkg/DataOperator"
-	_ "server/ApiProvider/pkg/DataOperator/Local"
+	"server/Untils/pkg/DataSource"
 )
 
-var data DataOperator.DataSource
+var data DataSource.TempDataSource
 
-func ApplyDataSource(source DataOperator.DataSource) {
-	data = source
+func ApplyDataSource(source interface{}) {
+	data = source.(DataSource.TempDataSource)
 }

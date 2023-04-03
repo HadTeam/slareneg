@@ -2,25 +2,25 @@ package InstructionExecutor
 
 import (
 	"fmt"
-	"server/ApiProvider/pkg/DataOperator"
+	"server/Untils/pkg/DataSource"
 	"server/Untils/pkg/GameType"
 	"server/Untils/pkg/InstructionType"
 	"server/Untils/pkg/MapType"
 )
 
-var data DataOperator.DataSource
+var data DataSource.TempDataSource
 
-func ApplyDataSource(source DataOperator.DataSource) {
-	data = source
+func ApplyDataSource(source interface{}) {
+	data = source.(DataSource.TempDataSource)
 }
 
-func ExecuteInstruction(gameId GameType.GameId, instruction InstructionType.Instruction) bool {
+func ExecuteInstruction(id GameType.GameId, instruction InstructionType.Instruction) bool {
 	var ret bool
 	var m *MapType.Map
 	switch instruction.(type) {
 	case InstructionType.MoveInstruction:
 		{
-			m = data.GetCurrentGame(gameId).Map
+			m = data.GetCurrentMap(id)
 			ret = m.Move(instruction.(InstructionType.MoveInstruction))
 
 		}
