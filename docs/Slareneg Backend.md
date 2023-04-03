@@ -7,11 +7,28 @@
   - Game Operator
 - Game Pool
   - Game Judge
-  - Data Saver
+- Data Saver
 
 共有两个储存接口
 - Temperature Data Source
 - Persistent Data Source
+
+还有 Rpc 接口
+- Api Provider Rpc
+- Game Pool Rpc
+
+## Data Source
+### Temperature
+- 获取目前地图
+- 更新地图
+- 获取指令列表
+- 更新游戏指令
+- 修改游戏状态
+- 获取玩家列表
+- 修改玩家状态
+
+### Persistent
+- 获取初始地图
 
 ## Api Provider
 
@@ -40,9 +57,9 @@
 
 Instruction Temp 机制：在 Temperature Data Source 内设置一个回合数字段，按照回合数与玩家 ID 覆盖保存 Instruction，当回合结束时使回合数递增。
 
-### Data Saver
-#### 游戏结束时转存数据
+## Data Saver
+### 游戏结束时转存数据
 抽取 Temp DataSource 中的操作信息，转存到 Persistent Data Source。
 
-#### 更新评级
+### 更新评级
 定期抽取 Persistent Data Source 中的信息，计算排名。
