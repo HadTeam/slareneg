@@ -5,7 +5,7 @@ import "server/Untils/pkg/MapType"
 var _ MapType.Block = (*BlockKing)(nil)
 
 type BlockKing struct {
-	MapType.BaseBuilding
+	BaseBuilding
 }
 
 var blockKingMeta = MapType.BlockMeta{

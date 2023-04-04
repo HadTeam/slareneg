@@ -1,7 +1,6 @@
 package MapType
 
 import (
-	"encoding/json"
 	"fmt"
 	"server/Untils/pkg/InstructionType"
 )
@@ -106,25 +105,4 @@ func (p *Map) Move(instruction InstructionType.MoveInstruction) bool {
 		p.SetBlock(newPosition, toBlockNew)
 	}
 	return true
-}
-
-// Str2GameMap TODO: Add unit test
-func Str2GameMap(mapId uint32, originalMapStr string) *Map {
-	var result [][]uint8
-	if json.Unmarshal([]byte(originalMapStr), &result) != nil {
-		return nil
-	}
-	size := MapSize{X: uint8(len(result[0])), Y: uint8(len(result))}
-	ret := make([][]Block, size.Y)
-	for rowNum, row := range result {
-		ret[rowNum] = make([]Block, size.X)
-		for colNum, typeId := range row {
-			ret[rowNum][colNum] = ToBlockByTypeId(typeId, &BaseBlock{})
-		}
-	}
-	return &Map{
-		Blocks: ret,
-		Size:   size,
-		MapId:  mapId,
-	}
 }

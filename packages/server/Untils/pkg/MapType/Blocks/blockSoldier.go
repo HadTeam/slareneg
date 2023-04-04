@@ -3,7 +3,7 @@ package Blocks
 import "server/Untils/pkg/MapType"
 
 type BlockSoldier struct {
-	MapType.BaseBlock
+	BaseBlock
 	number uint8
 }
 

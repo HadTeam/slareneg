@@ -1,7 +1,8 @@
 package Local
 
 import (
-	"math/rand"
+	"fmt"
+	"server/Untils/pkg"
 	"server/Untils/pkg/DataSource"
 	"server/Untils/pkg/GameType"
 	"server/Untils/pkg/InstructionType"
@@ -116,7 +117,7 @@ func (l *Local) GetCurrentMap(id GameType.GameId) *MapType.Map {
 func (l *Local) GetOriginalMap(mapId uint32) *MapType.Map {
 	if l.m.TryLock() {
 		defer l.m.Unlock()
-		return MapType.Str2GameMap(mapId, l.OriginalMapStrPool[mapId])
+		return pkg.Str2GameMap(mapId, l.OriginalMapStrPool[mapId])
 	} else {
 		return nil
 	}

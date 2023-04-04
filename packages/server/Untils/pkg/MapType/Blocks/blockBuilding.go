@@ -1,6 +1,8 @@
-package MapType
+package Blocks
 
-var _ Block = (*BaseBuilding)(nil)
+import "server/Untils/pkg/MapType"
+
+var _ MapType.Block = (*BaseBuilding)(nil)
 
 type BaseBuilding struct {
 	BaseBlock
@@ -20,7 +22,7 @@ func (block *BaseBuilding) MoveFrom(number uint8) {
 	block.number -= number
 }
 
-func (block *BaseBuilding) MoveTo(ownerId uint8, number uint8) Block {
+func (block *BaseBuilding) MoveTo(ownerId uint8, number uint8) MapType.Block {
 	if block.ownerId != ownerId {
 		if block.number < number {
 			block.ownerId = ownerId
