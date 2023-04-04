@@ -28,7 +28,7 @@ func (block *BlockSoldier) GetNumber() uint8 {
 	return block.number
 }
 
-func (block *BlockSoldier) roundStart(roundNum uint8) bool {
+func (block *BlockSoldier) RoundStart(roundNum uint8) bool {
 	if (roundNum%25)-1 == 0 && roundNum != 1 {
 		block.number += 1
 		return true

@@ -13,7 +13,7 @@ func (block *BaseBuilding) GetNumber() uint8 {
 	return block.number
 }
 
-func (block *BaseBuilding) roundStart(_ uint8) bool {
+func (block *BaseBuilding) RoundStart(_ uint8) bool {
 	block.number += 1
 	return true
 }

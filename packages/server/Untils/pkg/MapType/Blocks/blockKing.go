@@ -25,7 +25,7 @@ func toBlockKing(number uint8, ownerId uint8) MapType.Block {
 	return MapType.Block(&ret)
 }
 
-func (block *BlockKing) roundEnd(_ uint8) (bool, MapType.GameOverSign) {
+func (block *BlockKing) RoundEnd(_ uint8) (bool, MapType.GameOverSign) {
 	if block.number <= 0 {
 		return true, true
 	}
