@@ -22,6 +22,25 @@ type Local struct {
 	InstructionLog      map[GameType.GameId]map[uint8][]InstructionType.Instruction
 }
 
+func (l *Local) GetGameInfo(id GameType.GameId) *GameType.Game {
+	if l.m.TryLock() {
+		defer l.m.Unlock()
+		p := l.GamePool[id]
+		g := GameType.Game{
+			Map:        &MapType.Map{MapId: p.Map.MapId},
+			Mode:       p.Mode,
+			Id:         p.Id,
+			UserList:   nil,
+			CreateTime: p.CreateTime,
+			Status:     p.Status,
+			RoundNum:   p.RoundNum,
+		}
+		return &g
+	} else {
+		return nil
+	}
+}
+
 var ExampleInstruction = []InstructionType.Instruction{
 	InstructionType.MoveInstruction{UserId: 1, Position: InstructionType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
 	InstructionType.MoveInstruction{UserId: 2, Position: InstructionType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},

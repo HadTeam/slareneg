@@ -11,7 +11,7 @@ type TempDataSource interface {
 
 	GetCurrentUserList(id GameType.GameId) []GameType.User
 	GetInstructions(id GameType.GameId, tempId uint8) []InstructionType.Instruction
-	GetGameInfo(id GameType.GameId) GameType.Game // Returns a `Game` struct with only basic info
+	GetGameInfo(id GameType.GameId) *GameType.Game // Returns a `Game` struct with only basic info
 	NewInstructionTemp(id GameType.GameId, tempId uint8) (ok bool)
 	SetGameStatus(id GameType.GameId, status GameType.GameStatus) (ok bool)
 	SetGameMap(id GameType.GameId, m *MapType.Map) (ok bool)
