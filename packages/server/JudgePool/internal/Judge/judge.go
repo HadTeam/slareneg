@@ -2,7 +2,6 @@ package Judge
 
 import (
 	"fmt"
-	"math/rand"
 	"server/JudgePool/internal/InstructionExecutor"
 	"server/Untils/pkg/DataSource"
 	"server/Untils/pkg/GameType"
@@ -26,7 +25,6 @@ type GameJudge struct {
 	gameId       GameType.GameId
 	status       Status
 	ChangeStatus chan Status
-	id           uint8
 }
 
 func ApplyDataSource(source interface{}) {
@@ -36,9 +34,9 @@ func ApplyDataSource(source interface{}) {
 
 func NewGameJudge(id GameType.GameId) *GameJudge {
 	j := &GameJudge{
-		gameId: id,
-		status: StatusWaiting,
-		id:     uint8(rand.Uint32()),
+		gameId:       id,
+		status:       StatusWaiting,
+		ChangeStatus: make(chan Status),
 	}
 	go judgeWorking(j)
 	return j
@@ -49,7 +47,7 @@ func judgeWorking(j *GameJudge) {
 		j.status = <-j.ChangeStatus
 
 		if j.status == StatusWorking {
-			fmt.Printf("[Judge %d] Working for GameId %d\n", j.id, j.gameId)
+			fmt.Printf("[Judge] Working for GameId %d\n", j.gameId)
 
 			game := data.GetGameInfo(j.gameId)
 			game.Map = pData.GetOriginalMap(game.Map.MapId)
@@ -75,12 +73,12 @@ func judgeWorking(j *GameJudge) {
 						fmt.Printf("[Warn] Instructions execution failed\n")
 					}
 					gameOverSign := game.Map.RoundEnd(game.RoundNum) // TODO: Refactor the way to spread the game-over sign
-					if gameOverSign || judgeGame(&game) != GameType.GameStatusRunning {
+					if gameOverSign || judgeGame(game) != GameType.GameStatusRunning {
 						// Game Over
 						// TODO: Announce game-over
 						game.Status = GameType.GameStatusEnd
 						j.status = StatusWaiting
-						fmt.Printf("[Judge %d] Done for GameId %d\n", j.id, j.gameId)
+						fmt.Printf("[Judge] Done for GameId %d\n", j.gameId)
 						return
 					}
 				}
