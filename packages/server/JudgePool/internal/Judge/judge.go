@@ -54,7 +54,6 @@ func judgeWorking(j *GameJudge) {
 			data.SetGameStatus(j.gameId, GameType.GameStatusRunning)
 			data.SetGameMap(j.gameId, game.Map)
 			fmt.Println("OriginalMap:")
-			MapType.OutputNumber(game.Map)
 			t := time.NewTicker(RoundTime)
 			for range t.C {
 				//Round End
