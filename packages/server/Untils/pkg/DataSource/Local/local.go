@@ -42,8 +42,8 @@ func (l *Local) GetGameInfo(id GameType.GameId) *GameType.Game {
 }
 
 var ExampleInstruction = []InstructionType.Instruction{
-	InstructionType.MoveInstruction{UserId: 1, Position: InstructionType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
-	InstructionType.MoveInstruction{UserId: 2, Position: InstructionType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
+	InstructionType.Move{UserId: 1, Position: InstructionType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
+	InstructionType.Move{UserId: 2, Position: InstructionType.BlockPosition{X: 1, Y: 1}, Towards: InstructionType.MoveTowardsDown},
 }
 
 func (l *Local) GetCurrentUserList(id GameType.GameId) []GameType.User {

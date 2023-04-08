@@ -56,7 +56,7 @@ func isPositionLegal(position BlockPosition, size MapSize) bool {
 	return 1 <= position.X && position.X <= size.X && 1 <= position.Y && position.Y <= size.Y
 }
 
-func (p *Map) Move(instruction InstructionType.MoveInstruction) bool {
+func (p *Map) Move(instruction InstructionType.Move) bool {
 	var offsetX, offsetY int
 	switch instruction.Towards {
 	case InstructionType.MoveTowardsDown:

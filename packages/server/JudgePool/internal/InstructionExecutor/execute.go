@@ -18,10 +18,10 @@ func ExecuteInstruction(id GameType.GameId, instruction InstructionType.Instruct
 	var ret bool
 	var m *MapType.Map
 	switch instruction.(type) {
-	case InstructionType.MoveInstruction:
+	case InstructionType.Move:
 		{
 			m = data.GetCurrentMap(id)
-			ret = m.Move(instruction.(InstructionType.MoveInstruction))
+			ret = m.Move(instruction.(InstructionType.Move))
 
 		}
 	}
