@@ -2,8 +2,8 @@
 
 后端分为以下几个部分
 - Api Provider
-  - Websocket Recevier
-  - HTTP Receier
+  - Websocket Receiver
+  - HTTP Receiver
   - Game Operator
 - Game Pool
   - Game Judge
@@ -32,7 +32,7 @@
 
 ## Api Provider
 
-### Websocket Recevier
+### Websocket Receiver
 与 Websocket Client 通讯以接收指令，并与 Game Operator 交互以执行指令。
 
 ### HTTP Receiver

@@ -16,6 +16,7 @@ addr:  `/api/game/ws`
   - "down": y 增大的方向
   - "left": x 减小的方向
   - "right": x 增大的方向
+- number: 移动的数量
 ### ForceStart
 `ForceStart <status>`
 - status bool:
