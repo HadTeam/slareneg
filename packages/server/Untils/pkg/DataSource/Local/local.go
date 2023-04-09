@@ -1,7 +1,6 @@
 package Local
 
 import (
-	"fmt"
 	"server/Untils/pkg"
 	"server/Untils/pkg/DataSource"
 	"server/Untils/pkg/GameType"
@@ -20,6 +19,44 @@ type Local struct {
 	OriginalMapStrPool  map[uint32]string
 	InstructionTempPool map[GameType.GameId]map[uint8]InstructionType.Instruction
 	InstructionLog      map[GameType.GameId]map[uint8][]InstructionType.Instruction
+}
+
+func (l *Local) GetGameList(mode GameType.GameMode) []GameType.Game {
+	if l.m.TryLock() {
+		defer l.m.Unlock()
+		var ret []GameType.Game
+		for _, p := range l.GamePool {
+			if p.Status == GameType.GameStatusEnd {
+				continue
+			}
+			g := GameType.Game{
+				Map:        &MapType.Map{MapId: p.Map.MapId},
+				Mode:       p.Mode,
+				Id:         p.Id,
+				UserList:   nil,
+				CreateTime: p.CreateTime,
+				Status:     p.Status,
+				RoundNum:   p.RoundNum,
+			}
+			ret = append(ret, g)
+		}
+		return ret
+	} else {
+		return nil
+	}
+}
+
+// CancelGame 1. Set game status 2. Quit existing users
+func (l *Local) CancelGame(id GameType.GameId) (ok bool) {
+	if l.m.TryLock() {
+		defer l.m.Unlock()
+		g := l.GamePool[id]
+		g.Status = GameType.GameStatusEnd
+		g.UserList = nil
+		return true
+	} else {
+		return false
+	}
 }
 
 func (l *Local) GetGameInfo(id GameType.GameId) *GameType.Game {

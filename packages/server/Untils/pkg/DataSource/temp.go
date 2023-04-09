@@ -8,6 +8,8 @@ import (
 
 type TempDataSource interface {
 	CreateGame(mode GameType.GameMode) GameType.GameId
+	GetGameList(mode GameType.GameMode) []GameType.Game // Returns `Game` structs with only basic info of not end game
+	CancelGame(id GameType.GameId) (ok bool)
 
 	GetCurrentUserList(id GameType.GameId) []GameType.User
 	GetInstructions(id GameType.GameId, tempId uint8) []InstructionType.Instruction
