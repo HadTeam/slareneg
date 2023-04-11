@@ -5,7 +5,6 @@ import (
 	"server/JudgePool/internal/InstructionExecutor"
 	"server/Untils/pkg/DataSource"
 	"server/Untils/pkg/GameType"
-	"server/Untils/pkg/MapType"
 	"time"
 )
 
@@ -22,9 +21,9 @@ const (
 )
 
 type GameJudge struct {
-	gameId       GameType.GameId
-	status       Status
-	ChangeStatus chan Status
+	gameId GameType.GameId
+	status Status
+	c      chan Status
 }
 
 func ApplyDataSource(source interface{}) {
@@ -34,17 +33,21 @@ func ApplyDataSource(source interface{}) {
 
 func NewGameJudge(id GameType.GameId) *GameJudge {
 	j := &GameJudge{
-		gameId:       id,
-		status:       StatusWaiting,
-		ChangeStatus: make(chan Status),
+		gameId: id,
+		status: StatusWaiting,
+		c:      make(chan Status),
 	}
 	go judgeWorking(j)
 	return j
 }
 
+func (j *GameJudge) StartGame() {
+	j.c <- StatusWorking
+}
+
 func judgeWorking(j *GameJudge) {
 	for {
-		j.status = <-j.ChangeStatus
+		j.status = <-j.c
 
 		if j.status == StatusWorking {
 			fmt.Printf("[Judge] Working for GameId %d\n", j.gameId)
@@ -53,7 +56,6 @@ func judgeWorking(j *GameJudge) {
 			game.Map = pData.GetOriginalMap(game.Map.MapId)
 			data.SetGameStatus(j.gameId, GameType.GameStatusRunning)
 			data.SetGameMap(j.gameId, game.Map)
-			fmt.Println("OriginalMap:")
 			t := time.NewTicker(RoundTime)
 			for range t.C {
 				//Round End
@@ -87,7 +89,6 @@ func judgeWorking(j *GameJudge) {
 				fmt.Printf("[Round] Round %d start\n", game.RoundNum)
 				game.Map.RoundStart(game.RoundNum)
 				data.SetGameMap(j.gameId, game.Map)
-				MapType.OutputNumber(game.Map)
 			}
 		}
 	}

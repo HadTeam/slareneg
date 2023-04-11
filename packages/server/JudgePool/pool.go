@@ -1,17 +1,17 @@
 package JudgePool
 
 import (
-	"math/rand"
 	"server/JudgePool/internal/InstructionExecutor"
 	"server/JudgePool/internal/Judge"
 	"server/Untils/pkg/DataSource"
 	"server/Untils/pkg/GameType"
 	"sync"
+	"time"
 )
 
 type Pool struct {
-	judges    sync.Map
-	judgeChan chan GameType.GameId
+	judges        sync.Map
+	AllowGameMode []GameType.GameMode
 }
 
 var data DataSource.TempDataSource
@@ -27,18 +27,40 @@ func (p *Pool) NewGame(mode GameType.GameMode) {
 	if id == 0 {
 		panic("Cannot create game")
 	}
-	jId := rand.Uint32()
-
-	for {
-		if _, ok := p.judges.Load(jId); !ok {
-			break
-		}
-		jId = rand.Uint32()
-	}
-
-	p.judges.Store(jId, Judge.NewGameJudge(id))
+	p.judges.Store(id, Judge.NewGameJudge(id))
 }
 
-func CreatePool() *Pool {
-	return &Pool{}
+func CreatePool(allowGameMode []GameType.GameMode) *Pool {
+	p := &Pool{AllowGameMode: allowGameMode}
+	go poolWorking(p)
+	return p
+}
+
+func poolWorking(p *Pool) {
+	t := time.NewTicker(100 * time.Millisecond)
+	for _, mode := range p.AllowGameMode {
+		p.NewGame(mode)
+	}
+	for _ = range t.C {
+		// Ensure there is a game always in waiting status
+		tryStartGame := func(game GameType.Game) {
+
+			if uint8(len(data.GetCurrentUserList(game.Id))) == game.Mode.MaxUserNum {
+				jAny, _ := p.judges.Load(game.Id)
+				j := jAny.(*Judge.GameJudge)
+				j.StartGame()
+				p.NewGame(game.Mode)
+			}
+		}
+
+		for _, mode := range p.AllowGameMode {
+			list := data.GetGameList(mode)
+			for _, g := range list {
+				if g.Status == GameType.GameStatusWaiting {
+					tryStartGame(g)
+					break
+				}
+			}
+		}
+	}
 }
