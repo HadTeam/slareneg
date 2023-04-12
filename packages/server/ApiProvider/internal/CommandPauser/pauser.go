@@ -12,7 +12,6 @@ func PauseCommandStr(userId uint8, str string) (InstructionType.Instruction, err
 	var err error = nil
 	ret := InstructionType.Instruction(nil)
 	args := strings.Split(str, " ")
-	fmt.Printf("%#v\n", args)
 	v := validator.New()
 	switch args[0] {
 	case "Move":
