@@ -1,6 +1,7 @@
 package Local
 
 import (
+	"math/rand"
 	"server/Untils/pkg"
 	"server/Untils/pkg/DataSource"
 	"server/Untils/pkg/GameType"
@@ -21,23 +22,31 @@ type Local struct {
 	InstructionLog      map[GameType.GameId]map[uint8][]InstructionType.Instruction
 }
 
+func (l *Local) lock() bool {
+	for i := 1; !l.m.TryLock(); i++ {
+		time.Sleep(10 * time.Millisecond)
+		if i >= 1e4 {
+			panic("try to lock timeout")
+			return false
+		}
+	}
+	return true
+}
+
+func (l *Local) unlock() {
+	l.m.Unlock()
+}
+
 func (l *Local) GetGameList(mode GameType.GameMode) []GameType.Game {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		var ret []GameType.Game
 		for _, p := range l.GamePool {
 			if p.Status == GameType.GameStatusEnd {
 				continue
 			}
-			g := GameType.Game{
-				Map:        &MapType.Map{MapId: p.Map.MapId},
-				Mode:       p.Mode,
-				Id:         p.Id,
-				UserList:   nil,
-				CreateTime: p.CreateTime,
-				Status:     p.Status,
-				RoundNum:   p.RoundNum,
-			}
+			g := *p
+			g.UserList = nil
 			ret = append(ret, g)
 		}
 		return ret
@@ -48,8 +57,8 @@ func (l *Local) GetGameList(mode GameType.GameMode) []GameType.Game {
 
 // CancelGame 1. Set game status 2. Quit existing users
 func (l *Local) CancelGame(id GameType.GameId) (ok bool) {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		g := l.GamePool[id]
 		g.Status = GameType.GameStatusEnd
 		g.UserList = nil
@@ -60,18 +69,10 @@ func (l *Local) CancelGame(id GameType.GameId) (ok bool) {
 }
 
 func (l *Local) GetGameInfo(id GameType.GameId) *GameType.Game {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
-		p := l.GamePool[id]
-		g := GameType.Game{
-			Map:        &MapType.Map{MapId: p.Map.MapId},
-			Mode:       p.Mode,
-			Id:         p.Id,
-			UserList:   nil,
-			CreateTime: p.CreateTime,
-			Status:     p.Status,
-			RoundNum:   p.RoundNum,
-		}
+	if l.lock() {
+		defer l.unlock()
+		g := *l.GamePool[id]
+		g.UserList = nil
 		return &g
 	} else {
 		return nil
@@ -84,8 +85,8 @@ var ExampleInstruction = []InstructionType.Instruction{
 }
 
 func (l *Local) GetCurrentUserList(id GameType.GameId) []GameType.User {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		return l.GamePool[id].UserList
 	} else {
 		return nil
@@ -93,8 +94,8 @@ func (l *Local) GetCurrentUserList(id GameType.GameId) []GameType.User {
 }
 
 func (l *Local) GetInstructions(id GameType.GameId, tempId uint8) []InstructionType.Instruction {
-	//if l.m.TryLock() {
-	//	defer l.m.Unlock()
+	//if l.lock("") {
+	//	defer l.unlock("")
 	//	return l.InstructionLog[id][roundNum]
 	//} else {
 	//	return nil
@@ -103,8 +104,8 @@ func (l *Local) GetInstructions(id GameType.GameId, tempId uint8) []InstructionT
 }
 
 func (l *Local) NewInstructionTemp(id GameType.GameId, tempId uint8) (ok bool) {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		var list []InstructionType.Instruction
 		for _, v := range l.InstructionTempPool[id] {
 			list = append(list, v)
@@ -118,8 +119,8 @@ func (l *Local) NewInstructionTemp(id GameType.GameId, tempId uint8) (ok bool) {
 }
 
 func (l *Local) SetGameStatus(id GameType.GameId, status GameType.GameStatus) (ok bool) {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		l.GamePool[id].Status = status
 		return true
 	} else {
@@ -128,8 +129,8 @@ func (l *Local) SetGameStatus(id GameType.GameId, status GameType.GameStatus) (o
 }
 
 func (l *Local) SetGameMap(id GameType.GameId, m *MapType.Map) (ok bool) {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		l.GamePool[id].Map = m
 		return true
 	} else {
@@ -138,21 +139,28 @@ func (l *Local) SetGameMap(id GameType.GameId, m *MapType.Map) (ok bool) {
 }
 
 func (l *Local) SetUserStatus(id GameType.GameId, user GameType.User) (ok bool) {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
-		for _, u := range l.GamePool[id].UserList {
+	if l.lock() {
+		defer l.unlock()
+		g := l.GamePool[id]
+		// Try to find the user
+		for i, u := range g.UserList {
 			if u.UserId == user.UserId {
-				u.Status = user.Status
+				g.UserList[i].Status = user.Status
 				return true
 			}
+		}
+		// Not found, try to join the game
+		if g.Status == GameType.GameStatusWaiting && uint8(len(g.UserList)) < g.Mode.MaxUserNum {
+			g.UserList = append(g.UserList, user)
+			return true
 		}
 	}
 	return false
 }
 
 func (l *Local) UpdateInstruction(id GameType.GameId, user GameType.User, instruction InstructionType.Instruction) (ok bool) {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		l.InstructionTempPool[id][user.UserId] = instruction
 		return true
 	} else {
@@ -161,8 +169,8 @@ func (l *Local) UpdateInstruction(id GameType.GameId, user GameType.User, instru
 }
 
 func (l *Local) GetCurrentMap(id GameType.GameId) *MapType.Map {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		m := *l.GamePool[id].Map
 		return &m // Defend the outside modification
 	} else {
@@ -171,8 +179,8 @@ func (l *Local) GetCurrentMap(id GameType.GameId) *MapType.Map {
 }
 
 func (l *Local) GetOriginalMap(mapId uint32) *MapType.Map {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		return pkg.Str2GameMap(mapId, l.OriginalMapStrPool[mapId])
 	} else {
 		return nil
@@ -180,26 +188,35 @@ func (l *Local) GetOriginalMap(mapId uint32) *MapType.Map {
 }
 
 func (l *Local) GetCurrentGame(id GameType.GameId) *GameType.Game {
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	if l.lock() {
+		defer l.unlock()
 		return l.GamePool[id]
 	}
 	return nil
 }
 
 func (l *Local) CreateGame(mode GameType.GameMode) GameType.GameId {
-	m := l.GetOriginalMap(rand.Uint32())
-	g := &GameType.Game{
-		Map:        m,
-		Mode:       mode,
-		Id:         GameType.GameId(rand.Uint32()),
-		UserList:   []GameType.User{},
-		CreateTime: time.Now().UnixMicro(),
-		Status:     GameType.GameStatusWaiting,
-		RoundNum:   0,
-	}
-	if l.m.TryLock() {
-		defer l.m.Unlock()
+	//m := l.GetOriginalMap(rand.Uint32())
+	m := l.GetOriginalMap(0) // TODO DEBUG ONLY
+	if l.lock() {
+		defer l.unlock()
+		var gameId GameType.GameId
+		for {
+			gameId = GameType.GameId(rand.Uint32())
+			if _, ok := l.GamePool[gameId]; !ok {
+				break
+			}
+		}
+		g := &GameType.Game{
+			Map:        m,
+			Mode:       mode,
+			Id:         gameId,
+			CreateTime: time.Now().UnixMicro(),
+			Status:     GameType.GameStatusWaiting,
+			RoundNum:   0,
+			UserList:   []GameType.User{},
+		}
+
 		l.GamePool[g.Id] = g
 		l.InstructionLog[g.Id] = make(map[uint8][]InstructionType.Instruction)
 		return g.Id
