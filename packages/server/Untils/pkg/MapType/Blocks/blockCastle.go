@@ -1,6 +1,9 @@
 package Blocks
 
-import "server/Untils/pkg/MapType"
+import (
+	"math/rand"
+	"server/Untils/pkg/MapType"
+)
 
 var _ MapType.Block = (*BlockCastle)(nil)
 
@@ -20,7 +23,11 @@ func init() {
 
 func toBlockCastle(number uint8, ownerId uint8) MapType.Block {
 	var ret BlockKing
-	ret.number = number
+	if number == 0 {
+		ret.number = uint8(30) + uint8(rand.Intn(30))
+	} else {
+		ret.number = number
+	}
 	ret.ownerId = ownerId
 	return MapType.Block(&ret)
 }
