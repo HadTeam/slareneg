@@ -2,8 +2,8 @@ package pkg
 
 import (
 	"encoding/json"
-	"server/Untils/pkg/MapType"
-	"server/Untils/pkg/MapType/Blocks"
+	"server/Utils/pkg/MapType"
+	"server/Utils/pkg/MapType/Blocks"
 )
 
 // Str2GameMap TODO: Add unit test

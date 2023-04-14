@@ -1,6 +1,6 @@
 package DataSource
 
-import "server/Untils/pkg/MapType"
+import "server/Utils/pkg/MapType"
 
 type PersistentDataSource interface {
 	GetOriginalMap(mapId uint32) *MapType.Map

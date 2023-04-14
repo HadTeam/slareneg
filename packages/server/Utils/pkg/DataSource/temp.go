@@ -1,9 +1,9 @@
 package DataSource
 
 import (
-	"server/Untils/pkg/GameType"
-	"server/Untils/pkg/InstructionType"
-	"server/Untils/pkg/MapType"
+	"server/Utils/pkg/GameType"
+	"server/Utils/pkg/InstructionType"
+	"server/Utils/pkg/MapType"
 )
 
 type TempDataSource interface {

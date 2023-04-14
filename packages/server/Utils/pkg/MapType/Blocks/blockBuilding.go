@@ -1,6 +1,6 @@
 package Blocks
 
-import "server/Untils/pkg/MapType"
+import "server/Utils/pkg/MapType"
 
 var _ MapType.Block = (*BaseBuilding)(nil)
 

@@ -2,10 +2,10 @@ package InstructionExecutor
 
 import (
 	"fmt"
-	"server/Untils/pkg/DataSource"
-	"server/Untils/pkg/GameType"
-	"server/Untils/pkg/InstructionType"
-	"server/Untils/pkg/MapType"
+	"server/Utils/pkg/DataSource"
+	"server/Utils/pkg/GameType"
+	"server/Utils/pkg/InstructionType"
+	"server/Utils/pkg/MapType"
 )
 
 var data DataSource.TempDataSource

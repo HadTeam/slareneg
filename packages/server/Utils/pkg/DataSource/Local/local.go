@@ -2,11 +2,11 @@ package Local
 
 import (
 	"math/rand"
-	"server/Untils/pkg"
-	"server/Untils/pkg/DataSource"
-	"server/Untils/pkg/GameType"
-	"server/Untils/pkg/InstructionType"
-	"server/Untils/pkg/MapType"
+	"server/Utils/pkg"
+	"server/Utils/pkg/DataSource"
+	"server/Utils/pkg/GameType"
+	"server/Utils/pkg/InstructionType"
+	"server/Utils/pkg/MapType"
 	"sync"
 	"time"
 )

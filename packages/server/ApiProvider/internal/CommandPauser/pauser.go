@@ -3,7 +3,7 @@ package CommandPauser
 import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
-	"server/Untils/pkg/InstructionType"
+	"server/Utils/pkg/InstructionType"
 	"strconv"
 	"strings"
 )

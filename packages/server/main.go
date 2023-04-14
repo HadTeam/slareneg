@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"server/JudgePool"
-	"server/Untils/pkg/DataSource/Local"
-	"server/Untils/pkg/GameType"
-	"server/Untils/pkg/InstructionType"
-	_ "server/Untils/pkg/MapType/Blocks"
+	"server/Utils/pkg/DataSource/Local"
+	"server/Utils/pkg/GameType"
+	"server/Utils/pkg/InstructionType"
+	_ "server/Utils/pkg/MapType/Blocks"
 	"strconv"
 	"time"
 )

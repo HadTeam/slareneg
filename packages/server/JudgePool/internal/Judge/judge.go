@@ -3,8 +3,8 @@ package Judge
 import (
 	"fmt"
 	"server/JudgePool/internal/InstructionExecutor"
-	"server/Untils/pkg/DataSource"
-	"server/Untils/pkg/GameType"
+	"server/Utils/pkg/DataSource"
+	"server/Utils/pkg/GameType"
 	"time"
 )
 

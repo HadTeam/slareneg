@@ -2,7 +2,7 @@ package MapType
 
 import (
 	"fmt"
-	"server/Untils/pkg/InstructionType"
+	"server/Utils/pkg/InstructionType"
 )
 
 type MapSize struct{ X, Y uint8 }

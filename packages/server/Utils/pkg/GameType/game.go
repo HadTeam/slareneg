@@ -1,7 +1,7 @@
 package GameType
 
 import (
-	"server/Untils/pkg/MapType"
+	"server/Utils/pkg/MapType"
 )
 
 type GameStatus uint8

@@ -2,7 +2,7 @@ package Blocks
 
 import (
 	"math/rand"
-	"server/Untils/pkg/MapType"
+	"server/Utils/pkg/MapType"
 )
 
 var _ MapType.Block = (*BlockCastle)(nil)
