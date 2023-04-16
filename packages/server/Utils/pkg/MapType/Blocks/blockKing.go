@@ -31,3 +31,7 @@ func (block *BlockKing) RoundEnd(_ uint8) (bool, MapType.GameOverSign) {
 	}
 	return false, false
 }
+
+func (*BlockKing) GetMeta() MapType.BlockMeta {
+	return blockKingMeta
+}

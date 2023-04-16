@@ -18,6 +18,10 @@ func init() {
 	MapType.RegisterBlockType(blockBlankMeta, toBlockBlank)
 }
 
+func (*BlockBlank) GetMeta() MapType.BlockMeta {
+	return blockBlankMeta
+}
+
 func toBlockBlank(_ uint8, _ uint8) MapType.Block {
 	return MapType.Block(&BlockBlank{})
 }

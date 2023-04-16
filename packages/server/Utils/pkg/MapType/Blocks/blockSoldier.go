@@ -24,6 +24,10 @@ func toBlockSoldier(number uint8, ownerId uint8) MapType.Block {
 	return MapType.Block(&ret)
 }
 
+func (*BlockSoldier) GetMeta() MapType.BlockMeta {
+	return blockSoldierMeta
+}
+
 func (block *BlockSoldier) GetNumber() uint8 {
 	return block.number
 }

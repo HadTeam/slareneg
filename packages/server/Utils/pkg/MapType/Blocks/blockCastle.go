@@ -31,3 +31,7 @@ func toBlockCastle(number uint8, ownerId uint8) MapType.Block {
 	ret.ownerId = ownerId
 	return MapType.Block(&ret)
 }
+
+func (*BlockCastle) GetMeta() MapType.BlockMeta {
+	return blockCastleMeta
+}

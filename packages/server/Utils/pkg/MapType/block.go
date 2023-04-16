@@ -30,6 +30,8 @@ type Block interface {
 	MoveFrom(number uint8)
 	// MoveTo Ret: a new block to replace this place
 	MoveTo(ownerId uint8, number uint8) Block
+
+	GetMeta() BlockMeta
 }
 
 type BlockPosition struct{ X, Y uint8 }

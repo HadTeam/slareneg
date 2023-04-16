@@ -11,6 +11,10 @@ type BaseBlock struct {
 	position MapType.BlockPosition
 }
 
+func (block *BaseBlock) GetMeta() MapType.BlockMeta {
+	panic("no block meta can be provided")
+}
+
 func (*BaseBlock) GetNumber() uint8 {
 	return 0
 }
