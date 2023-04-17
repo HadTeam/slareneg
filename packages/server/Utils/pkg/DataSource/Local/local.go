@@ -18,8 +18,8 @@ type Local struct {
 	m                   sync.Mutex
 	GamePool            map[GameType.GameId]*GameType.Game
 	OriginalMapStrPool  map[uint32]string
-	InstructionTempPool map[GameType.GameId]map[uint8]InstructionType.Instruction
-	InstructionLog      map[GameType.GameId]map[uint8][]InstructionType.Instruction
+	InstructionTempPool map[GameType.GameId]map[uint16]InstructionType.Instruction
+	InstructionLog      map[GameType.GameId]map[uint16][]InstructionType.Instruction
 }
 
 func (l *Local) lock() bool {
@@ -93,7 +93,7 @@ func (l *Local) GetCurrentUserList(id GameType.GameId) []GameType.User {
 	}
 }
 
-func (l *Local) GetInstructions(id GameType.GameId, tempId uint8) []InstructionType.Instruction {
+func (l *Local) GetInstructions(id GameType.GameId, tempId uint16) []InstructionType.Instruction {
 	//if l.lock("") {
 	//	defer l.unlock("")
 	//	return l.InstructionLog[id][roundNum]
@@ -103,7 +103,7 @@ func (l *Local) GetInstructions(id GameType.GameId, tempId uint8) []InstructionT
 	return ExampleInstruction
 }
 
-func (l *Local) NewInstructionTemp(id GameType.GameId, tempId uint8) (ok bool) {
+func (l *Local) NewInstructionTemp(id GameType.GameId, tempId uint16) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
 		var list []InstructionType.Instruction
@@ -111,7 +111,7 @@ func (l *Local) NewInstructionTemp(id GameType.GameId, tempId uint8) (ok bool) {
 			list = append(list, v)
 		}
 		l.InstructionLog[id][tempId] = list
-		l.InstructionTempPool[id] = make(map[uint8]InstructionType.Instruction)
+		l.InstructionTempPool[id] = make(map[uint16]InstructionType.Instruction)
 		return true
 	} else {
 		return false
@@ -218,7 +218,7 @@ func (l *Local) CreateGame(mode GameType.GameMode) GameType.GameId {
 		}
 
 		l.GamePool[g.Id] = g
-		l.InstructionLog[g.Id] = make(map[uint8][]InstructionType.Instruction)
+		l.InstructionLog[g.Id] = make(map[uint16][]InstructionType.Instruction)
 		return g.Id
 	} else {
 		return 0

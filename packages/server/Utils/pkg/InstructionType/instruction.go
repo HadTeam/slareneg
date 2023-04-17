@@ -16,17 +16,17 @@ type BlockPosition struct {
 }
 
 type Move struct {
-	UserId   uint8
+	UserId   uint16
 	Position BlockPosition
 	Towards  MoveTowardsType
-	Number   uint8
+	Number   uint16
 }
 
 type ForceStart struct {
-	UserId uint8
+	UserId uint16
 	Status bool
 }
 
 type Surrender struct {
-	UserId uint8
+	UserId uint16
 }

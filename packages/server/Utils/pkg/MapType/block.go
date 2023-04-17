@@ -19,17 +19,17 @@ type MoveStatus struct {
 }
 
 type Block interface {
-	GetNumber() uint8
-	GetOwnerId() uint8
+	GetNumber() uint16
+	GetOwnerId() uint16
 
 	// Round Events
-	RoundStart(roundNumber uint8) bool
-	RoundEnd(roundNumber uint8) (bool, GameOverSign)
+	RoundStart(roundNumber uint16) bool
+	RoundEnd(roundNumber uint16) (bool, GameOverSign)
 
 	GetMoveStatus() MoveStatus
-	MoveFrom(number uint8)
+	MoveFrom(number uint16)
 	// MoveTo Ret: a new block to replace this place
-	MoveTo(ownerId uint8, number uint8) Block
+	MoveTo(ownerId uint16, number uint16) Block
 
 	GetMeta() BlockMeta
 }

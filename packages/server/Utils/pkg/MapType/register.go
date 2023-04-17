@@ -4,11 +4,13 @@ import (
 	"fmt"
 )
 
-var transBlockTypeFunc map[uint8]func(ownerId uint8, number uint8) Block
+type tranFunc func(ownerId uint16, number uint16) Block
 
-func RegisterBlockType(meta BlockMeta, transFunc func(uint8, uint8) Block) {
+var transBlockTypeFunc map[uint8]tranFunc
+
+func RegisterBlockType(meta BlockMeta, transFunc tranFunc) {
 	if transBlockTypeFunc == nil {
-		transBlockTypeFunc = make(map[uint8]func(ownerId uint8, number uint8) Block)
+		transBlockTypeFunc = make(map[uint8]tranFunc)
 	}
 	transBlockTypeFunc[meta.BlockId] = transFunc
 	fmt.Println("[Info] Registered a block type", "id:", meta.BlockId, " name:", meta.Name, " description:", meta.Description)

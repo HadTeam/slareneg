@@ -4,7 +4,7 @@ import "server/Utils/pkg/MapType"
 
 type BlockSoldier struct {
 	BaseBlock
-	number uint8
+	number uint16
 }
 
 var blockSoldierMeta = MapType.BlockMeta{
@@ -17,7 +17,7 @@ func init() {
 	MapType.RegisterBlockType(blockSoldierMeta, toBlockSoldier)
 }
 
-func toBlockSoldier(number uint8, ownerId uint8) MapType.Block {
+func toBlockSoldier(number uint16, ownerId uint16) MapType.Block {
 	var ret BlockSoldier
 	ret.number = number
 	ret.ownerId = ownerId
@@ -28,11 +28,11 @@ func (*BlockSoldier) GetMeta() MapType.BlockMeta {
 	return blockSoldierMeta
 }
 
-func (block *BlockSoldier) GetNumber() uint8 {
+func (block *BlockSoldier) GetNumber() uint16 {
 	return block.number
 }
 
-func (block *BlockSoldier) RoundStart(roundNum uint8) bool {
+func (block *BlockSoldier) RoundStart(roundNum uint16) bool {
 	if (roundNum%25)-1 == 0 && roundNum != 1 {
 		block.number += 1
 		return true
@@ -40,11 +40,11 @@ func (block *BlockSoldier) RoundStart(roundNum uint8) bool {
 	return false
 }
 
-func (block *BlockSoldier) MoveFrom(number uint8) {
+func (block *BlockSoldier) MoveFrom(number uint16) {
 	block.number -= number
 }
 
-func (block *BlockSoldier) MoveTo(ownerId uint8, number uint8) MapType.Block {
+func (block *BlockSoldier) MoveTo(ownerId uint16, number uint16) MapType.Block {
 
 	if block.ownerId != ownerId {
 		if block.number < number {

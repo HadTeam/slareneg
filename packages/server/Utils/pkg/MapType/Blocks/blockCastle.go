@@ -21,10 +21,10 @@ func init() {
 	MapType.RegisterBlockType(blockCastleMeta, toBlockCastle)
 }
 
-func toBlockCastle(number uint8, ownerId uint8) MapType.Block {
+func toBlockCastle(number uint16, ownerId uint16) MapType.Block {
 	var ret BlockKing
 	if number == 0 {
-		ret.number = uint8(30) + uint8(rand.Intn(30))
+		ret.number = uint16(30) + uint16(rand.Intn(30))
 	} else {
 		ret.number = number
 	}

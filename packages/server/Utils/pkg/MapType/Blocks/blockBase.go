@@ -5,9 +5,9 @@ import "server/Utils/pkg/MapType"
 var _ MapType.Block = (*BaseBlock)(nil)
 
 type BaseBlock struct {
-	ownerId  uint8
+	ownerId  uint16
 	typeId   uint8
-	blockId  uint8
+	blockId  uint16
 	position MapType.BlockPosition
 }
 
@@ -15,19 +15,19 @@ func (block *BaseBlock) GetMeta() MapType.BlockMeta {
 	panic("no block meta can be provided")
 }
 
-func (*BaseBlock) GetNumber() uint8 {
+func (*BaseBlock) GetNumber() uint16 {
 	return 0
 }
 
-func (block *BaseBlock) GetOwnerId() uint8 {
+func (block *BaseBlock) GetOwnerId() uint16 {
 	return block.ownerId
 }
 
-func (*BaseBlock) RoundStart(_ uint8) bool {
+func (*BaseBlock) RoundStart(roundNumber uint16) bool {
 	return false
 }
 
-func (*BaseBlock) RoundEnd(_ uint8) (bool, MapType.GameOverSign) {
+func (*BaseBlock) RoundEnd(roundNumber uint16) (bool, MapType.GameOverSign) {
 	return false, false
 }
 
@@ -35,8 +35,8 @@ func (*BaseBlock) GetMoveStatus() MapType.MoveStatus {
 	return MapType.MoveStatus{false, false}
 }
 
-func (*BaseBlock) MoveFrom(_ uint8) {}
+func (*BaseBlock) MoveFrom(number uint16) {}
 
-func (*BaseBlock) MoveTo(_ uint8, _ uint8) MapType.Block {
+func (*BaseBlock) MoveTo(ownerId uint16, number uint16) MapType.Block {
 	return nil
 }

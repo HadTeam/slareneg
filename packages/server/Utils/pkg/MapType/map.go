@@ -21,7 +21,7 @@ func (p *Map) SetBlock(position BlockPosition, block Block) {
 	p.Blocks[position.Y][position.X] = block
 }
 
-func (p *Map) RoundStart(roundNum uint8) {
+func (p *Map) RoundStart(roundNum uint16) {
 	for _, col := range p.Blocks {
 		for _, block := range col {
 			block.RoundStart(roundNum)
@@ -31,7 +31,7 @@ func (p *Map) RoundStart(roundNum uint8) {
 
 type GameOverSign bool
 
-func (p *Map) RoundEnd(roundNum uint8) GameOverSign {
+func (p *Map) RoundEnd(roundNum uint16) GameOverSign {
 	var ret GameOverSign
 	for _, col := range p.Blocks {
 		for _, block := range col {

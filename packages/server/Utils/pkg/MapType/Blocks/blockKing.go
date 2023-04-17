@@ -18,14 +18,14 @@ func init() {
 	MapType.RegisterBlockType(blockKingMeta, toBlockKing)
 }
 
-func toBlockKing(number uint8, ownerId uint8) MapType.Block {
+func toBlockKing(number uint16, ownerId uint16) MapType.Block {
 	var ret BlockKing
 	ret.number = number
 	ret.ownerId = ownerId
 	return MapType.Block(&ret)
 }
 
-func (block *BlockKing) RoundEnd(_ uint8) (bool, MapType.GameOverSign) {
+func (block *BlockKing) RoundEnd(_ uint16) (bool, MapType.GameOverSign) {
 	if block.number <= 0 {
 		return true, true
 	}

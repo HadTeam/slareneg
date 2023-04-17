@@ -14,8 +14,8 @@ const (
 )
 
 type GameScore struct {
-	Num   uint8
-	Place uint8
+	Num   uint16
+	Place uint16
 }
 
 type Game struct {
@@ -25,6 +25,6 @@ type Game struct {
 	UserList   []User
 	CreateTime int64
 	Status     GameStatus
-	RoundNum   uint8
-	Winner     uint8
+	RoundNum   uint16
+	Winner     uint8 // TeamId
 }

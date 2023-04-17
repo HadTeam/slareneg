@@ -6,23 +6,23 @@ var _ MapType.Block = (*BaseBuilding)(nil)
 
 type BaseBuilding struct {
 	BaseBlock
-	number uint8
+	number uint16
 }
 
-func (block *BaseBuilding) GetNumber() uint8 {
+func (block *BaseBuilding) GetNumber() uint16 {
 	return block.number
 }
 
-func (block *BaseBuilding) RoundStart(_ uint8) bool {
+func (block *BaseBuilding) RoundStart(_ uint16) bool {
 	block.number += 1
 	return true
 }
 
-func (block *BaseBuilding) MoveFrom(number uint8) {
+func (block *BaseBuilding) MoveFrom(number uint16) {
 	block.number -= number
 }
 
-func (block *BaseBuilding) MoveTo(ownerId uint8, number uint8) MapType.Block {
+func (block *BaseBuilding) MoveTo(ownerId uint16, number uint16) MapType.Block {
 	if block.ownerId != ownerId {
 		if block.number < number {
 			block.ownerId = ownerId
