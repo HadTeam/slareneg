@@ -26,4 +26,5 @@ type Game struct {
 	CreateTime int64
 	Status     GameStatus
 	RoundNum   uint8
+	Winner     uint8
 }

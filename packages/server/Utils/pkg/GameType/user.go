@@ -8,7 +8,9 @@ const (
 )
 
 type User struct {
-	Name   string
-	UserId uint8
-	Status UserStatus
+	Name             string
+	UserId           uint16
+	Status           UserStatus
+	TeamId           uint8
+	ForceStartStatus bool
 }
