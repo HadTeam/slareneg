@@ -1,9 +1,10 @@
 package MapType
 
 type BlockMeta struct {
-	Name        string
-	Description string
-	BlockId     uint8
+	Name              string
+	Description       string
+	BlockId           uint8
+	VisitFallBackType uint8
 }
 
 type MoveRequestType uint8

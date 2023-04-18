@@ -8,14 +8,15 @@ type BlockKing struct {
 	BaseBuilding
 }
 
-var blockKingMeta = MapType.BlockMeta{
-	BlockId:     2,
-	Name:        "king",
-	Description: "",
+var BlockKingMeta = MapType.BlockMeta{
+	BlockId:           2,
+	Name:              "king",
+	Description:       "",
+	VisitFallBackType: BlockCastleMeta.BlockId,
 }
 
 func init() {
-	MapType.RegisterBlockType(blockKingMeta, toBlockKing)
+	MapType.RegisterBlockType(BlockKingMeta, toBlockKing)
 }
 
 func toBlockKing(number uint16, ownerId uint16) MapType.Block {
@@ -33,5 +34,5 @@ func (block *BlockKing) RoundEnd(_ uint16) (bool, MapType.GameOverSign) {
 }
 
 func (*BlockKing) GetMeta() MapType.BlockMeta {
-	return blockKingMeta
+	return BlockKingMeta
 }

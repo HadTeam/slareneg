@@ -7,14 +7,15 @@ type BlockSoldier struct {
 	number uint16
 }
 
-var blockSoldierMeta = MapType.BlockMeta{
-	BlockId:     1,
-	Name:        "soldier",
-	Description: "",
+var BlockSoldierMeta = MapType.BlockMeta{
+	BlockId:           1,
+	Name:              "soldier",
+	Description:       "",
+	VisitFallBackType: BlockBlankMeta.BlockId,
 }
 
 func init() {
-	MapType.RegisterBlockType(blockSoldierMeta, toBlockSoldier)
+	MapType.RegisterBlockType(BlockSoldierMeta, toBlockSoldier)
 }
 
 func toBlockSoldier(number uint16, ownerId uint16) MapType.Block {
@@ -25,7 +26,7 @@ func toBlockSoldier(number uint16, ownerId uint16) MapType.Block {
 }
 
 func (*BlockSoldier) GetMeta() MapType.BlockMeta {
-	return blockSoldierMeta
+	return BlockSoldierMeta
 }
 
 func (block *BlockSoldier) GetNumber() uint16 {

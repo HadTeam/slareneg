@@ -8,18 +8,19 @@ type BlockBlank struct {
 	BaseBlock
 }
 
-var blockBlankMeta = MapType.BlockMeta{
-	BlockId:     0,
-	Name:        "blank",
-	Description: "",
+var BlockBlankMeta = MapType.BlockMeta{
+	BlockId:           0,
+	Name:              "blank",
+	Description:       "",
+	VisitFallBackType: 0,
 }
 
 func init() {
-	MapType.RegisterBlockType(blockBlankMeta, toBlockBlank)
+	MapType.RegisterBlockType(BlockBlankMeta, toBlockBlank)
 }
 
 func (*BlockBlank) GetMeta() MapType.BlockMeta {
-	return blockBlankMeta
+	return BlockBlankMeta
 }
 
 func toBlockBlank(_ uint16, _ uint16) MapType.Block {

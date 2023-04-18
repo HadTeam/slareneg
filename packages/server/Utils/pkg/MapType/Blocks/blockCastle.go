@@ -11,14 +11,15 @@ type BlockCastle struct {
 	BaseBuilding
 }
 
-var blockCastleMeta = MapType.BlockMeta{
-	BlockId:     3,
-	Name:        "castle",
-	Description: "",
+var BlockCastleMeta = MapType.BlockMeta{
+	BlockId:           3,
+	Name:              "castle",
+	Description:       "",
+	VisitFallBackType: 3,
 }
 
 func init() {
-	MapType.RegisterBlockType(blockCastleMeta, toBlockCastle)
+	MapType.RegisterBlockType(BlockCastleMeta, toBlockCastle)
 }
 
 func toBlockCastle(number uint16, ownerId uint16) MapType.Block {
@@ -33,5 +34,5 @@ func toBlockCastle(number uint16, ownerId uint16) MapType.Block {
 }
 
 func (*BlockCastle) GetMeta() MapType.BlockMeta {
-	return blockCastleMeta
+	return BlockCastleMeta
 }
