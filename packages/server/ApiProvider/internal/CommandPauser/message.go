@@ -73,7 +73,7 @@ func getProcessedMap(id GameType.GameId, userId uint16, m *MapType.Map) [][][]ui
 	return mr
 }
 
-func generateResponse(_type string, id GameType.GameId, userId uint16) string {
+func generateMessage(_type string, id GameType.GameId, userId uint16) string {
 	switch _type {
 	case "start":
 		{
