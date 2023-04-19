@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func PauseCommandStr(userId uint8, str string) (InstructionType.Instruction, error) {
+func PauseCommandStr(userId uint16, str string) (InstructionType.Instruction, error) {
 	var err error = nil
 	ret := InstructionType.Instruction(nil)
 	args := strings.Split(str, " ")
@@ -32,7 +32,7 @@ func PauseCommandStr(userId uint8, str string) (InstructionType.Instruction, err
 						UserId:   userId,
 						Position: InstructionType.BlockPosition{X: uint8(x), Y: uint8(y)},
 						Towards:  InstructionType.MoveTowardsType(c.Towards),
-						Number:   uint8(n),
+						Number:   uint16(n),
 					}
 				} else {
 					err = fmt.Errorf("illegally arguments\n")
