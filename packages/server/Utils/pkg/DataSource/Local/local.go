@@ -112,6 +112,11 @@ func (l *Local) NewInstructionTemp(id GameType.GameId, tempId uint16) (ok bool) 
 		}
 		l.InstructionLog[id][tempId] = list
 		l.InstructionTempPool[id] = make(map[uint16]InstructionType.Instruction)
+		r := l.GamePool[id].RoundNum
+		if r != tempId {
+			panic("cannot sync")
+		}
+		l.GamePool[id].RoundNum++
 		return true
 	} else {
 		return false
