@@ -89,6 +89,18 @@ func (p *Map) Move(instruction InstructionType.Move) bool {
 		return false
 	}
 	thisBlock := p.GetBlock(instructionPosition)
+
+	/*
+	 * Special case
+	 * 0 => select all
+	 * 1 => select half
+	 */
+	if instruction.Number == 0 {
+		instruction.Number = thisBlock.GetNumber()
+	} else if instruction.Number == 65535 {
+		instruction.Number = thisBlock.GetNumber() / 2
+	}
+
 	if thisBlock.GetNumber() < instruction.Number {
 		return false
 	}
