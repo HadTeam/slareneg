@@ -45,6 +45,9 @@ func getVisibility(id GameType.GameId, userId uint16) [][]bool {
 		ret[rowNum] = make([]bool, m.Size.X)
 		for colNum, b := range row {
 			o := b.GetOwnerId()
+			if o == 0 {
+				continue
+			}
 			for _, u := range teamUsers {
 				if u == o {
 					light(uint8(colNum), uint8(rowNum))
@@ -57,10 +60,10 @@ func getVisibility(id GameType.GameId, userId uint16) [][]bool {
 }
 
 func getProcessedMap(id GameType.GameId, userId uint16, m *MapType.Map) [][][]uint16 {
-	var mr [][][]uint16
 	vis := getVisibility(id, userId)
+	mr := make([][][]uint16, len(m.Blocks))
 	for rowNum, row := range m.Blocks {
-		mr[rowNum] = [][]uint16{}
+		mr[rowNum] = make([][]uint16, len(row))
 		for colNum, b := range row {
 			if vis[rowNum][colNum] {
 				mr[rowNum][colNum] = []uint16{uint16(b.GetMeta().BlockId), b.GetOwnerId(), b.GetNumber()}
@@ -73,7 +76,7 @@ func getProcessedMap(id GameType.GameId, userId uint16, m *MapType.Map) [][][]ui
 	return mr
 }
 
-func generateMessage(_type string, id GameType.GameId, userId uint16) string {
+func GenerateMessage(_type string, id GameType.GameId, userId uint16) string {
 	switch _type {
 	case "start":
 		{
