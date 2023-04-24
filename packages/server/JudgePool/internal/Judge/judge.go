@@ -56,6 +56,7 @@ func judgeWorking(j *GameJudge) {
 			game.Map = pData.GetOriginalMap(game.Map.MapId)
 			data.SetGameStatus(j.gameId, GameType.GameStatusRunning)
 			data.SetGameMap(j.gameId, game.Map)
+			data.NewInstructionTemp(j.gameId, 0)
 			t := time.NewTicker(RoundTime)
 			for range t.C {
 				//Round End

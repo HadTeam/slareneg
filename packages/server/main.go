@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"server/ApiProvider"
 	"server/JudgePool"
 	"server/Utils/pkg/DataSource/Local"
 	"server/Utils/pkg/GameType"
 	"server/Utils/pkg/InstructionType"
 	_ "server/Utils/pkg/MapType/Blocks"
-	"strconv"
 	"time"
 )
 
@@ -28,19 +28,8 @@ func main() {
 
 	time.Sleep(200 * time.Millisecond)
 
-	var id GameType.GameId
-	for i, _ := range data.GamePool {
-		id = i
-	}
-	v := data.GetGameInfo(id)
-
-	for i := uint8(1); i <= GameType.GameMode1v1.MaxUserNum; i++ {
-		data.SetUserStatus(v.Id, GameType.User{
-			Name:   "tester" + strconv.Itoa(int(i)),
-			UserId: uint16(i),
-			Status: GameType.UserStatusConnected,
-		})
-	}
+	ApiProvider.ApplyDataSource(&data)
+	ApiProvider.Test()
 
 	<-ctx.Done()
 }

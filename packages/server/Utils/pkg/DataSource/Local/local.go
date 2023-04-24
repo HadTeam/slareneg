@@ -94,13 +94,13 @@ func (l *Local) GetCurrentUserList(id GameType.GameId) []GameType.User {
 }
 
 func (l *Local) GetInstructions(id GameType.GameId, tempId uint16) []InstructionType.Instruction {
-	//if l.lock("") {
-	//	defer l.unlock("")
-	//	return l.InstructionLog[id][roundNum]
-	//} else {
-	//	return nil
-	//}
-	return ExampleInstruction
+	if l.lock() {
+		defer l.unlock()
+		return l.InstructionLog[id][tempId]
+	} else {
+		return nil
+	}
+	//return ExampleInstruction
 }
 
 func (l *Local) NewInstructionTemp(id GameType.GameId, tempId uint16) (ok bool) {
@@ -156,6 +156,8 @@ func (l *Local) SetUserStatus(id GameType.GameId, user GameType.User) (ok bool) 
 		}
 		// Not found, try to join the game
 		if g.Status == GameType.GameStatusWaiting && uint8(len(g.UserList)) < g.Mode.MaxUserNum {
+			user.Status = GameType.UserStatusConnected
+			//user.TeamId= ? // TODO
 			g.UserList = append(g.UserList, user)
 			return true
 		}
