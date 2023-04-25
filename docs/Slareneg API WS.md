@@ -8,7 +8,7 @@ addr:  `/api/game/ws`
 大概格式为 `<Instruction> <...Args>`
 以空格为指令内分隔符，`\n` 为指令分隔符
 ### Move
-`Move <x> <y> <towards>`
+`Move <x> <y> <towards> <number>`
 - x uint: 列数
 - y uint: 行数
 - towards string:
@@ -17,6 +17,8 @@ addr:  `/api/game/ws`
   - "left": x 减小的方向
   - "right": x 增大的方向
 - number: 移动的数量
+  - 0: 全部移动（对应原版 `is50: false`）
+  - 1: 移动一半（对应原版 `is50: true`）
 ### ForceStart
 `ForceStart <status>`
 - status bool:
@@ -26,41 +28,47 @@ addr:  `/api/game/ws`
 `Surrender`
 
 ## Server-Side
-返回 Base64 加密的 JSON 文本
+
+[//]: # (返回 Base64 加密的 JSON 文本)
 ### Start
 ```json
 {
   "action": "start",
-  "mapWidth": <uint>,
-  "mapHeight": <uint>,
-  "map": [mapHeight][mapWidth]<BlockTypeId(uint)>
+  "mapWidth": "<uint>",
+  "mapHeight": "<uint>",
+  "map": [][]<BlockInfo>
 }
 ```
-#### BlockInfo(uint)
-`<BlockTypeInfo{2}><Number>`
-##### BlockTypeInfo(uint)
-```
-00=>blank
-01=>king
-02=>mountain
-03=>city
-```
+#### BlockInfo([]uint)
+`[<Block(Type)Id>, <OwnerId>, <Number>]`
 
 ### Wait
 ```json
 {
   "action": "wait"
-  "players": []<PlayerBaseInfo>,
-  "minNumber": <uint>
 }
 ```
-#### PlayerBaseInfo(struct)
+
+### Info
+```json
+{
+  "players": []<PlayerBaseInfo>,
+  "mode": {
+    "MaxUserNum": <uint>,
+    "MinUserNum": <uint>,
+    "NameStr": <string>
+  }
+}
+```
+
+#### PlayerInfo(struct)
 ```json
 {
   "name": <string>,
-  "playerId": <uint>
+  "id": <uint>,
   "forceStart": <bool>,
-  "teamId": <TeamId>
+  "teamId": <TeamId>,
+  "status": <bool>
 }
 ```
 
@@ -77,18 +85,6 @@ addr:  `/api/game/ws`
 {
   "action": "newTurn",
   "turnNumber": <uint>,
-  "map": [mapHeight][mapWidth]<BlockInfo(uint)>,
-  "mapCover": [mapHeight][mapWidth]<TeamId(uint)>,
-  "scoreBoard": {
-    <playerId>: {
-      "number": <uint>,
-      "place": <uint>
-    }
-  }
+  "map": [][]<BlockInfo>
 }
 ```
-#### TeamId(uint)
-```
-0=>neutral
-```
-
