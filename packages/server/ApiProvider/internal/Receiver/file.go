@@ -198,19 +198,26 @@ func receiver(ctx *Context) {
 				if i%100 == 0 {
 					fmt.Println(ctx.User.UserId, i, ctx.Game.RoundNum, g.RoundNum)
 				}
+				if i%20 == 0 {
+					done(g, "info")
+				}
 				if g.Status != ctx.Game.Status {
 					if ctx.Game.Status == GameType.GameStatusWaiting && g.Status == GameType.GameStatusRunning {
+						done(g, "wait")
 						done(g, "start")
 						continue
 					} else if ctx.Game.Status == GameType.GameStatusRunning && g.Status == GameType.GameStatusEnd {
 						done(g, "end")
 						ticker.Stop()
+						continue
 					}
 				} else if ctx.Game.Status == GameType.GameStatusWaiting && i%20 == 0 {
 					done(g, "wait")
+					continue
 				}
 				if ctx.Game.RoundNum != g.RoundNum {
 					done(g, "newTurn")
+					continue
 				}
 			}
 		}

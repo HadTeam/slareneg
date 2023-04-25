@@ -76,6 +76,35 @@ func getProcessedMap(id GameType.GameId, userId uint16, m *MapType.Map) [][][]ui
 	return mr
 }
 
+type playerInfo struct {
+	Name       string `json:"name"`
+	Id         uint16 `json:"id"`
+	ForceStart bool   `json:"forceStart"`
+	TeamId     uint8  `json:"teamId"`
+	Status     string `json:"status"`
+}
+
+func getUserList(id GameType.GameId) []playerInfo {
+	l := data.GetCurrentUserList(id)
+	ret := make([]playerInfo, len(l))
+	var status string
+	for i, u := range l {
+		if u.Status == GameType.UserStatusConnected {
+			status = "connected"
+		} else {
+			status = "disconnect"
+		}
+		ret[i] = playerInfo{
+			Name:       u.Name,
+			Id:         u.UserId,
+			ForceStart: u.ForceStartStatus,
+			TeamId:     u.TeamId,
+			Status:     status,
+		}
+	}
+	return ret
+}
+
 func GenerateMessage(_type string, id GameType.GameId, userId uint16) string {
 	switch _type {
 	case "start":
@@ -92,13 +121,9 @@ func GenerateMessage(_type string, id GameType.GameId, userId uint16) string {
 		}
 	case "wait":
 		{
-			g := data.GetGameInfo(id)
-			g.UserList = data.GetCurrentUserList(id)
 			res := struct {
-				Action   string            `json:"action"`
-				Players  []GameType.User   `json:"players"`
-				GameMode GameType.GameMode `json:"gameMode"`
-			}{"wait", g.UserList, g.Mode}
+				Action string `json:"action"`
+			}{"wait"}
 			ret, _ := json.Marshal(res)
 			return string(ret)
 		}
@@ -109,6 +134,17 @@ func GenerateMessage(_type string, id GameType.GameId, userId uint16) string {
 				Action string `json:"action"`
 				Winner uint8  `json:"winnerTeam"`
 			}{"end", g.Winner}
+			ret, _ := json.Marshal(res)
+			return string(ret)
+		}
+	case "info":
+		{
+			g := data.GetGameInfo(id)
+			res := struct {
+				Action  string            `json:"action"`
+				Players []playerInfo      `json:"players"`
+				Mode    GameType.GameMode `json:"mode"`
+			}{"info", getUserList(id), g.Mode}
 			ret, _ := json.Marshal(res)
 			return string(ret)
 		}
