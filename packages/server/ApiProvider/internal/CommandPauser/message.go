@@ -153,8 +153,8 @@ func GenerateMessage(_type string, id GameType.GameId, userId uint16) string {
 			g := data.GetGameInfo(id)
 			m := data.GetCurrentMap(id)
 			res := struct {
-				Action     string
-				TurnNumber uint16
+				Action     string       `json:"action"`
+				TurnNumber uint16       `json:"turnNumber"`
 				Map        [][][]uint16 `json:"map"`
 			}{"newTurn", g.RoundNum, getProcessedMap(id, userId, m)}
 			ret, _ := json.Marshal(res)
