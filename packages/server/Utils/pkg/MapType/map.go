@@ -44,12 +44,28 @@ func (p *Map) RoundEnd(roundNum uint16) GameOverSign {
 }
 
 func OutputNumber(p *Map) { // Only for debugging
-	for _, col := range p.Blocks {
-		for _, block := range col {
-			fmt.Print(block.GetNumber())
+	tmp := ""
+	ex := func(i uint16) string {
+		ex := ""
+		if i < 10 {
+			ex = " "
 		}
-		fmt.Print("\n")
+		return ex + strconv.Itoa(int(i))
 	}
+
+	tmp += " *  "
+	for i := uint16(1); i <= uint16(len(p.Blocks[0])); i++ {
+		tmp += ex(i) + " "
+	}
+	tmp += "\n"
+	for colNum, col := range p.Blocks {
+		tmp += ex(uint16(colNum)) + ": "
+		for _, block := range col {
+			tmp += ex(block.GetNumber()) + " "
+		}
+		tmp += "\n"
+	}
+	fmt.Printf("%s\n", tmp)
 }
 
 func isPositionLegal(position BlockPosition, size MapSize) bool {
