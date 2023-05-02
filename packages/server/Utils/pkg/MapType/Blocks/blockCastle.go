@@ -23,7 +23,7 @@ func init() {
 }
 
 func toBlockCastle(number uint16, ownerId uint16) MapType.Block {
-	var ret BlockKing
+	var ret BlockCastle
 	if number == 0 {
 		ret.number = uint16(30) + uint16(rand.Intn(30))
 	} else {
