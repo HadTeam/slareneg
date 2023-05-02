@@ -2,11 +2,12 @@ package Receiver
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"os"
 	"server/ApiProvider/internal/CommandPauser"
 	"server/Utils/pkg/DataSource"
 	"server/Utils/pkg/GameType"
+	"server/Utils/pkg/MapType"
 	"strconv"
 	"strings"
 	"time"
@@ -68,6 +69,7 @@ type command struct {
 type reply struct {
 	Id       GameType.GameId
 	UserPack []command
+	Map      *MapType.Map
 }
 
 func LoadFile() []reply {
@@ -102,7 +104,7 @@ func LoadFile() []reply {
 		part := strings.Split(string(fileBuf), "|")
 
 		m := part[0]
-		r.Map = pkg.Str2GameMap(uint32(index), m)
+		r.Map = pkg.FullStr2GameMap(uint32(index), m)
 		MapType.DebugOutput(r.Map, func(block MapType.Block) uint16 {
 			return uint16(block.GetMeta().BlockId)
 		})

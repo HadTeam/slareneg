@@ -1,33 +1,42 @@
 package Blocks
 
-import "server/Utils/pkg/MapType"
+import (
+	"server/Utils/pkg/MapType"
+)
 
 var _ MapType.Block = (*BaseBlock)(nil)
 
 type BaseBlock struct {
 	ownerId  uint16
-	typeId   uint8
-	blockId  uint16
 	position MapType.BlockPosition
+	number   uint16
+}
+
+func NewBaseBlock(number uint16, ownerId uint16) *BaseBlock {
+	return &BaseBlock{
+		ownerId:  ownerId,
+		position: MapType.BlockPosition{},
+		number:   number,
+	}
 }
 
 func (block *BaseBlock) GetMeta() MapType.BlockMeta {
 	panic("no block meta can be provided")
 }
 
-func (*BaseBlock) GetNumber() uint16 {
-	return 0
+func (block *BaseBlock) GetNumber() uint16 {
+	return block.number
 }
 
 func (block *BaseBlock) GetOwnerId() uint16 {
 	return block.ownerId
 }
 
-func (*BaseBlock) RoundStart(roundNumber uint16) bool {
+func (*BaseBlock) RoundStart(_ uint16) bool {
 	return false
 }
 
-func (*BaseBlock) RoundEnd(roundNumber uint16) (bool, MapType.GameOverSign) {
+func (*BaseBlock) RoundEnd(_ uint16) (bool, MapType.GameOverSign) {
 	return false, false
 }
 

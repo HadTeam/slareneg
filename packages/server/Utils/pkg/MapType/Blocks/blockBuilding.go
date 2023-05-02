@@ -6,7 +6,6 @@ var _ MapType.Block = (*BaseBuilding)(nil)
 
 type BaseBuilding struct {
 	BaseBlock
-	number uint16
 }
 
 func (block *BaseBuilding) GetNumber() uint16 {
@@ -14,7 +13,9 @@ func (block *BaseBuilding) GetNumber() uint16 {
 }
 
 func (block *BaseBuilding) RoundStart(_ uint16) bool {
-	block.number += 1
+	if block.GetOwnerId() != 0 {
+		block.number += 1
+	}
 	return true
 }
 

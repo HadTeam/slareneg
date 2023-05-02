@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
@@ -9,6 +9,7 @@ import numpy as np
 # usage: python3 convert.py [json file] [target file]
 if len(sys.argv) < 3:
     print("usage: python3 gioreply_convent.py [json file] [target file]")
+    sys.exit()
 
 with open(sys.argv[1], 'r') as json_file:
     data = json.load(json_file)
@@ -19,15 +20,15 @@ height = data['mapHeight']
 def get_position(block_num):
     return [block_num % width, int(block_num/width)]
 
-map_data = np.zeros((width,height), dtype=np.uint)
+map_data = np.zeros((height, width, 3), dtype=np.uint)
 
-for city in data['cities']:
-    pos=get_position(city)
-    map_data[pos[0]][pos[1]]=3
+for i, city in enumerate(data['cities']):
+    pos = get_position(city)
+    map_data[pos[1]][pos[0]] = [3, 0, data['cityArmies'][i]]
 
-for general in data['generals']:
-    pos=get_position(general)
-    map_data[pos[0]][pos[1]]=2
+for u, general in enumerate(data['generals']):
+    pos = get_position(general)
+    map_data[pos[1]][pos[0]] = [2, u+1, 0]
 
 moves = data['moves']
 usernames = data['usernames']

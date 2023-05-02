@@ -4,7 +4,6 @@ import "server/Utils/pkg/MapType"
 
 type BlockSoldier struct {
 	BaseBlock
-	number uint16
 }
 
 var BlockSoldierMeta = MapType.BlockMeta{
