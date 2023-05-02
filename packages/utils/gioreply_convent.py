@@ -8,26 +8,26 @@ import numpy as np
 
 # usage: python3 convert.py [json file] [target file]
 if len(sys.argv) < 3:
-    print("usage: python3 convert.py [json file] [target file]")
+    print("usage: python3 gioreply_convent.py [json file] [target file]")
 
-with open(sys.argv[1], 'r') as f:
-    data = json.load(f)
+with open(sys.argv[1], 'r') as json_file:
+    data = json.load(json_file)
 
+width = data['mapWidth']
+height = data['mapHeight']
 
-w = data['mapWidth']
-h = data['mapHeight']
+def get_position(block_num):
+    return [block_num % width, int(block_num/width)]
 
-def getPos(blockNum):
-    return [blockNum % w, int(blockNum/w)]
-
-m = np.zeros((w,h), dtype=np.uint)
+map_data = np.zeros((width,height), dtype=np.uint)
 
 for city in data['cities']:
-    pos=getPos(city)
-    m[pos[0]][pos[1]]=3
+    pos=get_position(city)
+    map_data[pos[0]][pos[1]]=3
+
 for general in data['generals']:
-    pos=getPos(general)
-    m[pos[0]][pos[1]]=2
+    pos=get_position(general)
+    map_data[pos[0]][pos[1]]=2
 
 moves = data['moves']
 usernames = data['usernames']
@@ -39,45 +39,32 @@ for i in range(len(usernames)):
 for move in moves:
     user_index = move['index']
     username = usernames[user_index]
-    prev_location = getPos(move['start'])
-    after_location = getPos(move['end'])
+    prev_location = get_position(move['start'])
+    after_location = get_position(move['end'])
     if prev_location[0] > after_location[0]:
-        toward = 'left'
+        direction = 'left'
     elif prev_location[0] < after_location[0]:
-        toward = 'right'
+        direction = 'right'
     elif prev_location[1] > after_location[1]:
-        toward = 'up'
+        direction = 'up'
     elif prev_location[1] < after_location[1]:
-        toward = 'down'
+        direction = 'down'
     else:
         raise Exception('Error')
     if int(move['is50']):
-        number = 65535
+        move_number = 65535
     else:
-        number = 0
-    move_str = f'Move {prev_location[0]} {prev_location[1]} {toward} {number}'
+        move_number = 0
+    move_str = f'Move {prev_location[0]} {prev_location[1]} {direction} {move_number}'
     moves_by_user[user_index].append(move_str)
 
-with open(sys.argv[2], 'w', newline='\n') as f:
-    f.write(f'[\n')
-    for i,col in enumerate(m):
-        f.write(f'  [')
-        for j,b in enumerate(col):
-            if j!=len(col)-1:
-                e=','
-            else:
-                e=''
-            f.write(f'{b}{e}')
-        if i!=len(m)-1:
-            e=','
-        else:
-            e=''
-        f.write(f']{e}\n')
-    f.write(f']\n')
+with open(sys.argv[2], 'w', newline='\n') as target_file:
+    json.dump(map_data.tolist(), target_file)
+    target_file.write(f'\n')
     for i in range(len(usernames)):
         username = usernames[i]
         user_moves = moves_by_user[i]
         if len(user_moves) > 0:
-            f.write(f'|{username}:\n')
-            f.write('\n'.join(user_moves))
-            f.write('\n')
+            target_file.write(f'|{username}:\n')
+            target_file.write(f'\n'.join(user_moves))
+            target_file.write('\n')
