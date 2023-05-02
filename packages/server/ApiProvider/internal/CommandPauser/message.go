@@ -35,7 +35,7 @@ func getVisibility(id GameType.GameId, userId uint16) [][]bool {
 	light := func(x uint8, y uint8) {
 		lightRange := []struct {
 			x, y int
-		}{{1, 1}, {1, -1}, {-1, 1}, {-1, -1}}
+		}{{0, 1}, {0, -1}, {-1, 0}, {1, 0}}
 		for _, r := range lightRange {
 			ret[uint8(int(y)+r.y)][uint8(int(x)+r.x)] = true
 		}
