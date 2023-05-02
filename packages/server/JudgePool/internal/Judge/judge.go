@@ -95,6 +95,10 @@ func judgeWorking(j *GameJudge) {
 				log.Printf("[Round] Round %d start\n", game.RoundNum)
 				game.Map.RoundStart(game.RoundNum)
 				data.SetGameMap(j.gameId, game.Map)
+
+				MapType.DebugOutput(game.Map, func(block MapType.Block) uint16 {
+					return block.GetNumber()
+				}) // TODO
 			}
 		}
 	}

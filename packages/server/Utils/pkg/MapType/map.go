@@ -3,6 +3,7 @@ package MapType
 import (
 	"log"
 	"server/Utils/pkg/InstructionType"
+	"strconv"
 )
 
 type MapSize struct{ X, Y uint8 }
@@ -43,7 +44,7 @@ func (p *Map) RoundEnd(roundNum uint16) GameOverSign {
 	return ret
 }
 
-func OutputNumber(p *Map) { // Only for debugging
+func DebugOutput(p *Map, f func(Block) uint16) { // Only for debugging
 	tmp := ""
 	ex := func(i uint16) string {
 		ex := ""
@@ -61,7 +62,7 @@ func OutputNumber(p *Map) { // Only for debugging
 	for colNum, col := range p.Blocks {
 		tmp += ex(uint16(colNum)) + ": "
 		for _, block := range col {
-			tmp += ex(block.GetNumber()) + " "
+			tmp += ex(f(block)) + " "
 		}
 		tmp += "\n"
 	}
