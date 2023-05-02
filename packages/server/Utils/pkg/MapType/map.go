@@ -1,7 +1,7 @@
 package MapType
 
 import (
-	"fmt"
+	"log"
 	"server/Utils/pkg/InstructionType"
 )
 
@@ -65,7 +65,7 @@ func OutputNumber(p *Map) { // Only for debugging
 		}
 		tmp += "\n"
 	}
-	fmt.Printf("%s\n", tmp)
+	log.Printf("\n%s\n", tmp)
 }
 
 func isPositionLegal(position BlockPosition, size MapSize) bool {

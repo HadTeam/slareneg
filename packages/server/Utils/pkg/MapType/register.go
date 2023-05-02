@@ -1,7 +1,7 @@
 package MapType
 
 import (
-	"fmt"
+	"log"
 )
 
 type tranFunc func(ownerId uint16, number uint16) Block
@@ -13,14 +13,14 @@ func RegisterBlockType(meta BlockMeta, transFunc tranFunc) {
 		transBlockTypeFunc = make(map[uint8]tranFunc)
 	}
 	transBlockTypeFunc[meta.BlockId] = transFunc
-	fmt.Println("[Info] Registered a block type", "id:", meta.BlockId, " name:", meta.Name, " description:", meta.Description)
+	log.Println("[Info] Registered a block type", "id:", meta.BlockId, " name:", meta.Name, " description:", meta.Description)
 }
 
 func ToBlockByTypeId(typeId uint8, block Block) Block {
 	transFunc, err := transBlockTypeFunc[typeId]
 	if !err {
-		fmt.Println("[Warn] Get an unknown blockTypeId", typeId)
-		transFunc = transBlockTypeFunc[0] // Use the blank block
+		log.Println("[Warn] Get an unknown blockTypeId", typeId)
+		transFunc = transBlockTypeFunc[0] // Note: Must ensure Blocks.BlockBlankMeta.BlockId=0
 	}
 	return transFunc(block.GetOwnerId(), block.GetNumber())
 }

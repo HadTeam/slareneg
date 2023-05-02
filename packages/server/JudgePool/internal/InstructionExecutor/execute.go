@@ -1,7 +1,7 @@
 package InstructionExecutor
 
 import (
-	"fmt"
+	"log"
 	"server/Utils/pkg/DataSource"
 	"server/Utils/pkg/GameType"
 	"server/Utils/pkg/InstructionType"
@@ -26,7 +26,7 @@ func ExecuteInstruction(id GameType.GameId, instruction InstructionType.Instruct
 		}
 	}
 	if !ret {
-		fmt.Printf("[Warn] Execute instruction failed: %#v \n", instruction)
+		log.Printf("[Warn] Execute instruction failed: %#v \n", instruction)
 	}
 	return ret
 }

@@ -1,10 +1,12 @@
 package Judge
 
 import (
-	"fmt"
+	"log"
 	"server/JudgePool/internal/InstructionExecutor"
 	"server/Utils/pkg/DataSource"
 	"server/Utils/pkg/GameType"
+	"server/Utils/pkg/MapType"
+	"server/Utils/pkg/MapType/Blocks"
 	"time"
 )
 
@@ -50,18 +52,21 @@ func judgeWorking(j *GameJudge) {
 		j.status = <-j.c
 
 		if j.status == StatusWorking {
-			fmt.Printf("[Judge] Working for GameId %d\n", j.gameId)
+			log.Printf("[Judge] Working for GameId %d\n", j.gameId)
 
 			game := data.GetGameInfo(j.gameId)
-			game.Map = pData.GetOriginalMap(game.Map.MapId)
+			if game.Map.Blocks == nil {
+				game.Map = pData.GetOriginalMap(game.Map.MapId)
+			}
 			data.SetGameStatus(j.gameId, GameType.GameStatusRunning)
+			AllocateKing(game)
 			data.SetGameMap(j.gameId, game.Map)
 			data.NewInstructionTemp(j.gameId, 0)
 			t := time.NewTicker(RoundTime)
 			for range t.C {
 				//Round End
 				if game.RoundNum != 0 {
-					fmt.Printf("[Round] Round %d end\n", game.RoundNum)
+					log.Printf("[Round] Round %d end\n", game.RoundNum)
 					data.NewInstructionTemp(j.gameId, game.RoundNum)
 					instructionList := data.GetInstructions(j.gameId, game.RoundNum)
 
@@ -72,7 +77,7 @@ func judgeWorking(j *GameJudge) {
 						}
 					}
 					if !ok {
-						fmt.Printf("[Warn] Instructions execution failed\n")
+						log.Printf("[Warn] Instructions execution failed\n")
 					}
 					game.UserList = data.GetCurrentUserList(game.Id)
 					gameOverSign := game.Map.RoundEnd(game.RoundNum) // TODO: Refactor the way to spread the game-over sign
@@ -81,13 +86,13 @@ func judgeWorking(j *GameJudge) {
 						// TODO: Announce game-over
 						game.Status = GameType.GameStatusEnd
 						j.status = StatusWaiting
-						fmt.Printf("[Judge] Done for GameId %d\n", j.gameId)
+						log.Printf("[Judge] Done for GameId %d\n", j.gameId)
 						return
 					}
 				}
 				game.RoundNum++
 				// Round Start
-				fmt.Printf("[Round] Round %d start\n", game.RoundNum)
+				log.Printf("[Round] Round %d start\n", game.RoundNum)
 				game.Map.RoundStart(game.RoundNum)
 				data.SetGameMap(j.gameId, game.Map)
 			}
