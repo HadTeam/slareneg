@@ -1,9 +1,10 @@
 #!/bin/env python3
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import os
 import sys
 import json
+import numpy as np
 
 # usage: python3 convert.py [json file] [target file]
 if len(sys.argv) < 3:
@@ -11,6 +12,22 @@ if len(sys.argv) < 3:
 
 with open(sys.argv[1], 'r') as f:
     data = json.load(f)
+
+
+w = data['mapWidth']
+h = data['mapHeight']
+
+def getPos(blockNum):
+    return [blockNum % w, int(blockNum/w)]
+
+m = np.zeros((w,h), dtype=np.uint)
+
+for city in data['cities']:
+    pos=getPos(city)
+    m[pos[0]][pos[1]]=3
+for general in data['generals']:
+    pos=getPos(general)
+    m[pos[0]][pos[1]]=2
 
 moves = data['moves']
 usernames = data['usernames']
@@ -22,10 +39,8 @@ for i in range(len(usernames)):
 for move in moves:
     user_index = move['index']
     username = usernames[user_index]
-    w = data['mapWidth']
-    h = data['mapHeight']
-    prev_location = [move['start'] % w, int(move['start'] / w)]
-    after_location = [move['end'] % w, int(move['end'] / w)]
+    prev_location = getPos(move['start'])
+    after_location = getPos(move['end'])
     if prev_location[0] > after_location[0]:
         toward = 'left'
     elif prev_location[0] < after_location[0]:
@@ -43,7 +58,22 @@ for move in moves:
     move_str = f'Move {prev_location[0]} {prev_location[1]} {toward} {number}'
     moves_by_user[user_index].append(move_str)
 
-with open(sys.argv[2], 'w') as f:
+with open(sys.argv[2], 'w', newline='\n') as f:
+    f.write(f'[\n')
+    for i,col in enumerate(m):
+        f.write(f'  [')
+        for j,b in enumerate(col):
+            if j!=len(col)-1:
+                e=','
+            else:
+                e=''
+            f.write(f'{b}{e}')
+        if i!=len(m)-1:
+            e=','
+        else:
+            e=''
+        f.write(f']{e}\n')
+    f.write(f']\n')
     for i in range(len(usernames)):
         username = usernames[i]
         user_moves = moves_by_user[i]

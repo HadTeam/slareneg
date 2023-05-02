@@ -71,13 +71,12 @@ type reply struct {
 }
 
 func LoadFile() []reply {
-	//time.Sleep(1 * time.Second)
 	var ret []reply
 	dir, err := os.ReadDir(fileDir)
 	if err != nil {
 		panic("file dir cannot be visited")
 	}
-	for _, c := range dir {
+	for index, c := range dir {
 		if c.IsDir() {
 			continue
 		}
@@ -97,11 +96,18 @@ func LoadFile() []reply {
 
 		fileBuf, err := os.ReadFile(fileDir + "/" + c.Name())
 		if err != nil {
-			panic(fmt.Errorf("cannot read file %s", fileDir+"/"+c.Name()))
+			log.Panicf("cannot read file %s", fileDir+"/"+c.Name())
 			return nil
 		}
-		userPart := strings.Split(string(fileBuf), "|")
-		for userId, p := range userPart { // set the index of user part as user id
+		part := strings.Split(string(fileBuf), "|")
+
+		m := part[0]
+		r.Map = pkg.Str2GameMap(uint32(index), m)
+		MapType.DebugOutput(r.Map, func(block MapType.Block) uint16 {
+			return uint16(block.GetMeta().BlockId)
+		})
+
+		for userId, p := range part { // set the index of user part as user id
 			if userId == 0 {
 				continue
 			}
@@ -136,6 +142,10 @@ func fakePlayer(ctx *Context, c []string) {
 		select {
 		case <-ticker.C:
 			{
+				ctx.Game = data.GetGameInfo(ctx.Game.Id) // TODO
+				if currentRound >= uint16(len(c)) {
+					ticker.Stop()
+				}
 				if ctx.Game.RoundNum > currentRound {
 					currentRound = ctx.Game.RoundNum
 					ctx.Command <- c[currentRound]
@@ -143,7 +153,7 @@ func fakePlayer(ctx *Context, c []string) {
 			}
 		case msg := <-ctx.Message:
 			{
-				fmt.Printf("Game %d User %s Msg: %s\n", ctx.Game.Id, ctx.User.Name, msg)
+				log.Printf("Game %d User %s Msg: %s\n", ctx.Game.Id, ctx.User.Name, msg[:19])
 			}
 		}
 	}
@@ -154,7 +164,7 @@ func receiver(ctx *Context) {
 	ctx.User.Status = GameType.UserStatusConnected
 	data.SetUserStatus(ctx.Game.Id, ctx.User)
 
-	fmt.Printf("Game %d User %s join\n", ctx.Game.Id, ctx.User.Name)
+	log.Printf("Game %d User %s join\n", ctx.Game.Id, ctx.User.Name)
 
 	defer func() {
 		ctx.User.Status = GameType.UserStatusDisconnected
@@ -168,7 +178,7 @@ func receiver(ctx *Context) {
 		select {
 		case <-ctx.Done():
 			{
-				fmt.Println("ctx done")
+				log.Println("ctx done")
 				return
 			}
 		case cmd := <-ctx.Command:
@@ -178,11 +188,8 @@ func receiver(ctx *Context) {
 				}
 				ins, err := CommandPauser.PauseCommandStr(ctx.User.UserId, cmd)
 				if err != nil {
-					panic(fmt.Errorf("cannot parse command: %s", cmd))
+					log.Panicf("cannot parse command: %s", cmd)
 				}
-
-				fmt.Println(ctx.Game.Id, ctx.User, ins)
-
 				data.UpdateInstruction(ctx.Game.Id, ctx.User, ins)
 			}
 		case <-ticker.C:
@@ -195,9 +202,12 @@ func receiver(ctx *Context) {
 
 				// Check game status
 				g := data.GetGameInfo(ctx.Game.Id)
-				if i%100 == 0 {
-					fmt.Println(ctx.User.UserId, i, ctx.Game.RoundNum, g.RoundNum)
-				}
+
+				//if i%100 == 0 {
+				//	log.Println(ctx.User.UserId, i, ctx.Game.RoundNum, g.RoundNum)
+				//}
+				// TODO
+
 				if g.Status != ctx.Game.Status {
 					if ctx.Game.Status == GameType.GameStatusWaiting && g.Status == GameType.GameStatusRunning {
 						done(g, "info")
