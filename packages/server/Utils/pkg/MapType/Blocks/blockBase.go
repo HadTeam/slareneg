@@ -7,16 +7,14 @@ import (
 var _ MapType.Block = (*BaseBlock)(nil)
 
 type BaseBlock struct {
-	ownerId  uint16
-	position MapType.BlockPosition
-	number   uint16
+	ownerId uint16
+	number  uint16
 }
 
 func NewBaseBlock(number uint16, ownerId uint16) *BaseBlock {
 	return &BaseBlock{
-		ownerId:  ownerId,
-		position: MapType.BlockPosition{},
-		number:   number,
+		ownerId: ownerId,
+		number:  number,
 	}
 }
 
