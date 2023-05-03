@@ -136,7 +136,7 @@ func (l *Local) SetGameStatus(id GameType.GameId, status GameType.GameStatus) (o
 func (l *Local) SetGameMap(id GameType.GameId, m *MapType.Map) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
-		l.GamePool[id].Map = m
+		l.GamePool[id].Map = &(*m)
 		return true
 	} else {
 		return false
