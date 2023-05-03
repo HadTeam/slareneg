@@ -30,6 +30,16 @@ func (p *Pool) NewGame(mode GameType.GameMode) {
 	p.judges.Store(id, Judge.NewGameJudge(id))
 }
 
+func (p *Pool) DebugNewGame(g *GameType.Game) {
+	if ok := data.DebugCreateGame(g); !ok {
+		panic("cannot create game in debug mode")
+	}
+	if g.Id == 0 {
+		panic("Cannot create game")
+	}
+	p.judges.Store(g.Id, Judge.NewGameJudge(g.Id))
+}
+
 func CreatePool(allowGameMode []GameType.GameMode) *Pool {
 	p := &Pool{AllowGameMode: allowGameMode}
 	go poolWorking(p)

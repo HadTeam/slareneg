@@ -231,3 +231,39 @@ func (l *Local) CreateGame(mode GameType.GameMode) GameType.GameId {
 		return 0
 	}
 }
+
+func (l *Local) DebugCreateGame(g *GameType.Game) (ok bool) {
+	if l.lock() {
+		defer l.unlock()
+		_, ok := l.GamePool[g.Id]
+		if ok {
+			panic("game id has existed")
+			return false
+		}
+
+		var gameId GameType.GameId
+		for {
+			gameId = GameType.GameId(rand.Uint32())
+			if _, ok := l.GamePool[gameId]; !ok {
+				break
+			}
+		}
+		if g.Map.Blocks == nil {
+			g.Map = l.GetOriginalMap(g.Map.MapId)
+		}
+		ng := &GameType.Game{
+			Map:        g.Map,
+			Mode:       g.Mode,
+			Id:         g.Id,
+			UserList:   g.UserList,
+			CreateTime: time.Now().UnixMicro(),
+			Status:     GameType.GameStatusWaiting,
+			RoundNum:   0,
+		}
+		l.GamePool[g.Id] = ng
+		l.InstructionLog[g.Id] = make(map[uint16][]InstructionType.Instruction)
+		return true
+	} else {
+		return false
+	}
+}

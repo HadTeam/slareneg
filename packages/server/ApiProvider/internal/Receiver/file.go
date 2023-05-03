@@ -105,9 +105,6 @@ func LoadFile() []reply {
 
 		m := part[0]
 		r.Map = pkg.FullStr2GameMap(uint32(index), m)
-		MapType.DebugOutput(r.Map, func(block MapType.Block) uint16 {
-			return uint16(block.GetMeta().BlockId)
-		})
 
 		for userId, p := range part { // set the index of user part as user id
 			if userId == 0 {

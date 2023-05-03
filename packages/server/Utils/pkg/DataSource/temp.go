@@ -21,4 +21,7 @@ type TempDataSource interface {
 	SetUserStatus(id GameType.GameId, user GameType.User) (ok bool)
 	UpdateInstruction(id GameType.GameId, user GameType.User, instruction InstructionType.Instruction) (ok bool)
 	GetCurrentMap(id GameType.GameId) *MapType.Map
+
+	// Functions only for debug
+	DebugCreateGame(game *GameType.Game) (ok bool)
 }
