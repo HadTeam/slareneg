@@ -34,8 +34,11 @@ moves = data['moves']
 usernames = data['usernames']
 
 moves_by_user = {}
+turns_by_user = {}
+
 for i in range(len(usernames)):
     moves_by_user[i] = []
+    turns_by_user[i] = 1
 
 for move in moves:
     user_index = move['index']
@@ -57,6 +60,10 @@ for move in moves:
     else:
         move_number = 0
     move_str = f'Move {prev_location[0]} {prev_location[1]} {direction} {move_number}'
+    while turns_by_user[user_index] < move['turn'] -1:
+        turns_by_user[user_index] += 1
+        moves_by_user[user_index].append("")
+    turns_by_user[user_index] += 1
     moves_by_user[user_index].append(move_str)
 
 with open(sys.argv[2], 'w', newline='\n') as target_file:

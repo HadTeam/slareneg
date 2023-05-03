@@ -49,7 +49,7 @@ func NewFileReceiver() {
 		for _, c := range r.UserPack {
 			ctx := Context{
 				Context: context.TODO(),
-				Game:    &g,
+				Game:    g,
 				User:    c.User,
 				Command: make(chan string),
 				Message: make(chan string),
