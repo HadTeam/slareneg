@@ -123,3 +123,22 @@ func judgeGame(g *GameType.Game) GameType.GameStatus {
 
 	return GameType.GameStatusRunning
 }
+
+func AllocateKing(g *GameType.Game) {
+	var kingPos []MapType.BlockPosition
+	for colNum, col := range g.Map.Blocks {
+		for rowNum, b := range col {
+			if b.GetMeta().BlockId == Blocks.BlockKingMeta.BlockId && b.GetOwnerId() == 0 {
+				kingPos = append(kingPos, MapType.BlockPosition{
+					X: uint8(colNum),
+					Y: uint8(rowNum),
+				})
+			}
+		}
+	}
+	for i, u := range g.UserList { // allocate king blocks by order, ignoring the part out of user number
+		g.Map.Blocks[kingPos[i].Y][kingPos[i].X] = MapType.ToBlockByTypeId(
+			Blocks.BlockKingMeta.BlockId,
+			Blocks.NewBaseBlock(g.Map.Blocks[kingPos[i].Y][kingPos[i].X].GetNumber(), u.UserId))
+	}
+}
