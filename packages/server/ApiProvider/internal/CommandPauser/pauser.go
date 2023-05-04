@@ -28,7 +28,7 @@ func PauseCommandStr(userId uint16, str string) (InstructionType.Instruction, er
 					n, _ := strconv.Atoi(c.Number)
 					x, _ := strconv.Atoi(c.X)
 					y, _ := strconv.Atoi(c.Y)
-					ret = &InstructionType.Move{
+					ret = InstructionType.Move{
 						UserId:   userId,
 						Position: InstructionType.BlockPosition{X: uint8(x), Y: uint8(y)},
 						Towards:  InstructionType.MoveTowardsType(c.Towards),
@@ -52,7 +52,7 @@ func PauseCommandStr(userId uint16, str string) (InstructionType.Instruction, er
 					if c.Status == "true" {
 						s = true
 					}
-					ret = &InstructionType.ForceStart{
+					ret = InstructionType.ForceStart{
 						UserId: userId,
 						Status: s,
 					}
@@ -67,7 +67,7 @@ func PauseCommandStr(userId uint16, str string) (InstructionType.Instruction, er
 	case "Surrender":
 		{
 			if len(args)-1 == 0 {
-				ret = &InstructionType.Surrender{UserId: userId}
+				ret = InstructionType.Surrender{UserId: userId}
 			} else {
 				err = fmt.Errorf("argument number not right")
 			}

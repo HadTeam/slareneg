@@ -28,7 +28,7 @@ for i, city in enumerate(data['cities']):
 
 for u, general in enumerate(data['generals']):
     pos = get_position(general)
-    map_data[pos[1]][pos[0]] = [2, u+1, 0]
+    map_data[pos[1]][pos[0]] = [2, u + 1, 0]
 
 moves = data['moves']
 usernames = data['usernames']
@@ -59,7 +59,7 @@ for move in moves:
         move_number = 65535
     else:
         move_number = 0
-    move_str = f'Move {prev_location[0]} {prev_location[1]} {direction} {move_number}'
+    move_str = f'Move {prev_location[0]+1} {prev_location[1]+1} {direction} {move_number}'
     while turns_by_user[user_index] < move['turn'] -1:
         turns_by_user[user_index] += 1
         moves_by_user[user_index].append("")
