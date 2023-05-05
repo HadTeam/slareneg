@@ -1,12 +1,10 @@
-package Blocks
-
-import "server/Utils/pkg/MapType"
+package BlockType
 
 type BlockSoldier struct {
 	BaseBlock
 }
 
-var BlockSoldierMeta = MapType.BlockMeta{
+var BlockSoldierMeta = BlockMeta{
 	BlockId:           1,
 	Name:              "soldier",
 	Description:       "",
@@ -14,17 +12,17 @@ var BlockSoldierMeta = MapType.BlockMeta{
 }
 
 func init() {
-	MapType.RegisterBlockType(BlockSoldierMeta, toBlockSoldier)
+	RegisterBlockType(BlockSoldierMeta, toBlockSoldier)
 }
 
-func toBlockSoldier(number uint16, ownerId uint16) MapType.Block {
+func toBlockSoldier(number uint16, ownerId uint16) Block {
 	var ret BlockSoldier
 	ret.number = number
 	ret.ownerId = ownerId
-	return MapType.Block(&ret)
+	return Block(&ret)
 }
 
-func (*BlockSoldier) GetMeta() MapType.BlockMeta {
+func (*BlockSoldier) GetMeta() BlockMeta {
 	return BlockSoldierMeta
 }
 
@@ -44,7 +42,7 @@ func (block *BlockSoldier) MoveFrom(number uint16) {
 	block.number -= number
 }
 
-func (block *BlockSoldier) MoveTo(ownerId uint16, number uint16) MapType.Block {
+func (block *BlockSoldier) MoveTo(ownerId uint16, number uint16) Block {
 
 	if block.ownerId != ownerId {
 		if block.number < number {

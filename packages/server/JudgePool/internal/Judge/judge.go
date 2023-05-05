@@ -5,8 +5,7 @@ import (
 	"server/JudgePool/internal/InstructionExecutor"
 	"server/Utils/pkg/DataSource"
 	"server/Utils/pkg/GameType"
-	"server/Utils/pkg/MapType"
-	"server/Utils/pkg/MapType/Blocks"
+	"server/Utils/pkg/MapType/BlockType"
 	"time"
 )
 
@@ -55,8 +54,8 @@ func judgeWorking(j *GameJudge) {
 			log.Printf("[Judge] Working for GameId %d\n", j.gameId)
 
 			game := data.GetGameInfo(j.gameId)
-			if game.Map.Blocks == nil {
-				game.Map = pData.GetOriginalMap(game.Map.MapId)
+			if !game.Map.HasBlocks() {
+				game.Map = pData.GetOriginalMap(game.Map.Id())
 			}
 			data.SetGameStatus(j.gameId, GameType.GameStatusRunning)
 			AllocateKing(game)
@@ -125,20 +124,18 @@ func judgeGame(g *GameType.Game) GameType.GameStatus {
 }
 
 func AllocateKing(g *GameType.Game) {
-	var kingPos []MapType.BlockPosition
-	for colNum, col := range g.Map.Blocks {
-		for rowNum, b := range col {
-			if b.GetMeta().BlockId == Blocks.BlockKingMeta.BlockId && b.GetOwnerId() == 0 {
-				kingPos = append(kingPos, MapType.BlockPosition{
-					X: uint8(colNum),
-					Y: uint8(rowNum),
-				})
+	var kingPos []BlockType.Position
+	for y := uint8(1); y <= g.Map.Size().H; y++ {
+		for x := uint8(1); x <= g.Map.Size().W; x++ {
+			b := g.Map.GetBlock(BlockType.Position{X: x, Y: y})
+			if b.GetMeta().BlockId == BlockType.BlockKingMeta.BlockId && b.GetOwnerId() == 0 {
+				kingPos = append(kingPos, BlockType.Position{X: x, Y: y})
 			}
 		}
 	}
+
 	for i, u := range g.UserList { // allocate king blocks by order, ignoring the part out of user number
-		g.Map.Blocks[kingPos[i].Y][kingPos[i].X] = MapType.ToBlockByTypeId(
-			Blocks.BlockKingMeta.BlockId,
-			Blocks.NewBaseBlock(g.Map.Blocks[kingPos[i].Y][kingPos[i].X].GetNumber(), u.UserId))
+		g.Map.SetBlock(kingPos[i],
+			BlockType.NewBlock(BlockType.BlockKingMeta.BlockId, g.Map.GetBlock(kingPos[i]).GetNumber(), u.UserId))
 	}
 }

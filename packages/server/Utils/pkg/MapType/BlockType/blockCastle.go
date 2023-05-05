@@ -1,17 +1,16 @@
-package Blocks
+package BlockType
 
 import (
 	"math/rand"
-	"server/Utils/pkg/MapType"
 )
 
-var _ MapType.Block = (*BlockCastle)(nil)
+var _ Block = (*BlockCastle)(nil)
 
 type BlockCastle struct {
 	BaseBuilding
 }
 
-var BlockCastleMeta = MapType.BlockMeta{
+var BlockCastleMeta = BlockMeta{
 	BlockId:           3,
 	Name:              "castle",
 	Description:       "",
@@ -19,10 +18,10 @@ var BlockCastleMeta = MapType.BlockMeta{
 }
 
 func init() {
-	MapType.RegisterBlockType(BlockCastleMeta, toBlockCastle)
+	RegisterBlockType(BlockCastleMeta, toBlockCastle)
 }
 
-func toBlockCastle(number uint16, ownerId uint16) MapType.Block {
+func toBlockCastle(number uint16, ownerId uint16) Block {
 	var ret BlockCastle
 	if number == 0 {
 		ret.number = uint16(30) + uint16(rand.Intn(30))
@@ -30,9 +29,9 @@ func toBlockCastle(number uint16, ownerId uint16) MapType.Block {
 		ret.number = number
 	}
 	ret.ownerId = ownerId
-	return MapType.Block(&ret)
+	return Block(&ret)
 }
 
-func (*BlockCastle) GetMeta() MapType.BlockMeta {
+func (*BlockCastle) GetMeta() BlockMeta {
 	return BlockCastleMeta
 }

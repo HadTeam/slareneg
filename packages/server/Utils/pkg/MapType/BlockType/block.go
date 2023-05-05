@@ -1,4 +1,4 @@
-package MapType
+package BlockType
 
 type BlockMeta struct {
 	Name              string
@@ -25,7 +25,7 @@ type Block interface {
 
 	// Round Events
 	RoundStart(roundNumber uint16) bool
-	RoundEnd(roundNumber uint16) (bool, GameOverSign)
+	RoundEnd(roundNumber uint16) (bool, GameOverSign bool)
 
 	GetMoveStatus() MoveStatus
 	MoveFrom(number uint16)
@@ -35,4 +35,4 @@ type Block interface {
 	GetMeta() BlockMeta
 }
 
-type BlockPosition struct{ X, Y uint8 }
+type Position struct{ X, Y uint8 }

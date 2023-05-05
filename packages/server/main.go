@@ -7,7 +7,7 @@ import (
 	"server/Utils/pkg/DataSource/Local"
 	"server/Utils/pkg/GameType"
 	"server/Utils/pkg/InstructionType"
-	_ "server/Utils/pkg/MapType/Blocks"
+	_ "server/Utils/pkg/MapType/BlockType"
 	"time"
 )
 

@@ -2,7 +2,6 @@ package Local
 
 import (
 	"math/rand"
-	"server/Utils/pkg"
 	"server/Utils/pkg/DataSource"
 	"server/Utils/pkg/GameType"
 	"server/Utils/pkg/InstructionType"
@@ -25,11 +24,19 @@ type Local struct {
 func (l *Local) lock() bool {
 	for i := 1; !l.m.TryLock(); i++ {
 		time.Sleep(10 * time.Millisecond)
-		if i >= 1e4 {
+		if i >= 1e3 {
 			panic("try to lock timeout")
 			return false
 		}
 	}
+	//// DEBUG CODE: Use to show the caller function name
+	//getCallerFunName := func(skip int) string {
+	//	pc, _, _, _ := runtime.Caller(skip)
+	//	name := strings.Split(runtime.FuncForPC(pc).Name(), "/")
+	//	return name[len(name)-1]
+	//}
+	//
+	//log.Printf("[Local Lock Debug] Locked by %s -> %s\n", getCallerFunName(3), getCallerFunName(2))
 	return true
 }
 
@@ -188,7 +195,7 @@ func (l *Local) GetCurrentMap(id GameType.GameId) *MapType.Map {
 func (l *Local) GetOriginalMap(mapId uint32) *MapType.Map {
 	if l.lock() {
 		defer l.unlock()
-		return pkg.Str2GameMap(mapId, l.OriginalMapStrPool[mapId])
+		return MapType.Str2GameMap(mapId, l.OriginalMapStrPool[mapId])
 	} else {
 		return nil
 	}
@@ -233,6 +240,9 @@ func (l *Local) CreateGame(mode GameType.GameMode) GameType.GameId {
 }
 
 func (l *Local) DebugCreateGame(g *GameType.Game) (ok bool) {
+	if !g.Map.HasBlocks() {
+		g.Map = l.GetOriginalMap(g.Map.Id())
+	}
 	if l.lock() {
 		defer l.unlock()
 		_, ok := l.GamePool[g.Id]
@@ -247,9 +257,6 @@ func (l *Local) DebugCreateGame(g *GameType.Game) (ok bool) {
 			if _, ok := l.GamePool[gameId]; !ok {
 				break
 			}
-		}
-		if g.Map.Blocks == nil {
-			g.Map = l.GetOriginalMap(g.Map.MapId)
 		}
 		ng := &GameType.Game{
 			Map:        g.Map,

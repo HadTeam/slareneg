@@ -1,40 +1,60 @@
 package MapType
 
 import (
+	"encoding/json"
 	"log"
 	"server/Utils/pkg/InstructionType"
+	"server/Utils/pkg/MapType/BlockType"
 	"strconv"
 )
 
-type MapSize struct{ X, Y uint8 }
+type MapSize struct{ W, H uint8 }
+
+type mapInfo struct {
+	size MapSize
+	id   uint32
+}
 
 type Map struct {
-	Blocks [][]Block
-	Size   MapSize
-	MapId  uint32
+	blocks [][]BlockType.Block
+	mapInfo
 }
 
-func (p *Map) GetBlock(position BlockPosition) Block {
-	return p.Blocks[position.Y][position.X]
+func (p *Map) Size() MapSize {
+	return p.size
 }
 
-func (p *Map) SetBlock(position BlockPosition, block Block) {
-	p.Blocks[position.Y][position.X] = block
+func (p *Map) Id() uint32 {
+	return p.id
+}
+
+func (p *Map) GetBlock(position BlockType.Position) BlockType.Block {
+	return p.blocks[position.Y-1][position.X-1]
+}
+
+func (p *Map) SetBlock(position BlockType.Position, block BlockType.Block) {
+	p.blocks[position.Y-1][position.X-1] = block
+}
+
+func (p *Map) HasBlocks() bool {
+	if p.blocks == nil {
+		return false
+	} else {
+		return true
+	}
 }
 
 func (p *Map) RoundStart(roundNum uint16) {
-	for _, col := range p.Blocks {
+	for _, col := range p.blocks {
 		for _, block := range col {
 			block.RoundStart(roundNum)
 		}
 	}
 }
 
-type GameOverSign bool
-
-func (p *Map) RoundEnd(roundNum uint16) GameOverSign {
-	var ret GameOverSign
-	for _, col := range p.Blocks {
+func (p *Map) RoundEnd(roundNum uint16) bool {
+	var ret bool
+	for _, col := range p.blocks {
 		for _, block := range col {
 			if _, s := block.RoundEnd(roundNum); s {
 				ret = true
@@ -44,7 +64,7 @@ func (p *Map) RoundEnd(roundNum uint16) GameOverSign {
 	return ret
 }
 
-func DebugOutput(p *Map, f func(Block) uint16) { // Only for debugging
+func DebugOutput(p *Map, f func(BlockType.Block) uint16) { // Only for debugging
 	tmp := ""
 	ex := func(i uint16) string {
 		ex := ""
@@ -55,13 +75,13 @@ func DebugOutput(p *Map, f func(Block) uint16) { // Only for debugging
 	}
 
 	tmp += " *  "
-	for i := uint16(1); i <= uint16(len(p.Blocks[0])); i++ {
+	for i := uint16(1); i <= uint16(p.Size().W); i++ {
 		tmp += ex(i) + " "
 	}
 	tmp += "\n"
-	for colNum, col := range p.Blocks {
-		tmp += ex(uint16(colNum)) + ": "
-		for _, block := range col {
+	for rowNum, row := range p.blocks {
+		tmp += ex(uint16(rowNum)) + ": "
+		for _, block := range row {
 			tmp += ex(f(block)) + " "
 		}
 		tmp += "\n"
@@ -69,8 +89,8 @@ func DebugOutput(p *Map, f func(Block) uint16) { // Only for debugging
 	log.Printf("\n%s\n", tmp)
 }
 
-func isPositionLegal(position BlockPosition, size MapSize) bool {
-	return 1 <= position.X && position.X <= size.X && 1 <= position.Y && position.Y <= size.Y
+func isPositionLegal(position BlockType.Position, size MapSize) bool {
+	return 1 <= position.X && position.X <= size.W && 1 <= position.Y && position.Y <= size.H
 }
 
 func (p *Map) Move(instruction InstructionType.Move) bool {
@@ -98,13 +118,17 @@ func (p *Map) Move(instruction InstructionType.Move) bool {
 		}
 	}
 
-	newPosition := BlockPosition{X: uint8(int(instruction.Position.X) + offsetX), Y: uint8(int(instruction.Position.Y) + offsetY)}
-	// It won't overflow 'cause the min value is 0
-
-	instructionPosition := BlockPosition{instruction.Position.X, instruction.Position.Y}
-	if !isPositionLegal(instructionPosition, p.Size) && !isPositionLegal(newPosition, p.Size) {
+	instructionPosition := BlockType.Position{instruction.Position.X, instruction.Position.Y}
+	if !isPositionLegal(instructionPosition, p.size) {
 		return false
 	}
+
+	newPosition := BlockType.Position{X: uint8(int(instruction.Position.X) + offsetX), Y: uint8(int(instruction.Position.Y) + offsetY)}
+	// It won't overflow 'cause the min value is 0
+	if !isPositionLegal(newPosition, p.size) {
+		return false
+	}
+
 	thisBlock := p.GetBlock(instructionPosition)
 
 	/*
@@ -127,11 +151,58 @@ func (p *Map) Move(instruction InstructionType.Move) bool {
 		return false
 	}
 
-	var toBlockNew Block
+	var toBlockNew BlockType.Block
 	thisBlock.MoveFrom(instruction.Number)
 	toBlockNew = toBlock.MoveTo(thisBlock.GetOwnerId(), instruction.Number)
 	if toBlockNew != nil {
 		p.SetBlock(newPosition, toBlockNew)
 	}
 	return true
+}
+
+// Str2GameMap TODO: Add unit test
+func Str2GameMap(mapId uint32, originalMapStr string) *Map {
+	var result [][]uint8
+	if err := json.Unmarshal([]byte(originalMapStr), &result); err != nil {
+		panic(err)
+		return nil
+	}
+	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
+	ret := make([][]BlockType.Block, size.H)
+	for rowNum, row := range result {
+		ret[rowNum] = make([]BlockType.Block, size.W)
+		for colNum, typeId := range row {
+			ret[rowNum][colNum] = BlockType.NewBlock(typeId, 0, 0)
+		}
+	}
+	return &Map{
+		ret,
+		mapInfo{size, mapId},
+	}
+}
+
+func FullStr2GameMap(mapId uint32, originalMapStr string) *Map {
+	var result [][][]uint16
+	if err := json.Unmarshal([]byte(originalMapStr), &result); err != nil {
+		panic(err)
+		return nil
+	}
+	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
+	ret := make([][]BlockType.Block, size.H)
+	for rowNum, row := range result {
+		ret[rowNum] = make([]BlockType.Block, size.W)
+		for colNum, blockInfo := range row {
+			blockId := blockInfo[0]
+			ownerId := blockInfo[1]
+			number := blockInfo[2]
+
+			block := BlockType.NewBlock(uint8(blockId), number, ownerId)
+
+			ret[rowNum][colNum] = block
+		}
+	}
+	return &Map{
+		ret,
+		mapInfo{size, mapId},
+	}
 }
