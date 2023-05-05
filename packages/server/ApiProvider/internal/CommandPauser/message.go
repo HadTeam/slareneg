@@ -5,6 +5,7 @@ import (
 	"server/Utils/pkg/DataSource"
 	"server/Utils/pkg/GameType"
 	"server/Utils/pkg/MapType"
+	"server/Utils/pkg/MapType/BlockType"
 )
 
 var data DataSource.TempDataSource
@@ -30,27 +31,33 @@ func getVisibility(id GameType.GameId, userId uint16) [][]bool {
 		}
 	}
 
-	ret := make([][]bool, m.Size.Y)
+	ret := make([][]bool, m.Size().H)
+	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
+		ret[rowNum] = make([]bool, m.Size().W)
+	}
 
-	light := func(x uint8, y uint8) {
-		lightRange := []struct {
+	light := func(x int, y int) {
+		lightOffset := []struct {
 			x, y int
 		}{{0, 1}, {0, -1}, {-1, 0}, {1, 0}}
-		for _, r := range lightRange {
-			ret[uint8(int(y)+r.y)][uint8(int(x)+r.x)] = true
+		for _, r := range lightOffset {
+			ly := y + r.y
+			lx := x + r.x
+			if 0 <= ly && ly <= int(m.Size().H-1) && 0 <= lx && lx <= int(m.Size().W-1) {
+				ret[ly][lx] = true
+			}
 		}
 	}
 
-	for rowNum, row := range m.Blocks {
-		ret[rowNum] = make([]bool, m.Size.X)
-		for colNum, b := range row {
-			o := b.GetOwnerId()
+	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
+		for colNum := uint8(0); colNum <= m.Size().W-1; colNum++ {
+			o := m.GetBlock(BlockType.Position{X: colNum + 1, Y: rowNum + 1}).GetOwnerId()
 			if o == 0 {
 				continue
 			}
 			for _, u := range teamUsers {
 				if u == o {
-					light(uint8(colNum), uint8(rowNum))
+					light(int(colNum), int(rowNum))
 				}
 			}
 		}
@@ -61,10 +68,11 @@ func getVisibility(id GameType.GameId, userId uint16) [][]bool {
 
 func getProcessedMap(id GameType.GameId, userId uint16, m *MapType.Map) [][][]uint16 {
 	vis := getVisibility(id, userId)
-	mr := make([][][]uint16, len(m.Blocks))
-	for rowNum, row := range m.Blocks {
-		mr[rowNum] = make([][]uint16, len(row))
-		for colNum, b := range row {
+	mr := make([][][]uint16, m.Size().H)
+	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
+		mr[rowNum] = make([][]uint16, m.Size().W)
+		for colNum := uint8(0); colNum <= m.Size().W-1; colNum++ {
+			b := m.GetBlock(BlockType.Position{X: colNum + 1, Y: rowNum + 1})
 			if vis[rowNum][colNum] {
 				mr[rowNum][colNum] = []uint16{uint16(b.GetMeta().BlockId), b.GetOwnerId(), b.GetNumber()}
 			} else {
@@ -115,7 +123,7 @@ func GenerateMessage(_type string, id GameType.GameId, userId uint16) string {
 				MapWidth  uint8        `json:"mapWidth"`
 				MapHeight uint8        `json:"mapHeight"`
 				Map       [][][]uint16 `json:"map"`
-			}{"start", m.Size.X, m.Size.Y, getProcessedMap(id, userId, m)}
+			}{"start", m.Size().W, m.Size().H, getProcessedMap(id, userId, m)}
 			ret, _ := json.Marshal(res)
 			return string(ret)
 		}
