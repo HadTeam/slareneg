@@ -14,11 +14,10 @@ var _ DataSource.PersistentDataSource = (*Local)(nil)
 var _ DataSource.TempDataSource = (*Local)(nil)
 
 type Local struct {
-	m                   sync.Mutex
-	GamePool            map[GameType.GameId]*GameType.Game
-	OriginalMapStrPool  map[uint32]string
-	InstructionTempPool map[GameType.GameId]map[uint16]InstructionType.Instruction
-	InstructionLog      map[GameType.GameId]map[uint16][]InstructionType.Instruction
+	m                  sync.Mutex
+	GamePool           map[GameType.GameId]*GameType.Game
+	OriginalMapStrPool map[uint32]string
+	InstructionLog     map[GameType.GameId]map[uint16]map[uint16]InstructionType.Instruction
 }
 
 func (l *Local) lock() bool {
@@ -103,27 +102,22 @@ func (l *Local) GetCurrentUserList(id GameType.GameId) []GameType.User {
 func (l *Local) GetInstructions(id GameType.GameId, tempId uint16) []InstructionType.Instruction {
 	if l.lock() {
 		defer l.unlock()
-		return l.InstructionLog[id][tempId]
+		var list []InstructionType.Instruction
+		for _, v := range l.InstructionLog[id][tempId] {
+			list = append(list, v)
+		}
+		return list
 	} else {
 		return nil
 	}
 	//return ExampleInstruction
 }
 
-func (l *Local) NewInstructionTemp(id GameType.GameId, tempId uint16) (ok bool) {
+func (l *Local) NewInstructionTemp(id GameType.GameId, _ uint16) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
-		var list []InstructionType.Instruction
-		for _, v := range l.InstructionTempPool[id] {
-			list = append(list, v)
-		}
-		l.InstructionLog[id][tempId] = list
-		l.InstructionTempPool[id] = make(map[uint16]InstructionType.Instruction)
-		r := l.GamePool[id].RoundNum
-		if r != tempId {
-			panic("cannot sync")
-		}
 		l.GamePool[id].RoundNum++
+		l.InstructionLog[id][l.GamePool[id].RoundNum] = make(map[uint16]InstructionType.Instruction)
 		return true
 	} else {
 		return false
@@ -175,7 +169,7 @@ func (l *Local) SetUserStatus(id GameType.GameId, user GameType.User) (ok bool) 
 func (l *Local) UpdateInstruction(id GameType.GameId, user GameType.User, instruction InstructionType.Instruction) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
-		l.InstructionTempPool[id][user.UserId] = instruction
+		l.InstructionLog[id][l.GamePool[id].RoundNum][user.UserId] = instruction
 		return true
 	} else {
 		return false
@@ -232,7 +226,7 @@ func (l *Local) CreateGame(mode GameType.GameMode) GameType.GameId {
 		}
 
 		l.GamePool[g.Id] = g
-		l.InstructionLog[g.Id] = make(map[uint16][]InstructionType.Instruction)
+		l.InstructionLog[g.Id] = make(map[uint16]map[uint16]InstructionType.Instruction)
 		return g.Id
 	} else {
 		return 0
@@ -268,7 +262,7 @@ func (l *Local) DebugCreateGame(g *GameType.Game) (ok bool) {
 			RoundNum:   0,
 		}
 		l.GamePool[g.Id] = ng
-		l.InstructionLog[g.Id] = make(map[uint16][]InstructionType.Instruction)
+		l.InstructionLog[g.Id] = make(map[uint16]map[uint16]InstructionType.Instruction)
 		return true
 	} else {
 		return false
