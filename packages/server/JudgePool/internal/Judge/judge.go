@@ -83,7 +83,7 @@ func judgeWorking(j *GameJudge) {
 					if gameOverSign || judgeGame(game) != GameType.GameStatusRunning {
 						// Game Over
 						// TODO: Announce game-over
-						game.Status = GameType.GameStatusEnd
+						data.SetGameStatus(game.Id, GameType.GameStatusEnd)
 						j.status = StatusWaiting
 						log.Printf("[Judge] Done for GameId %d\n", j.gameId)
 						return
