@@ -85,7 +85,14 @@ func judgeWorking(j *GameJudge) {
 						// TODO: Announce game-over
 						data.SetGameStatus(game.Id, GameType.GameStatusEnd)
 						j.status = StatusWaiting
-						log.Printf("[Judge] Done for GameId %d\n", j.gameId)
+
+						var winnerTeam []string
+						for _, n := range game.UserList {
+							if n.TeamId == game.Winner {
+								winnerTeam = append(winnerTeam, n.Name)
+							}
+						}
+						log.Printf("[Judge] Done for GameId %d, winner %#v\n", j.gameId, winnerTeam)
 						return
 					}
 				}
