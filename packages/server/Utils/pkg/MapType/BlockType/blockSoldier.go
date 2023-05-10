@@ -38,6 +38,10 @@ func (block *BlockSoldier) RoundStart(roundNum uint16) bool {
 	return false
 }
 
+func (*BlockSoldier) GetMoveStatus() MoveStatus {
+	return MoveStatus{true, true}
+}
+
 func (block *BlockSoldier) MoveFrom(number uint16) {
 	block.number -= number
 }

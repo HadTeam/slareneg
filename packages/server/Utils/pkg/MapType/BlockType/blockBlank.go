@@ -21,6 +21,10 @@ func (*BlockBlank) GetMeta() BlockMeta {
 	return BlockBlankMeta
 }
 
+func (*BlockBlank) GetMoveStatus() MoveStatus {
+	return MoveStatus{false, true}
+}
+
 func toBlockBlank(_ uint16, _ uint16) Block {
 	return Block(&BlockBlank{})
 }

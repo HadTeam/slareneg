@@ -17,6 +17,10 @@ func (block *BaseBuilding) RoundStart(_ uint16) bool {
 	return true
 }
 
+func (*BaseBuilding) GetMoveStatus() MoveStatus {
+	return MoveStatus{true, true}
+}
+
 func (block *BaseBuilding) MoveFrom(number uint16) {
 	block.number -= number
 }
