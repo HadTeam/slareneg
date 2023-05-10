@@ -29,6 +29,6 @@ func toBlockBlank(_ uint16, _ uint16) Block {
 	return Block(&BlockBlank{})
 }
 
-func (*BlockBlank) MoveTo(ownerId uint16, _ uint16) Block {
-	return toBlockSoldier(0, ownerId)
+func (*BlockBlank) MoveTo(ownerId uint16, number uint16) Block {
+	return toBlockSoldier(number, ownerId)
 }
