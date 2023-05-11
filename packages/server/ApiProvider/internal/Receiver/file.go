@@ -51,8 +51,9 @@ func NewFileReceiver() {
 				Context: context.TODO(),
 				Game:    g,
 				User:    c.User,
-				Command: make(chan string),
-				Message: make(chan string),
+				// it's TOO IMPORTANT to use channel with buffer, or the fake player and the receiver will strike now and then
+				Command: make(chan string, 1),
+				Message: make(chan string, 3),
 			}
 			go receiver(&ctx)
 			go fakePlayer(&ctx, c.Ins)
