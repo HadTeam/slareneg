@@ -16,7 +16,6 @@ type BlockPosition struct {
 }
 
 type Move struct {
-	UserId   uint16
 	Position BlockPosition
 	Towards  MoveTowardsType
 	Number   uint16

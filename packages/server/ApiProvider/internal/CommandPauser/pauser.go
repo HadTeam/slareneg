@@ -29,7 +29,6 @@ func PauseCommandStr(userId uint16, str string) (InstructionType.Instruction, er
 					x, _ := strconv.Atoi(c.X)
 					y, _ := strconv.Atoi(c.Y)
 					ret = InstructionType.Move{
-						UserId:   userId,
 						Position: InstructionType.BlockPosition{X: uint8(x), Y: uint8(y)},
 						Towards:  InstructionType.MoveTowardsType(c.Towards),
 						Number:   uint16(n),
