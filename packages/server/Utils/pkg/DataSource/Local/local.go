@@ -6,6 +6,7 @@ import (
 	"server/Utils/pkg/GameType"
 	"server/Utils/pkg/InstructionType"
 	"server/Utils/pkg/MapType"
+	"sort"
 	"sync"
 	"time"
 )
@@ -55,6 +56,9 @@ func (l *Local) GetGameList(mode GameType.GameMode) []GameType.Game {
 			g.UserList = nil
 			ret = append(ret, g)
 		}
+		sort.Slice(ret, func(i, j int) bool {
+			return ret[i].Id < ret[j].Id // by increasing order
+		})
 		return ret
 	} else {
 		return nil
@@ -67,7 +71,7 @@ func (l *Local) CancelGame(id GameType.GameId) (ok bool) {
 		defer l.unlock()
 		g := l.GamePool[id]
 		g.Status = GameType.GameStatusEnd
-		g.UserList = nil
+		g.UserList = nil // TODO
 		return true
 	} else {
 		return false
@@ -142,20 +146,45 @@ func (l *Local) SetGameMap(id GameType.GameId, m *MapType.Map) (ok bool) {
 func (l *Local) SetUserStatus(id GameType.GameId, user GameType.User) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
+
 		g := l.GamePool[id]
-		// Try to find the user
-		for i, u := range g.UserList {
-			if u.UserId == user.UserId {
-				g.UserList[i].Status = user.Status
+		if g.Status == GameType.GameStatusEnd {
+			return false
+		}
+		if g.Status == GameType.GameStatusWaiting {
+			// Try to find
+			for i, u := range g.UserList {
+				if u.UserId == user.UserId {
+					if user.Status == GameType.UserStatusDisconnected {
+						// Remove the user from the list if they are disconnected
+						g.UserList = append(g.UserList[:i], g.UserList[i+1:]...)
+					} else {
+						// Update the info
+						user.TeamId = g.UserList[i].TeamId
+						g.UserList[i] = user
+					}
+					return true
+				}
+			}
+
+			// Specially check, for unexpected behavior that may exist
+			if g.Mode.MaxUserNum == 0 || g.Mode.MinUserNum == 0 || g.Mode.NameStr == "" {
+				panic("game mode is illegal")
+			}
+			// If the user is not in the list, try to add him/her if the game is not full
+			if user.Status == GameType.UserStatusConnected && uint8(len(g.UserList)) < g.Mode.MaxUserNum {
+				user.TeamId = 0
+				g.UserList = append(g.UserList, user)
 				return true
 			}
 		}
-		// Not found, try to join the game
-		if g.Status == GameType.GameStatusWaiting && uint8(len(g.UserList)) < g.Mode.MaxUserNum {
-			user.Status = GameType.UserStatusConnected
-			//user.TeamId= ? // TODO
-			g.UserList = append(g.UserList, user)
-			return true
+		if g.Status == GameType.GameStatusRunning {
+			for i, u := range g.UserList {
+				if u.UserId == user.UserId {
+					g.UserList[i].Status = user.Status
+					return true
+				}
+			}
 		}
 	}
 	return false
@@ -206,7 +235,7 @@ func (l *Local) CreateGame(mode GameType.GameMode) GameType.GameId {
 		var gameId GameType.GameId
 		for {
 			gameId = GameType.GameId(rand.Uint32())
-			if _, ok := l.GamePool[gameId]; !ok {
+			if _, ok := l.GamePool[gameId]; !ok && gameId >= 100 { // gameId 1-99 is for debugging usage
 				break
 			}
 		}
