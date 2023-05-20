@@ -1,9 +1,11 @@
 package Local
 
 import (
+	"fmt"
 	"server/Utils/pkg/GameType"
 	"server/Utils/pkg/InstructionType"
 	"server/Utils/pkg/MapType"
+	"server/Utils/pkg/MapType/BlockType"
 	"strconv"
 	"testing"
 )
@@ -149,6 +151,67 @@ func TestLocal_User(t *testing.T) {
 
 		if len(l.GamePool[2].UserList) != 0 {
 			t.Fatalf("user has not been removed")
+		}
+	})
+}
+
+func TestLocal_Map(t *testing.T) {
+	l := create()
+	id := GameType.GameId(3)
+	l.DebugCreateGame(&GameType.Game{
+		Map:        MapType.FullStr2GameMap(1, "[[[0,0,0]]]"),
+		Mode:       GameType.GameMode1v1,
+		Id:         id,
+		UserList:   []GameType.User{},
+		CreateTime: 0,
+		Status:     GameType.GameStatusWaiting,
+		RoundNum:   0,
+		Winner:     0,
+	})
+	t.Run("test initial map", func(t *testing.T) {
+		m := l.GamePool[id].Map
+		if !m.HasBlocks() || m.Id() != 1 {
+			t.Fatalf("initial map isn't correct")
+		}
+	})
+	t.Run("get current map", func(t *testing.T) {
+		m := l.GetCurrentMap(id)
+		if !m.HasBlocks() || m.Id() != 1 {
+			t.Fatalf("current map isn't correct")
+		}
+	})
+	t.Run("set map", func(t *testing.T) {
+		compareMap := func(a *MapType.Map, b *MapType.Map) bool { // if a == b, returns true
+			ret := true
+			if a.Size() == b.Size() && a.Id() == b.Id() {
+				for y := uint8(1); y <= a.Size().H; y++ {
+					for x := uint8(1); x <= a.Size().W; x++ {
+						blockA := a.GetBlock(BlockType.Position{x, y})
+						blockB := b.GetBlock(BlockType.Position{x, y})
+						if blockA != blockB {
+							t.Log(fmt.Sprintf("%#v", blockA), fmt.Sprintf("%#v", blockB), x, y)
+							ret = false
+							break
+						}
+					}
+				}
+			} else {
+				t.Log("id")
+				ret = false
+			}
+
+			return ret
+		}
+
+		m := l.GetCurrentMap(id)
+		newM := MapType.FullStr2GameMap(1, "[[[1,0,0]]]")
+		l.SetGameMap(id, newM)
+		currM := l.GetCurrentMap(id)
+		if compareMap(m, currM) != false || compareMap(newM, currM) != true {
+			t.Fatalf("the map in the pool is unexpected")
+		}
+		if currM == newM {
+			t.Fatalf("map copied")
 		}
 	})
 }
