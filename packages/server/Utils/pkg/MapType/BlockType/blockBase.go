@@ -19,12 +19,10 @@ func (block *BaseBlock) GetOwnerId() uint16 {
 	return block.ownerId
 }
 
-func (*BaseBlock) RoundStart(_ uint16) bool {
-	return false
+func (*BaseBlock) RoundStart(_ uint16) {
 }
 
-func (*BaseBlock) RoundEnd(_ uint16) (bool, GameOverSign bool) {
-	return false, false
+func (*BaseBlock) RoundEnd(_ uint16) {
 }
 
 func (*BaseBlock) GetMoveStatus() MoveStatus {

@@ -82,8 +82,8 @@ func judgeWorking(j *GameJudge) {
 						log.Printf("[Warn] Instructions execution failed\n")
 					}
 					game.UserList = data.GetCurrentUserList(game.Id)
-					gameOverSign := game.Map.RoundEnd(game.RoundNum) // TODO: Refactor the way to spread the game-over sign
-					if gameOverSign || judgeGame(game) != GameType.GameStatusRunning {
+					game.Map.RoundEnd(game.RoundNum) // TODO: Refactor the way to spread the game-over sign
+					if judgeGame(game) != GameType.GameStatusRunning {
 						// Game Over
 						// TODO: Announce game-over
 						data.SetGameStatus(game.Id, GameType.GameStatusEnd)

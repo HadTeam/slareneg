@@ -9,11 +9,6 @@ type BlockMeta struct {
 
 type MoveRequestType uint8
 
-const (
-	MoveRequestTypeFrom MoveRequestType = 1
-	MoveRequestTypeTo   MoveRequestType = 2
-)
-
 type MoveStatus struct {
 	AllowMoveFrom bool
 	AllowMoveTo   bool
@@ -24,8 +19,8 @@ type Block interface {
 	GetOwnerId() uint16
 
 	// Round Events
-	RoundStart(roundNumber uint16) bool
-	RoundEnd(roundNumber uint16) (bool, GameOverSign bool)
+	RoundStart(roundNumber uint16)
+	RoundEnd(roundNumber uint16)
 
 	GetMoveStatus() MoveStatus
 	MoveFrom(number uint16)

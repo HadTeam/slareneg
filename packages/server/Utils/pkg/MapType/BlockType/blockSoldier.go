@@ -30,12 +30,10 @@ func (block *BlockSoldier) GetNumber() uint16 {
 	return block.number
 }
 
-func (block *BlockSoldier) RoundStart(roundNum uint16) bool {
+func (block *BlockSoldier) RoundStart(roundNum uint16) {
 	if (roundNum%25)-1 == 0 && roundNum != 1 {
 		block.number += 1
-		return true
 	}
-	return false
 }
 
 func (*BlockSoldier) GetMoveStatus() MoveStatus {

@@ -52,16 +52,12 @@ func (p *Map) RoundStart(roundNum uint16) {
 	}
 }
 
-func (p *Map) RoundEnd(roundNum uint16) bool {
-	var ret bool
+func (p *Map) RoundEnd(roundNum uint16) {
 	for _, col := range p.blocks {
 		for _, block := range col {
-			if _, s := block.RoundEnd(roundNum); s {
-				ret = true
-			}
+			block.RoundEnd(roundNum)
 		}
 	}
-	return ret
 }
 
 func DebugOutput(p *Map, f func(BlockType.Block) uint16) { // Only for debugging

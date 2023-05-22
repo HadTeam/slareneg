@@ -26,11 +26,10 @@ func toBlockKing(number uint16, ownerId uint16) Block {
 	return Block(&ret)
 }
 
-func (block *BlockKing) RoundEnd(_ uint16) (bool, GameOverSign bool) {
+func (block *BlockKing) RoundEnd(_ uint16) {
 	if block.originalOwnerId != block.ownerId {
-		return true, true
+		// TODO End game
 	}
-	return false, false
 }
 
 func (*BlockKing) GetMeta() BlockMeta {
