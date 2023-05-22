@@ -59,7 +59,9 @@ func judgeWorking(j *GameJudge) {
 				game.Map = pData.GetOriginalMap(game.Map.Id())
 			}
 			data.SetGameStatus(j.gameId, GameType.GameStatusRunning)
-			AllocateKing(game)
+			game.UserList = data.GetCurrentUserList(j.gameId)
+			allocateKing(game)
+			allocateTeam(game)
 			data.SetGameMap(j.gameId, game.Map)
 			data.NewInstructionTemp(j.gameId, 0)
 			t := time.NewTicker(RoundTime)
@@ -103,8 +105,8 @@ func judgeWorking(j *GameJudge) {
 				game.Map.RoundStart(game.RoundNum)
 				data.SetGameMap(j.gameId, game.Map)
 
-				MapType.DebugOutput(game.Map, func(block MapType.Block) uint16 {
-					return block.GetNumber()
+				MapType.DebugOutput(game.Map, func(block BlockType.Block) uint16 {
+					return uint16(block.GetMeta().BlockId)
 				}) // TODO
 			}
 		}
@@ -125,26 +127,49 @@ func judgeGame(g *GameType.Game) GameType.GameStatus {
 	}
 	if onlinePlayerNum == 1 {
 		// TODO: Announce game-over
+		for _, u := range g.UserList {
+			if u.Status == GameType.UserStatusConnected {
+				g.Winner = u.TeamId
+				break
+			}
+		}
 		return GameType.GameStatusEnd
 	}
 
 	return GameType.GameStatusRunning
 }
 
-func AllocateKing(g *GameType.Game) {
+func allocateKing(g *GameType.Game) {
 	var kingPos []BlockType.Position
 	for y := uint8(1); y <= g.Map.Size().H; y++ {
 		for x := uint8(1); x <= g.Map.Size().W; x++ {
 			b := g.Map.GetBlock(BlockType.Position{X: x, Y: y})
-			if b.GetMeta().BlockId == BlockType.BlockKingMeta.BlockId && b.GetOwnerId() == 0 {
-				kingPos = append(kingPos, BlockType.Position{X: x, Y: y})
+			if b.GetMeta().BlockId == BlockType.BlockKingMeta.BlockId {
+				if b.GetOwnerId() == 0 {
+					kingPos = append(kingPos, BlockType.Position{X: x, Y: y})
+				}
 			}
 		}
 	}
 
-	for i, u := range g.UserList { // allocate king blocks by order, ignoring the part out of user number
-		g.Map.SetBlock(kingPos[i],
-			BlockType.NewBlock(BlockType.BlockKingMeta.BlockId, g.Map.GetBlock(kingPos[i]).GetNumber(), u.UserId))
+	if len(kingPos) > 0 { // check for debug creating behaviour
+		for i, u := range g.UserList { // allocate king blocks by order, ignoring the part out of user number
+			g.Map.SetBlock(kingPos[i],
+				BlockType.NewBlock(BlockType.BlockKingMeta.BlockId, g.Map.GetBlock(kingPos[i]).GetNumber(), u.UserId))
+		}
+	}
+}
+
+func allocateTeam(g *GameType.Game) {
+	if g.Mode == GameType.GameMode1v1 {
+		for i, _ := range g.UserList {
+			g.UserList[i].TeamId = uint8(i) + 1
+		}
+	} else {
+		panic("unexpected game mod")
+	}
+}
+
 func executeInstruction(id GameType.GameId, instruction InstructionType.Instruction) bool {
 	var ret bool
 	var m *MapType.Map

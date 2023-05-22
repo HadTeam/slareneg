@@ -120,12 +120,14 @@ func (p *Map) Move(instruction InstructionType.Move) bool {
 
 	instructionPosition := BlockType.Position{instruction.Position.X, instruction.Position.Y}
 	if !isPositionLegal(instructionPosition, p.size) {
+		//log.Printf("[Move] instruction position illegal")
 		return false
 	}
 
 	newPosition := BlockType.Position{X: uint8(int(instruction.Position.X) + offsetX), Y: uint8(int(instruction.Position.Y) + offsetY)}
 	// It won't overflow 'cause the min value is 0
 	if !isPositionLegal(newPosition, p.size) {
+		//log.Printf("[Move] new position illegal")
 		return false
 	}
 
@@ -143,11 +145,14 @@ func (p *Map) Move(instruction InstructionType.Move) bool {
 	}
 
 	if thisBlock.GetNumber() < instruction.Number {
+		//log.Printf("[Move] number isn't enough: %#v %#v", thisBlock.GetNumber(), instruction.Number)
 		return false
 	}
 
 	toBlock := p.GetBlock(newPosition)
 	if !thisBlock.GetMoveStatus().AllowMoveFrom || !toBlock.GetMoveStatus().AllowMoveTo {
+		//log.Printf("[Move] not allow to move: %s(%#v) -> %s(%#v)", thisBlock.GetMeta().Name,
+		//	thisBlock.GetMoveStatus().AllowMoveFrom, toBlock.GetMeta().Name, toBlock.GetMoveStatus().AllowMoveTo)
 		return false
 	}
 
