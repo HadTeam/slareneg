@@ -2,9 +2,10 @@ package Judge
 
 import (
 	"log"
-	"server/JudgePool/internal/InstructionExecutor"
 	"server/Utils/pkg/DataSource"
 	"server/Utils/pkg/GameType"
+	"server/Utils/pkg/InstructionType"
+	"server/Utils/pkg/MapType"
 	"server/Utils/pkg/MapType/BlockType"
 	"time"
 )
@@ -71,7 +72,7 @@ func judgeWorking(j *GameJudge) {
 
 					ok := true
 					for _, instruction := range instructionList {
-						if !InstructionExecutor.ExecuteInstruction(j.gameId, instruction) {
+						if !executeInstruction(j.gameId, instruction) {
 							ok = false
 						}
 					}
@@ -144,5 +145,19 @@ func AllocateKing(g *GameType.Game) {
 	for i, u := range g.UserList { // allocate king blocks by order, ignoring the part out of user number
 		g.Map.SetBlock(kingPos[i],
 			BlockType.NewBlock(BlockType.BlockKingMeta.BlockId, g.Map.GetBlock(kingPos[i]).GetNumber(), u.UserId))
+func executeInstruction(id GameType.GameId, instruction InstructionType.Instruction) bool {
+	var ret bool
+	var m *MapType.Map
+	switch instruction.(type) {
+	case InstructionType.Move:
+		{
+			m = data.GetCurrentMap(id)
+			ret = m.Move(instruction.(InstructionType.Move))
+
+		}
 	}
+	if !ret {
+		log.Printf("[Warn] Execute instruction failed: %#v \n", instruction)
+	}
+	return ret
 }

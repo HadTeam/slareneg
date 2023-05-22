@@ -1,7 +1,6 @@
 package JudgePool
 
 import (
-	"server/JudgePool/internal/InstructionExecutor"
 	"server/JudgePool/internal/Judge"
 	"server/Utils/pkg/DataSource"
 	"server/Utils/pkg/GameType"
@@ -19,9 +18,8 @@ var data DataSource.TempDataSource
 func ApplyDataSource(source interface{}) {
 	data = source.(DataSource.TempDataSource)
 	Judge.ApplyDataSource(source)
-	InstructionExecutor.ApplyDataSource(source)
-}
 
+}
 func (p *Pool) NewGame(mode GameType.GameMode) {
 	id := data.CreateGame(mode)
 	if id == 0 {
