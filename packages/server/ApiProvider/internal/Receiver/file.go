@@ -131,7 +131,7 @@ func LoadFile() []reply {
 
 func fakePlayer(ctx *Context, c []string) {
 	// DO NOT MODIFY `ctx`(except channel sending) 'cause it is read-only for a real player
-	ticker := time.NewTicker(50 * time.Millisecond)
+	ticker := time.NewTicker(10 * time.Millisecond)
 	currentRound := uint16(0)
 	for {
 		select {
@@ -173,7 +173,7 @@ func receiver(ctx *Context) {
 
 	data.SetUserStatus(ctx.Game.Id, ctx.User)
 
-	ticker := time.NewTicker(50 * time.Millisecond)
+	ticker := time.NewTicker(10 * time.Millisecond)
 	flag := true
 	for i := 1; flag; i++ {
 		select {
