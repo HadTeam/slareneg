@@ -26,12 +26,20 @@ func toBlockKing(number uint16, ownerId uint16) Block {
 	return Block(&ret)
 }
 
-func (block *BlockKing) RoundEnd(_ uint16) {
-	if block.originalOwnerId != block.ownerId {
-		// TODO End game
-	}
+func (block *BlockKing) IsDied() bool {
+	return block.originalOwnerId != block.ownerId
 }
 
 func (*BlockKing) GetMeta() BlockMeta {
 	return BlockKingMeta
+}
+
+func (block *BlockKing) MoveTo(ownerId uint16, number uint16) Block {
+	if !block.IsDied() {
+		block.BaseBuilding.MoveTo(ownerId, number)
+	}
+	if block.IsDied() {
+		return toBlockCastle(block.number, ownerId)
+	}
+	return nil
 }

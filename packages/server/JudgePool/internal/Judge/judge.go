@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var RoundTime = time.Millisecond * 1000
+var RoundTime = time.Millisecond * 100
 
 var data DataSource.TempDataSource
 var pData DataSource.PersistentDataSource
@@ -60,7 +60,10 @@ func judgeWorking(j *GameJudge) {
 			}
 			data.SetGameStatus(j.gameId, GameType.GameStatusRunning)
 			game.UserList = data.GetCurrentUserList(j.gameId)
-			allocateKing(game)
+
+			kingPos := getKingPos(game)
+
+			allocateKing(game, kingPos)
 			allocateTeam(game)
 			data.SetGameMap(j.gameId, game.Map)
 			data.NewInstructionTemp(j.gameId, 0)
@@ -82,10 +85,9 @@ func judgeWorking(j *GameJudge) {
 						log.Printf("[Warn] Instructions execution failed\n")
 					}
 					game.UserList = data.GetCurrentUserList(game.Id)
-					game.Map.RoundEnd(game.RoundNum) // TODO: Refactor the way to spread the game-over sign
-					if judgeGame(game) != GameType.GameStatusRunning {
+					game.Map.RoundEnd(game.RoundNum)
+					if judgeGame(game, kingPos) != GameType.GameStatusRunning {
 						// Game Over
-						// TODO: Announce game-over
 						data.SetGameStatus(game.Id, GameType.GameStatusEnd)
 						j.status = StatusWaiting
 
@@ -113,8 +115,21 @@ func judgeWorking(j *GameJudge) {
 	}
 }
 
+func getKingPos(g *GameType.Game) []BlockType.Position {
+	var kingPos []BlockType.Position
+	for y := uint8(1); y <= g.Map.Size().H; y++ {
+		for x := uint8(1); x <= g.Map.Size().W; x++ {
+			b := g.Map.GetBlock(BlockType.Position{X: x, Y: y})
+			if b.GetMeta().BlockId == BlockType.BlockKingMeta.BlockId {
+				kingPos = append(kingPos, BlockType.Position{X: x, Y: y})
+			}
+		}
+	}
+	return kingPos
+}
+
 // judgeGame TODO: Add unit test
-func judgeGame(g *GameType.Game) GameType.GameStatus {
+func judgeGame(g *GameType.Game, kingPos []BlockType.Position) GameType.GameStatus {
 	// Check online player number
 	onlinePlayerNum := uint8(0)
 	for _, u := range g.UserList {
@@ -136,27 +151,52 @@ func judgeGame(g *GameType.Game) GameType.GameStatus {
 		return GameType.GameStatusEnd
 	}
 
-	return GameType.GameStatusRunning
-}
-
-func allocateKing(g *GameType.Game) {
-	var kingPos []BlockType.Position
-	for y := uint8(1); y <= g.Map.Size().H; y++ {
-		for x := uint8(1); x <= g.Map.Size().W; x++ {
-			b := g.Map.GetBlock(BlockType.Position{X: x, Y: y})
-			if b.GetMeta().BlockId == BlockType.BlockKingMeta.BlockId {
-				if b.GetOwnerId() == 0 {
-					kingPos = append(kingPos, BlockType.Position{X: x, Y: y})
+	// Check king status
+	if g.Mode == GameType.GameMode1v1 {
+		flag := true
+		for _, k := range kingPos {
+			if g.Map.GetBlock(k).GetMeta().BlockId != BlockType.BlockKingMeta.BlockId {
+				flag = false
+				break
+			}
+		}
+		if !flag {
+			var w uint16
+			for _, k := range kingPos {
+				if g.Map.GetBlock(k).GetMeta().BlockId == BlockType.BlockKingMeta.BlockId {
+					w = g.Map.GetBlock(k).GetOwnerId()
 				}
 			}
+			var wt uint8
+			for _, u := range g.UserList {
+				if u.UserId == w {
+					wt = u.TeamId
+				}
+			}
+			g.Winner = wt
+			return GameType.GameStatusEnd
 		}
 	}
 
-	if len(kingPos) > 0 { // check for debug creating behaviour
-		for i, u := range g.UserList { // allocate king blocks by order, ignoring the part out of user number
-			g.Map.SetBlock(kingPos[i],
-				BlockType.NewBlock(BlockType.BlockKingMeta.BlockId, g.Map.GetBlock(kingPos[i]).GetNumber(), u.UserId))
+	return GameType.GameStatusRunning
+}
+
+func allocateKing(g *GameType.Game, kingPos []BlockType.Position) {
+	allocatableKingNum := 0
+	for _, k := range kingPos {
+		if g.Map.GetBlock(k).GetOwnerId() == 0 {
+			allocatableKingNum++
 		}
+	}
+
+	for i, u := range g.UserList { // allocate king blocks by order, ignoring the part out of user number
+		if allocatableKingNum <= 0 { // check for debug creating behaviour
+
+			break
+		}
+		g.Map.SetBlock(kingPos[i],
+			BlockType.NewBlock(BlockType.BlockKingMeta.BlockId, g.Map.GetBlock(kingPos[i]).GetNumber(), u.UserId))
+		allocatableKingNum--
 	}
 }
 
