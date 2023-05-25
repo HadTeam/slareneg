@@ -1,6 +1,7 @@
 package judgePool
 
 import (
+	"github.com/sirupsen/logrus"
 	"server/judgePool/internal/judge"
 	data_source "server/utils/pkg/datasource"
 	"server/utils/pkg/game"
@@ -23,17 +24,17 @@ func ApplyDataSource(source interface{}) {
 func (p *Pool) NewGame(mode game.GameMode) {
 	id := data.CreateGame(mode)
 	if id == 0 {
-		panic("Cannot create game")
+		logrus.Panic("cannot create game")
 	}
 	p.judges.Store(id, judge.NewGameJudge(id))
 }
 
 func (p *Pool) DebugNewGame(g *game.Game) {
 	if ok := data.DebugCreateGame(g); !ok {
-		panic("cannot create game in debug mode")
+		logrus.Panic("cannot create game in debug mode")
 	}
 	if g.Id == 0 {
-		panic("Cannot create game")
+		logrus.Panic("Cannot create game")
 	}
 	p.judges.Store(g.Id, judge.NewGameJudge(g.Id))
 }

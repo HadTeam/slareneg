@@ -2,7 +2,7 @@ package receiver
 
 import (
 	"context"
-	"log"
+	"github.com/sirupsen/logrus"
 	"os"
 	_command "server/api/internal/command"
 	"server/judgePool"
@@ -29,7 +29,7 @@ func NewFileReceiver(pool *judgePool.Pool) {
 
 	for index, r := range f {
 		time.Sleep(time.Millisecond * 200)
-		log.Printf("Start game by reply file, index %d\n", r.Id)
+		logrus.Infof("start game by reply file #%d", r.Id)
 		g := &game.Game{
 			Map:        r.Map,
 			Mode:       game.GameMode1v1,
@@ -71,7 +71,7 @@ func LoadFile() []reply {
 	var ret []reply
 	dir, err := os.ReadDir(fileDir)
 	if err != nil {
-		panic("file dir cannot be visited")
+		logrus.Panic("file dir cannot be visited")
 	}
 	for index, c := range dir {
 		if c.IsDir() {
@@ -93,7 +93,7 @@ func LoadFile() []reply {
 
 		fileBuf, err := os.ReadFile(fileDir + "/" + c.Name())
 		if err != nil {
-			log.Panicf("cannot read file %s", fileDir+"/"+c.Name())
+			logrus.Panicf("cannot read file %s", fileDir+"/"+c.Name())
 			return nil
 		}
 		part := strings.Split(string(fileBuf), "|")
@@ -133,27 +133,42 @@ func fakePlayer(ctx *Context, c []string) {
 	// DO NOT MODIFY `ctx`(except channel sending) 'cause it is read-only for a real player
 	ticker := time.NewTicker(10 * time.Millisecond)
 	currentRound := uint16(0)
+	playerLogger := logrus.WithFields(logrus.Fields{
+		"gameId": ctx.Game.Id,
+		"user":   ctx.User.UserId,
+	})
 	for {
 		select {
 		case <-ticker.C:
 			{
 				g := data.GetGameInfo(ctx.Game.Id)
+				if g.Status == game.GameStatusEnd {
+					return
+				}
+
 				if currentRound >= uint16(len(c)) {
-					log.Printf("[Game %d] Fake Player %s Command(tot: %d) runs out, quit\n", ctx.Game.Id, ctx.User.Name, len(c))
+					playerLogger.Infof("Command(tot: %d) runs out, quit", len(c))
 					ticker.Stop()
 				}
 				if ctx.Game.RoundNum > currentRound {
-					log.Printf("[Game %d] Fake Player %s Discover new round %d\n", ctx.Game.Id, ctx.User.Name, g.RoundNum)
+					playerLogger.Printf("Discover new round %d", g.RoundNum)
 					currentRound = g.RoundNum
 					if currentRound < uint16(len(c)) {
-						log.Printf("[Game %d] Fake Player %s Send command '%s'\n", ctx.Game.Id, ctx.User.Name, c[currentRound])
+						playerLogger.Infof("Send command '%s'", c[currentRound])
 						ctx.Command <- c[currentRound]
 					}
 				}
 			}
 		case msg := <-ctx.Message:
 			{
-				log.Printf("[Game %d] Fake Player %s Msg: %s\n", ctx.Game.Id, ctx.User.Name, msg[:30]) // output a part of message avoiding excessive output
+				// output a part of message avoiding excessive output
+				var m string
+				if len(msg) <= 100 {
+					m = msg
+				} else {
+					m = msg[:100]
+				}
+				logrus.Infof("Msg: %s", m)
 			}
 		}
 	}
@@ -164,11 +179,15 @@ func receiver(ctx *Context) {
 	ctx.User.Status = game.UserStatusConnected
 	data.SetUserStatus(ctx.Game.Id, ctx.User)
 
-	log.Printf("[Game %d] User %s join\n", ctx.Game.Id, ctx.User.Name)
+	receiverLogger := logrus.WithFields(logrus.Fields{
+		"user": ctx.User.Name,
+	})
+	receiverLogger.Infof("user join")
 
 	defer func() {
 		ctx.User.Status = game.UserStatusDisconnected
 		data.SetUserStatus(ctx.Game.Id, ctx.User)
+		receiverLogger.Infof("user quit")
 	}()
 
 	data.SetUserStatus(ctx.Game.Id, ctx.User)
@@ -188,7 +207,7 @@ func receiver(ctx *Context) {
 				}
 				ins, err := _command.PauseCommandStr(ctx.User.UserId, cmd)
 				if err != nil {
-					log.Panicf("cannot parse command: %s", cmd)
+					receiverLogger.Panicf("cannot parse command: %s", cmd)
 				}
 				data.UpdateInstruction(ctx.Game.Id, ctx.User, ins)
 			}
@@ -224,7 +243,6 @@ func receiver(ctx *Context) {
 					if ctx.Game.Status == game.GameStatusRunning && ctx.Game.RoundNum != g.RoundNum {
 						done(g, "newTurn")
 						continue
-
 					}
 				}
 			}

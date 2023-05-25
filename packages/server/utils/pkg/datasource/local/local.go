@@ -1,6 +1,7 @@
 package local
 
 import (
+	"github.com/sirupsen/logrus"
 	"math/rand"
 	"server/utils/pkg/datasource"
 	"server/utils/pkg/game"
@@ -25,7 +26,7 @@ func (l *Local) lock() bool {
 	for i := 1; !l.m.TryLock(); i++ {
 		time.Sleep(10 * time.Millisecond)
 		if i >= 1e3 {
-			panic("try to lock timeout")
+			logrus.Panic("try to lock timeout")
 			return false
 		}
 	}
@@ -36,7 +37,7 @@ func (l *Local) lock() bool {
 	//	return name[len(name)-1]
 	//}
 	//
-	//log.Printf("[local Lock Debug] Locked by %s -> %s\n", getCallerFunName(3), getCallerFunName(2))
+	//logrus.Tracef("Locked by %s -> %s\n", getCallerFunName(3), getCallerFunName(2))
 	return true
 }
 
@@ -169,7 +170,7 @@ func (l *Local) SetUserStatus(id game.GameId, user game.User) (ok bool) {
 
 			// Specially check, for unexpected behavior that may exist
 			if g.Mode.MaxUserNum == 0 || g.Mode.MinUserNum == 0 || g.Mode.NameStr == "" {
-				panic("game mode is illegal")
+				logrus.Panic("game mode is illegal")
 			}
 			// If the user is not in the list, try to add him/her if the game is not full
 			if user.Status == game.UserStatusConnected && uint8(len(g.UserList)) < g.Mode.MaxUserNum {
@@ -263,9 +264,8 @@ func (l *Local) DebugCreateGame(g *game.Game) (ok bool) {
 	}
 	if l.lock() {
 		defer l.unlock()
-		_, ok := l.GamePool[g.Id]
-		if ok {
-			panic("game id has existed")
+		if _, ok := l.GamePool[g.Id]; ok {
+			logrus.Panic("game id has existed")
 			return false
 		}
 

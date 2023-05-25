@@ -2,7 +2,7 @@ package _map
 
 import (
 	"encoding/json"
-	"log"
+	"github.com/sirupsen/logrus"
 	"server/utils/pkg/instruction"
 	"server/utils/pkg/map/block"
 	"strconv"
@@ -82,7 +82,7 @@ func DebugOutput(p *Map, f func(block.Block) uint16) { // Only for debugging
 		}
 		tmp += "\n"
 	}
-	log.Printf("\n%s\n", tmp)
+	logrus.Tracef("\n%s\n", tmp)
 }
 
 func isPositionLegal(position block.Position, size MapSize) bool {
@@ -116,14 +116,12 @@ func (p *Map) Move(ins instruction.Move) bool {
 
 	instructionPosition := block.Position{X: ins.Position.X, Y: ins.Position.Y}
 	if !isPositionLegal(instructionPosition, p.size) {
-		//log.Printf("[Move] instruction position illegal")
 		return false
 	}
 
 	newPosition := block.Position{X: uint8(int(ins.Position.X) + offsetX), Y: uint8(int(ins.Position.Y) + offsetY)}
 	// It won't overflow 'cause the min value is 0
 	if !isPositionLegal(newPosition, p.size) {
-		//log.Printf("[Move] new position illegal")
 		return false
 	}
 
@@ -141,14 +139,11 @@ func (p *Map) Move(ins instruction.Move) bool {
 	}
 
 	if thisBlock.GetNumber() < ins.Number {
-		//log.Printf("[Move] number isn't enough: %#v %#v", thisBlock.GetNumber(), instruction.Number)
 		return false
 	}
 
 	toBlock := p.GetBlock(newPosition)
 	if !thisBlock.GetMoveStatus().AllowMoveFrom || !toBlock.GetMoveStatus().AllowMoveTo {
-		//log.Printf("[Move] not allow to move: %s(%#v) -> %s(%#v)", thisBlock.GetMeta().Name,
-		//	thisBlock.GetMoveStatus().AllowMoveFrom, toBlock.GetMeta().Name, toBlock.GetMoveStatus().AllowMoveTo)
 		return false
 	}
 
@@ -165,7 +160,7 @@ func (p *Map) Move(ins instruction.Move) bool {
 func Str2GameMap(mapId uint32, originalMapStr string) *Map {
 	var result [][]uint8
 	if err := json.Unmarshal([]byte(originalMapStr), &result); err != nil {
-		panic(err)
+		logrus.Panic(err)
 		return nil
 	}
 	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
@@ -185,7 +180,7 @@ func Str2GameMap(mapId uint32, originalMapStr string) *Map {
 func FullStr2GameMap(mapId uint32, originalMapStr string) *Map {
 	var result [][][]uint16
 	if err := json.Unmarshal([]byte(originalMapStr), &result); err != nil {
-		panic(err)
+		logrus.Panic(err)
 		return nil
 	}
 	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
@@ -197,9 +192,9 @@ func FullStr2GameMap(mapId uint32, originalMapStr string) *Map {
 			ownerId := blockInfo[1]
 			number := blockInfo[2]
 
-			block := block.NewBlock(uint8(blockId), number, ownerId)
+			newBlock := block.NewBlock(uint8(blockId), number, ownerId)
 
-			ret[rowNum][colNum] = block
+			ret[rowNum][colNum] = newBlock
 		}
 	}
 	return &Map{

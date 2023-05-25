@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	nested "github.com/antonfisher/nested-logrus-formatter"
+	"github.com/sirupsen/logrus"
 	"server/api"
 	"server/judgePool"
 	"server/utils/pkg/dataSource/local"
@@ -14,6 +16,11 @@ import (
 func main() {
 	ctx, exit := context.WithCancel(context.Background())
 	defer exit()
+
+	logrus.SetLevel(logrus.TraceLevel)
+	logrus.SetFormatter(&nested.Formatter{
+		TimestampFormat: time.RFC3339,
+	})
 
 	data := local.Local{
 		GamePool:           make(map[game.GameId]*game.Game),

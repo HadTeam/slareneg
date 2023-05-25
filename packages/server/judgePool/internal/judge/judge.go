@@ -52,7 +52,11 @@ func judgeWorking(j *GameJudge) {
 		j.status = <-j.c
 
 		if j.status == StatusWorking {
-			log.Printf("[judge] Working for GameId %d\n", j.gameId)
+			judgeLogger := logrus.WithFields(logrus.Fields{
+				"gameId": j.gameId,
+			})
+
+			judgeLogger.Infof("Working")
 
 			g := data.GetGameInfo(j.gameId)
 			if !g.Map.HasBlocks() {
@@ -69,20 +73,20 @@ func judgeWorking(j *GameJudge) {
 			data.NewInstructionTemp(j.gameId, 0)
 			t := time.NewTicker(RoundTime)
 			for range t.C {
+				roundLogger := logrus.WithFields(logrus.Fields{
+					"gameId": j.gameId,
+					"round":  g.RoundNum,
+				})
 				//Round End
 				if g.RoundNum != 0 {
-					log.Printf("[Round] Round %d end\n", g.RoundNum)
+					roundLogger.Infof("Round end")
 					data.NewInstructionTemp(j.gameId, g.RoundNum)
 					instructionList := data.GetInstructions(j.gameId, g.RoundNum)
 
-					ok := true
 					for _, ins := range instructionList {
 						if !executeInstruction(j.gameId, ins) {
-							ok = false
+							roundLogger.Infof("Instruction %#v failed to execute", ins)
 						}
-					}
-					if !ok {
-						log.Printf("[Warn] Instructions execution failed\n")
 					}
 					g.UserList = data.GetCurrentUserList(g.Id)
 					g.Map.RoundEnd(g.RoundNum)
@@ -97,13 +101,13 @@ func judgeWorking(j *GameJudge) {
 								winnerTeam = append(winnerTeam, n.Name)
 							}
 						}
-						log.Printf("[judge] Done for GameId %d, winner %#v\n", j.gameId, winnerTeam)
+						judgeLogger.Infof("Game end, winner %#v", winnerTeam)
 						return
 					}
 				}
-				g.RoundNum++
+				g.RoundNum++ // NOTE: ONLY increase the LOCAL value
 				// Round Start
-				log.Printf("[Round] Round %d start\n", g.RoundNum)
+				roundLogger.Infof("Round start")
 				g.Map.RoundStart(g.RoundNum)
 				data.SetGameMap(j.gameId, g.Map)
 
@@ -220,9 +224,6 @@ func executeInstruction(id game.GameId, ins instruction.Instruction) bool {
 			ret = m.Move(ins.(instruction.Move))
 
 		}
-	}
-	if !ret {
-		log.Printf("[Warn] Execute instruction failed: %#v \n", ins)
 	}
 	return ret
 }
