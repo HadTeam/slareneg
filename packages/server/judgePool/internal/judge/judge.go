@@ -1,8 +1,8 @@
 package judge
 
 import (
-	"log"
-	"server/utils/pkg/dataSource"
+	"github.com/sirupsen/logrus"
+	data_source "server/utils/pkg/datasource"
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
 	"server/utils/pkg/map"
@@ -12,8 +12,8 @@ import (
 
 var RoundTime = time.Millisecond * 100
 
-var data dataSource.TempDataSource
-var pData dataSource.PersistentDataSource
+var data data_source.TempDataSource
+var pData data_source.PersistentDataSource
 
 type Status uint8
 
@@ -29,8 +29,8 @@ type GameJudge struct {
 }
 
 func ApplyDataSource(source interface{}) {
-	data = source.(dataSource.TempDataSource)
-	pData = source.(dataSource.PersistentDataSource)
+	data = source.(data_source.TempDataSource)
+	pData = source.(data_source.PersistentDataSource)
 }
 
 func NewGameJudge(id game.GameId) *GameJudge {
