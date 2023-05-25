@@ -2,7 +2,7 @@ package local
 
 import (
 	"math/rand"
-	"server/utils/pkg/dataSource"
+	"server/utils/pkg/datasource"
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
 	"server/utils/pkg/map"
@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-var _ dataSource.PersistentDataSource = (*Local)(nil)
-var _ dataSource.TempDataSource = (*Local)(nil)
+var _ datasource.PersistentDataSource = (*Local)(nil)
+var _ datasource.TempDataSource = (*Local)(nil)
 
 type Local struct {
 	m                  sync.Mutex

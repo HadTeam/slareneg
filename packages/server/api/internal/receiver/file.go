@@ -6,7 +6,7 @@ import (
 	"os"
 	_command "server/api/internal/command"
 	"server/judgePool"
-	"server/utils/pkg/dataSource"
+	"server/utils/pkg/datasource"
 	"server/utils/pkg/game"
 	"server/utils/pkg/map"
 	"strconv"
@@ -17,11 +17,11 @@ import (
 // NOTE: DEBUG ONLY
 // Use to receive instructions from local file, in order to test the game functions
 
-var data dataSource.TempDataSource
+var data datasource.TempDataSource
 var fileDir = "./test/replay"
 
 func ApplyDataSource(source any) {
-	data = source.(dataSource.TempDataSource)
+	data = source.(datasource.TempDataSource)
 }
 
 func NewFileReceiver(pool *judgePool.Pool) {

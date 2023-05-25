@@ -2,16 +2,16 @@ package command
 
 import (
 	"encoding/json"
-	"server/utils/pkg/dataSource"
+	"server/utils/pkg/datasource"
 	"server/utils/pkg/game"
 	"server/utils/pkg/map"
 	"server/utils/pkg/map/block"
 )
 
-var data dataSource.TempDataSource
+var data datasource.TempDataSource
 
 func ApplyDataSource(source any) {
-	data = source.(dataSource.TempDataSource)
+	data = source.(datasource.TempDataSource)
 }
 
 func getVisibility(id game.GameId, userId uint16) [][]bool {

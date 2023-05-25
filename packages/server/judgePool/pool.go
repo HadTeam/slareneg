@@ -2,7 +2,7 @@ package judgePool
 
 import (
 	"server/judgePool/internal/judge"
-	"server/utils/pkg/dataSource"
+	data_source "server/utils/pkg/datasource"
 	"server/utils/pkg/game"
 	"sync"
 	"time"
@@ -13,10 +13,10 @@ type Pool struct {
 	AllowGameMode []game.GameMode
 }
 
-var data dataSource.TempDataSource
+var data data_source.TempDataSource
 
 func ApplyDataSource(source interface{}) {
-	data = source.(dataSource.TempDataSource)
+	data = source.(data_source.TempDataSource)
 	judge.ApplyDataSource(source)
 
 }
