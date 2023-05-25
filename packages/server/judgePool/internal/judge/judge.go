@@ -206,7 +206,7 @@ func allocateKing(g *game.Game, kingPos []block.Position) {
 
 func allocateTeam(g *game.Game) {
 	if g.Mode == game.GameMode1v1 {
-		for i, _ := range g.UserList {
+		for i := range g.UserList {
 			g.UserList[i].TeamId = uint8(i) + 1
 		}
 	} else {

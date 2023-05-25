@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"server/api"
 	"server/judgePool"
-	"server/utils/pkg/dataSource/local"
+	"server/utils/pkg/datasource/local"
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
 	_ "server/utils/pkg/map/block"
