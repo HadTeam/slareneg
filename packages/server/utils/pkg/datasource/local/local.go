@@ -45,6 +45,14 @@ func (l *Local) unlock() {
 	l.m.Unlock()
 }
 
+func (l *Local) SetWinner(id game.Id, teamId uint8) (ok bool) {
+	if l.lock() {
+		defer l.unlock()
+		l.GamePool[id].Winner = teamId
+	}
+	return false
+}
+
 func (l *Local) GetGameList(mode game.Mode) []game.Game {
 	if l.lock() {
 		defer l.unlock()

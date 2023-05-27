@@ -19,6 +19,7 @@ type TempDataSource interface {
 	SetGameMap(id game.Id, m *_map.Map) (ok bool)
 
 	SetUserStatus(id game.Id, user game.User) (ok bool)
+	SetWinner(id game.Id, teamId uint8) (ok bool)
 	UpdateInstruction(id game.Id, user game.User, instruction instruction.Instruction) (ok bool)
 	GetCurrentMap(id game.Id) *_map.Map
 

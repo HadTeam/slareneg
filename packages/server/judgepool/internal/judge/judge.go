@@ -93,6 +93,7 @@ func judgeWorking(j *GameJudge) {
 					if judgeGame(g, kingPos) != game.StatusRunning {
 						// Game Over
 						data.SetGameStatus(g.Id, game.StatusEnd)
+						data.SetWinner(g.Id, g.Winner)
 						j.status = StatusWaiting
 
 						var winnerTeam []string
@@ -175,6 +176,7 @@ func judgeGame(g *game.Game, kingPos []block.Position) game.Status {
 			for _, u := range g.UserList {
 				if u.UserId == w {
 					wt = u.TeamId
+					break
 				}
 			}
 			g.Winner = wt

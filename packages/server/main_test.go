@@ -1,6 +1,8 @@
 package main
 
 import (
+	nested "github.com/antonfisher/nested-logrus-formatter"
+	"github.com/sirupsen/logrus"
 	"server/api"
 	judge_pool "server/judgepool"
 	"server/utils/pkg/datasource/local"
@@ -11,6 +13,11 @@ import (
 )
 
 func TestServer_main(t *testing.T) {
+	logrus.SetLevel(logrus.TraceLevel)
+	logrus.SetFormatter(&nested.Formatter{
+		TimestampFormat: time.RFC3339,
+	})
+
 	data := local.Local{
 		GamePool:           make(map[game.Id]*game.Game),
 		OriginalMapStrPool: make(map[uint32]string),
@@ -31,5 +38,8 @@ func TestServer_main(t *testing.T) {
 	id := game.Id(1000)
 	if data.GamePool[id].Status != game.StatusEnd {
 		t.Fatalf("game not end as expected")
+	}
+	if data.GamePool[id].Winner != 1 {
+		t.Fatalf("game result is unexpected")
 	}
 }

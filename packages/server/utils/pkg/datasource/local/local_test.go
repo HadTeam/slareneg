@@ -1,7 +1,6 @@
 package local
 
 import (
-	"fmt"
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
 	"server/utils/pkg/map"
@@ -189,7 +188,6 @@ func TestLocal_Map(t *testing.T) {
 						blockA := a.GetBlock(block.Position{x, y})
 						blockB := b.GetBlock(block.Position{x, y})
 						if blockA != blockB {
-							t.Log(fmt.Sprintf("%#v", blockA), fmt.Sprintf("%#v", blockB), x, y)
 							ret = false
 							break
 						}
