@@ -5,7 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	_command "server/api/internal/command"
-	"server/judgePool"
+	judge_pool "server/judgepool"
 	"server/utils/pkg/datasource"
 	"server/utils/pkg/game"
 	"server/utils/pkg/map"
@@ -24,7 +24,7 @@ func ApplyDataSource(source any) {
 	data = source.(datasource.TempDataSource)
 }
 
-func NewFileReceiver(pool *judgePool.Pool) {
+func NewFileReceiver(pool *judge_pool.Pool) {
 	f := LoadFile()
 
 	for index, r := range f {
@@ -32,11 +32,11 @@ func NewFileReceiver(pool *judgePool.Pool) {
 		logrus.Infof("start game by reply file #%d", r.Id)
 		g := &game.Game{
 			Map:        r.Map,
-			Mode:       game.GameMode1v1,
-			Id:         game.GameId(index + 1e3),
+			Mode:       game.Mode1v1,
+			Id:         game.Id(index + 1e3),
 			UserList:   []game.User{},
 			CreateTime: time.Now().UnixMicro(),
-			Status:     game.GameStatusWaiting,
+			Status:     game.StatusWaiting,
 			RoundNum:   0,
 		}
 		pool.DebugNewGame(g)
@@ -62,7 +62,7 @@ type command struct {
 }
 
 type reply struct {
-	Id       game.GameId
+	Id       game.Id
 	UserPack []command
 	Map      *_map.Map
 }
@@ -87,7 +87,7 @@ func LoadFile() []reply {
 
 		id, _ := strconv.Atoi(s[0])
 		r := reply{
-			Id:       game.GameId(id),
+			Id:       game.Id(id),
 			UserPack: []command{},
 		}
 
@@ -142,7 +142,7 @@ func fakePlayer(ctx *Context, c []string) {
 		case <-ticker.C:
 			{
 				g := data.GetGameInfo(ctx.Game.Id)
-				if g.Status == game.GameStatusEnd {
+				if g.Status == game.StatusEnd {
 					return
 				}
 
@@ -222,11 +222,11 @@ func receiver(ctx *Context) {
 				// Check game status
 				g := data.GetGameInfo(ctx.Game.Id)
 				if g.Status != ctx.Game.Status {
-					if ctx.Game.Status == game.GameStatusWaiting && g.Status == game.GameStatusRunning {
+					if ctx.Game.Status == game.StatusWaiting && g.Status == game.StatusRunning {
 						done(g, "info")
 						done(g, "start")
 						continue
-					} else if g.Status == game.GameStatusEnd {
+					} else if g.Status == game.StatusEnd {
 						done(g, "end")
 						ticker.Stop()
 						flag = false
@@ -235,12 +235,12 @@ func receiver(ctx *Context) {
 				} else {
 					if i%20 == 0 {
 						done(g, "info")
-						if ctx.Game.Status == game.GameStatusWaiting {
+						if ctx.Game.Status == game.StatusWaiting {
 							done(g, "wait")
 						}
 					}
 
-					if ctx.Game.Status == game.GameStatusRunning && ctx.Game.RoundNum != g.RoundNum {
+					if ctx.Game.Status == game.StatusRunning && ctx.Game.RoundNum != g.RoundNum {
 						done(g, "newTurn")
 						continue
 					}

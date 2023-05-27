@@ -14,7 +14,7 @@ func ApplyDataSource(source any) {
 	data = source.(datasource.TempDataSource)
 }
 
-func getVisibility(id game.GameId, userId uint16) [][]bool {
+func getVisibility(id game.Id, userId uint16) [][]bool {
 	m := data.GetCurrentMap(id)
 	ul := data.GetCurrentUserList(id)
 
@@ -66,7 +66,7 @@ func getVisibility(id game.GameId, userId uint16) [][]bool {
 	return ret
 }
 
-func getProcessedMap(id game.GameId, userId uint16, m *_map.Map) [][][]uint16 {
+func getProcessedMap(id game.Id, userId uint16, m *_map.Map) [][][]uint16 {
 	vis := getVisibility(id, userId)
 	mr := make([][][]uint16, m.Size().H)
 	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
@@ -92,7 +92,7 @@ type playerInfo struct {
 	Status     string `json:"status"`
 }
 
-func getUserList(id game.GameId) []playerInfo {
+func getUserList(id game.Id) []playerInfo {
 	l := data.GetCurrentUserList(id)
 	ret := make([]playerInfo, len(l))
 	var status string
@@ -113,7 +113,7 @@ func getUserList(id game.GameId) []playerInfo {
 	return ret
 }
 
-func GenerateMessage(_type string, id game.GameId, userId uint16) string {
+func GenerateMessage(_type string, id game.Id, userId uint16) string {
 	switch _type {
 	case "start":
 		{
@@ -149,9 +149,9 @@ func GenerateMessage(_type string, id game.GameId, userId uint16) string {
 		{
 			g := data.GetGameInfo(id)
 			res := struct {
-				Action  string        `json:"action"`
-				Players []playerInfo  `json:"players"`
-				Mode    game.GameMode `json:"mode"`
+				Action  string       `json:"action"`
+				Players []playerInfo `json:"players"`
+				Mode    game.Mode    `json:"mode"`
 			}{"info", getUserList(id), g.Mode}
 			ret, _ := json.Marshal(res)
 			return string(ret)

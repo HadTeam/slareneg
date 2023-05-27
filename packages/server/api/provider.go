@@ -3,7 +3,7 @@ package api
 import (
 	"server/api/internal/command"
 	"server/api/internal/receiver"
-	"server/judgePool"
+	judge_pool "server/judgepool"
 	"time"
 )
 
@@ -12,7 +12,10 @@ func ApplyDataSource(source any) {
 	command.ApplyDataSource(source)
 }
 
-func DebugStartFileReceiver(pool *judgePool.Pool) {
+func DebugStartFileReceiver(pool *judge_pool.Pool) {
 	time.Sleep(200 * time.Millisecond)
 	receiver.NewFileReceiver(pool)
+}
+
+func Start() {
 }

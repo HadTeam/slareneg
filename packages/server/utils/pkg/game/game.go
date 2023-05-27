@@ -4,27 +4,22 @@ import (
 	"server/utils/pkg/map"
 )
 
-type GameStatus uint8
-type GameId uint16
+type Status uint8
+type Id uint16
 
 const (
-	GameStatusWaiting GameStatus = iota + 1
-	GameStatusRunning
-	GameStatusEnd
+	StatusWaiting Status = iota + 1
+	StatusRunning
+	StatusEnd
 )
-
-type GameScore struct {
-	Num   uint16
-	Place uint16
-}
 
 type Game struct {
 	Map        *_map.Map
-	Mode       GameMode
-	Id         GameId
+	Mode       Mode
+	Id         Id
 	UserList   []User
 	CreateTime int64
-	Status     GameStatus
+	Status     Status
 	RoundNum   uint16
 	Winner     uint8 // TeamId
 }

@@ -23,7 +23,7 @@ const (
 )
 
 type GameJudge struct {
-	gameId game.GameId
+	gameId game.Id
 	status Status
 	c      chan Status
 }
@@ -33,7 +33,7 @@ func ApplyDataSource(source interface{}) {
 	pData = source.(data_source.PersistentDataSource)
 }
 
-func NewGameJudge(id game.GameId) *GameJudge {
+func NewGameJudge(id game.Id) *GameJudge {
 	j := &GameJudge{
 		gameId: id,
 		status: StatusWaiting,
@@ -62,7 +62,7 @@ func judgeWorking(j *GameJudge) {
 			if !g.Map.HasBlocks() {
 				g.Map = pData.GetOriginalMap(g.Map.Id())
 			}
-			data.SetGameStatus(j.gameId, game.GameStatusRunning)
+			data.SetGameStatus(j.gameId, game.StatusRunning)
 			g.UserList = data.GetCurrentUserList(j.gameId)
 
 			kingPos := getKingPos(g)
@@ -90,9 +90,9 @@ func judgeWorking(j *GameJudge) {
 					}
 					g.UserList = data.GetCurrentUserList(g.Id)
 					g.Map.RoundEnd(g.RoundNum)
-					if judgeGame(g, kingPos) != game.GameStatusRunning {
+					if judgeGame(g, kingPos) != game.StatusRunning {
 						// Game Over
-						data.SetGameStatus(g.Id, game.GameStatusEnd)
+						data.SetGameStatus(g.Id, game.StatusEnd)
 						j.status = StatusWaiting
 
 						var winnerTeam []string
@@ -133,7 +133,7 @@ func getKingPos(g *game.Game) []block.Position {
 }
 
 // judgeGame TODO: Add unit test
-func judgeGame(g *game.Game, kingPos []block.Position) game.GameStatus {
+func judgeGame(g *game.Game, kingPos []block.Position) game.Status {
 	// Check online player number
 	onlinePlayerNum := uint8(0)
 	for _, u := range g.UserList {
@@ -142,7 +142,7 @@ func judgeGame(g *game.Game, kingPos []block.Position) game.GameStatus {
 		}
 	}
 	if onlinePlayerNum <= 0 {
-		return game.GameStatusEnd
+		return game.StatusEnd
 	}
 	if onlinePlayerNum == 1 {
 		// TODO: Announce game-over
@@ -152,11 +152,11 @@ func judgeGame(g *game.Game, kingPos []block.Position) game.GameStatus {
 				break
 			}
 		}
-		return game.GameStatusEnd
+		return game.StatusEnd
 	}
 
 	// Check king status
-	if g.Mode == game.GameMode1v1 {
+	if g.Mode == game.Mode1v1 {
 		flag := true
 		for _, k := range kingPos {
 			if g.Map.GetBlock(k).GetMeta().BlockId != block.BlockKingMeta.BlockId {
@@ -178,11 +178,11 @@ func judgeGame(g *game.Game, kingPos []block.Position) game.GameStatus {
 				}
 			}
 			g.Winner = wt
-			return game.GameStatusEnd
+			return game.StatusEnd
 		}
 	}
 
-	return game.GameStatusRunning
+	return game.StatusRunning
 }
 
 func allocateKing(g *game.Game, kingPos []block.Position) {
@@ -205,7 +205,7 @@ func allocateKing(g *game.Game, kingPos []block.Position) {
 }
 
 func allocateTeam(g *game.Game) {
-	if g.Mode == game.GameMode1v1 {
+	if g.Mode == game.Mode1v1 {
 		for i := range g.UserList {
 			g.UserList[i].TeamId = uint8(i) + 1
 		}
@@ -214,7 +214,7 @@ func allocateTeam(g *game.Game) {
 	}
 }
 
-func executeInstruction(id game.GameId, ins instruction.Instruction) bool {
+func executeInstruction(id game.Id, ins instruction.Instruction) bool {
 	var ret bool
 	var m *_map.Map
 	switch ins.(type) {

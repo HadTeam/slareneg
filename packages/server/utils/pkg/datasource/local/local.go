@@ -17,9 +17,9 @@ var _ datasource.TempDataSource = (*Local)(nil)
 
 type Local struct {
 	m                  sync.Mutex
-	GamePool           map[game.GameId]*game.Game
+	GamePool           map[game.Id]*game.Game
 	OriginalMapStrPool map[uint32]string
-	InstructionLog     map[game.GameId]map[uint16]map[uint16]instruction.Instruction
+	InstructionLog     map[game.Id]map[uint16]map[uint16]instruction.Instruction
 }
 
 func (l *Local) lock() bool {
@@ -45,12 +45,12 @@ func (l *Local) unlock() {
 	l.m.Unlock()
 }
 
-func (l *Local) GetGameList(mode game.GameMode) []game.Game {
+func (l *Local) GetGameList(mode game.Mode) []game.Game {
 	if l.lock() {
 		defer l.unlock()
 		var ret []game.Game
 		for _, p := range l.GamePool {
-			if p.Status == game.GameStatusEnd {
+			if p.Status == game.StatusEnd {
 				continue
 			}
 			g := *p
@@ -67,11 +67,11 @@ func (l *Local) GetGameList(mode game.GameMode) []game.Game {
 }
 
 // CancelGame 1. Set game status 2. Quit existing users
-func (l *Local) CancelGame(id game.GameId) (ok bool) {
+func (l *Local) CancelGame(id game.Id) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
 		g := l.GamePool[id]
-		g.Status = game.GameStatusEnd
+		g.Status = game.StatusEnd
 		g.UserList = nil // TODO
 		return true
 	} else {
@@ -79,7 +79,7 @@ func (l *Local) CancelGame(id game.GameId) (ok bool) {
 	}
 }
 
-func (l *Local) GetGameInfo(id game.GameId) *game.Game {
+func (l *Local) GetGameInfo(id game.Id) *game.Game {
 	if l.lock() {
 		defer l.unlock()
 		g := *l.GamePool[id]
@@ -90,7 +90,7 @@ func (l *Local) GetGameInfo(id game.GameId) *game.Game {
 	}
 }
 
-func (l *Local) GetCurrentUserList(id game.GameId) []game.User {
+func (l *Local) GetCurrentUserList(id game.Id) []game.User {
 	if l.lock() {
 		defer l.unlock()
 		return l.GamePool[id].UserList
@@ -99,7 +99,7 @@ func (l *Local) GetCurrentUserList(id game.GameId) []game.User {
 	}
 }
 
-func (l *Local) GetInstructions(id game.GameId, tempId uint16) []instruction.Instruction {
+func (l *Local) GetInstructions(id game.Id, tempId uint16) []instruction.Instruction {
 	if l.lock() {
 		defer l.unlock()
 		var list []instruction.Instruction
@@ -113,7 +113,7 @@ func (l *Local) GetInstructions(id game.GameId, tempId uint16) []instruction.Ins
 	//return ExampleInstruction
 }
 
-func (l *Local) NewInstructionTemp(id game.GameId, _ uint16) (ok bool) {
+func (l *Local) NewInstructionTemp(id game.Id, _ uint16) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
 		l.GamePool[id].RoundNum++
@@ -124,7 +124,7 @@ func (l *Local) NewInstructionTemp(id game.GameId, _ uint16) (ok bool) {
 	}
 }
 
-func (l *Local) SetGameStatus(id game.GameId, status game.GameStatus) (ok bool) {
+func (l *Local) SetGameStatus(id game.Id, status game.Status) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
 		l.GamePool[id].Status = status
@@ -134,7 +134,7 @@ func (l *Local) SetGameStatus(id game.GameId, status game.GameStatus) (ok bool) 
 	}
 }
 
-func (l *Local) SetGameMap(id game.GameId, m *_map.Map) (ok bool) {
+func (l *Local) SetGameMap(id game.Id, m *_map.Map) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
 		l.GamePool[id].Map = &(*m)
@@ -144,15 +144,15 @@ func (l *Local) SetGameMap(id game.GameId, m *_map.Map) (ok bool) {
 	}
 }
 
-func (l *Local) SetUserStatus(id game.GameId, user game.User) (ok bool) {
+func (l *Local) SetUserStatus(id game.Id, user game.User) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
 
 		g := l.GamePool[id]
-		if g.Status == game.GameStatusEnd {
+		if g.Status == game.StatusEnd {
 			return false
 		}
-		if g.Status == game.GameStatusWaiting {
+		if g.Status == game.StatusWaiting {
 			// Try to find
 			for i, u := range g.UserList {
 				if u.UserId == user.UserId {
@@ -179,7 +179,7 @@ func (l *Local) SetUserStatus(id game.GameId, user game.User) (ok bool) {
 				return true
 			}
 		}
-		if g.Status == game.GameStatusRunning {
+		if g.Status == game.StatusRunning {
 			for i, u := range g.UserList {
 				if u.UserId == user.UserId {
 					g.UserList[i].Status = user.Status
@@ -191,7 +191,7 @@ func (l *Local) SetUserStatus(id game.GameId, user game.User) (ok bool) {
 	return false
 }
 
-func (l *Local) UpdateInstruction(id game.GameId, user game.User, instruction instruction.Instruction) (ok bool) {
+func (l *Local) UpdateInstruction(id game.Id, user game.User, instruction instruction.Instruction) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
 		l.InstructionLog[id][l.GamePool[id].RoundNum][user.UserId] = instruction
@@ -201,7 +201,7 @@ func (l *Local) UpdateInstruction(id game.GameId, user game.User, instruction in
 	}
 }
 
-func (l *Local) GetCurrentMap(id game.GameId) *_map.Map {
+func (l *Local) GetCurrentMap(id game.Id) *_map.Map {
 	if l.lock() {
 		defer l.unlock()
 		m := *l.GamePool[id].Map
@@ -220,7 +220,7 @@ func (l *Local) GetOriginalMap(mapId uint32) *_map.Map {
 	}
 }
 
-func (l *Local) GetCurrentGame(id game.GameId) *game.Game {
+func (l *Local) GetCurrentGame(id game.Id) *game.Game {
 	if l.lock() {
 		defer l.unlock()
 		return l.GamePool[id]
@@ -228,14 +228,14 @@ func (l *Local) GetCurrentGame(id game.GameId) *game.Game {
 	return nil
 }
 
-func (l *Local) CreateGame(mode game.GameMode) game.GameId {
+func (l *Local) CreateGame(mode game.Mode) game.Id {
 	//m := l.GetOriginalMap(rand.Uint32())
 	m := l.GetOriginalMap(0) // TODO DEBUG ONLY
 	if l.lock() {
 		defer l.unlock()
-		var gameId game.GameId
+		var gameId game.Id
 		for {
-			gameId = game.GameId(rand.Uint32())
+			gameId = game.Id(rand.Uint32())
 			if _, ok := l.GamePool[gameId]; !ok && gameId >= 100 { // gameId 1-99 is for debugging usage
 				break
 			}
@@ -245,7 +245,7 @@ func (l *Local) CreateGame(mode game.GameMode) game.GameId {
 			Mode:       mode,
 			Id:         gameId,
 			CreateTime: time.Now().UnixMicro(),
-			Status:     game.GameStatusWaiting,
+			Status:     game.StatusWaiting,
 			RoundNum:   0,
 			UserList:   []game.User{},
 		}
@@ -269,9 +269,9 @@ func (l *Local) DebugCreateGame(g *game.Game) (ok bool) {
 			return false
 		}
 
-		var gameId game.GameId
+		var gameId game.Id
 		for {
-			gameId = game.GameId(rand.Uint32())
+			gameId = game.Id(rand.Uint32())
 			if _, ok := l.GamePool[gameId]; !ok {
 				break
 			}
@@ -282,7 +282,7 @@ func (l *Local) DebugCreateGame(g *game.Game) (ok bool) {
 			Id:         g.Id,
 			UserList:   g.UserList,
 			CreateTime: time.Now().UnixMicro(),
-			Status:     game.GameStatusWaiting,
+			Status:     game.StatusWaiting,
 			RoundNum:   0,
 		}
 		l.GamePool[g.Id] = ng

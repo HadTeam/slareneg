@@ -16,9 +16,9 @@ func init() {
 
 func create() *Local {
 	return &Local{
-		GamePool:           make(map[game.GameId]*game.Game),
+		GamePool:           make(map[game.Id]*game.Game),
 		OriginalMapStrPool: make(map[uint32]string),
-		InstructionLog:     make(map[game.GameId]map[uint16]map[uint16]instruction.Instruction),
+		InstructionLog:     make(map[game.Id]map[uint16]map[uint16]instruction.Instruction),
 	}
 }
 
@@ -52,23 +52,23 @@ func TestLocal_lock(t *testing.T) {
 
 func TestLocal_Game(t *testing.T) {
 	l := create()
-	id := game.GameId(1)
+	id := game.Id(1)
 
 	// This function must be correct
 	l.DebugCreateGame(&game.Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"), // Wait
-		Mode:       game.GameMode1v1,
+		Mode:       game.Mode1v1,
 		Id:         id,
 		UserList:   []game.User{getUser()},
 		CreateTime: 0,
-		Status:     game.GameStatusWaiting,
+		Status:     game.StatusWaiting,
 		RoundNum:   0,
 		Winner:     0,
 	})
 
 	t.Run("set game status", func(t *testing.T) {
-		l.SetGameStatus(id, game.GameStatusRunning)
-		if l.GamePool[id].Status != game.GameStatusRunning {
+		l.SetGameStatus(id, game.StatusRunning)
+		if l.GamePool[id].Status != game.StatusRunning {
 			t.Fatalf("the status has unchanged")
 		}
 	})
@@ -79,7 +79,7 @@ func TestLocal_Game(t *testing.T) {
 		}
 	})
 	t.Run("get game list", func(t *testing.T) {
-		gl := l.GetGameList(game.GameMode1v1)
+		gl := l.GetGameList(game.Mode1v1)
 		if len(gl) != 1 {
 			t.Fatalf("game count is incorrect")
 		}
@@ -109,7 +109,7 @@ func TestLocal_Game(t *testing.T) {
 
 	t.Run("cancel game", func(t *testing.T) {
 		l.CancelGame(id)
-		if l.GamePool[id].Status != game.GameStatusEnd {
+		if l.GamePool[id].Status != game.StatusEnd {
 			t.Fatalf("the status has unchanged")
 		}
 		if l.GamePool[id].UserList != nil {
@@ -120,14 +120,14 @@ func TestLocal_Game(t *testing.T) {
 
 func TestLocal_User(t *testing.T) {
 	l := create()
-	id := game.GameId(2)
+	id := game.Id(2)
 	l.DebugCreateGame(&game.Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"),
-		Mode:       game.GameMode1v1,
+		Mode:       game.Mode1v1,
 		Id:         id,
 		UserList:   []game.User{},
 		CreateTime: 0,
-		Status:     game.GameStatusWaiting,
+		Status:     game.StatusWaiting,
 		RoundNum:   0,
 		Winner:     0,
 	})
@@ -157,14 +157,14 @@ func TestLocal_User(t *testing.T) {
 
 func TestLocal_Map(t *testing.T) {
 	l := create()
-	id := game.GameId(3)
+	id := game.Id(3)
 	l.DebugCreateGame(&game.Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"),
-		Mode:       game.GameMode1v1,
+		Mode:       game.Mode1v1,
 		Id:         id,
 		UserList:   []game.User{},
 		CreateTime: 0,
-		Status:     game.GameStatusWaiting,
+		Status:     game.StatusWaiting,
 		RoundNum:   0,
 		Winner:     0,
 	})

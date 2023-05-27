@@ -2,7 +2,7 @@ package judgePool
 
 import (
 	"github.com/sirupsen/logrus"
-	"server/judgePool/internal/judge"
+	"server/judgepool/internal/judge"
 	data_source "server/utils/pkg/datasource"
 	"server/utils/pkg/game"
 	"sync"
@@ -11,7 +11,7 @@ import (
 
 type Pool struct {
 	judges        sync.Map
-	AllowGameMode []game.GameMode
+	AllowGameMode []game.Mode
 }
 
 var data data_source.TempDataSource
@@ -21,7 +21,7 @@ func ApplyDataSource(source interface{}) {
 	judge.ApplyDataSource(source)
 
 }
-func (p *Pool) NewGame(mode game.GameMode) {
+func (p *Pool) NewGame(mode game.Mode) {
 	id := data.CreateGame(mode)
 	if id == 0 {
 		logrus.Panic("cannot create game")
@@ -39,7 +39,7 @@ func (p *Pool) DebugNewGame(g *game.Game) {
 	p.judges.Store(g.Id, judge.NewGameJudge(g.Id))
 }
 
-func CreatePool(allowGameMode []game.GameMode) *Pool {
+func CreatePool(allowGameMode []game.Mode) *Pool {
 	p := &Pool{AllowGameMode: allowGameMode}
 	go poolWorking(p)
 	return p
@@ -65,7 +65,7 @@ func poolWorking(p *Pool) {
 		for _, mode := range p.AllowGameMode {
 			list := data.GetGameList(mode)
 			for _, g := range list {
-				if g.Status == game.GameStatusWaiting {
+				if g.Status == game.StatusWaiting {
 					tryStartGame(g)
 					break
 				}
