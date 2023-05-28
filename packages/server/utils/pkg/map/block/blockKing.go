@@ -1,40 +1,40 @@
 package block
 
-var _ Block = (*BlockKing)(nil)
+var _ Block = (*King)(nil)
 
-type BlockKing struct {
+type King struct {
 	BaseBuilding
 	originalOwnerId uint16
 }
 
-var BlockKingMeta = BlockMeta{
+var KingMeta = Meta{
 	BlockId:           2,
 	Name:              "king",
 	Description:       "",
-	VisitFallBackType: BlockCastleMeta.BlockId,
+	VisitFallBackType: CastleMeta.BlockId,
 }
 
 func init() {
-	RegisterBlockType(BlockKingMeta, toBlockKing)
+	RegisterBlockType(KingMeta, toBlockKing)
 }
 
 func toBlockKing(number uint16, ownerId uint16) Block {
-	var ret BlockKing
+	var ret King
 	ret.number = number
 	ret.ownerId = ownerId
 	ret.originalOwnerId = ownerId
 	return Block(&ret)
 }
 
-func (block *BlockKing) IsDied() bool {
+func (block *King) IsDied() bool {
 	return block.originalOwnerId != block.ownerId
 }
 
-func (*BlockKing) GetMeta() BlockMeta {
-	return BlockKingMeta
+func (*King) GetMeta() Meta {
+	return KingMeta
 }
 
-func (block *BlockKing) MoveTo(ownerId uint16, number uint16) Block {
+func (block *King) MoveTo(ownerId uint16, number uint16) Block {
 	if !block.IsDied() {
 		block.BaseBuilding.MoveTo(ownerId, number)
 	}

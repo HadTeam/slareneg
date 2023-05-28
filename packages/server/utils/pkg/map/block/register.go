@@ -8,7 +8,7 @@ type tranFunc func(number uint16, ownerId uint16) Block
 
 var transBlockTypeFunc map[uint8]tranFunc
 
-func RegisterBlockType(meta BlockMeta, transFunc tranFunc) {
+func RegisterBlockType(meta Meta, transFunc tranFunc) {
 	if transBlockTypeFunc == nil {
 		transBlockTypeFunc = make(map[uint8]tranFunc)
 	}

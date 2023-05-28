@@ -1,12 +1,12 @@
 package block
 
-var _ Block = (*BlockBlank)(nil)
+var _ Block = (*Blank)(nil)
 
-type BlockBlank struct {
+type Blank struct {
 	BaseBlock
 }
 
-var BlockBlankMeta = BlockMeta{
+var BlankMeta = Meta{
 	BlockId:           0,
 	Name:              "blank",
 	Description:       "",
@@ -14,21 +14,21 @@ var BlockBlankMeta = BlockMeta{
 }
 
 func init() {
-	RegisterBlockType(BlockBlankMeta, toBlockBlank)
+	RegisterBlockType(BlankMeta, toBlockBlank)
 }
 
-func (*BlockBlank) GetMeta() BlockMeta {
-	return BlockBlankMeta
+func (*Blank) GetMeta() Meta {
+	return BlankMeta
 }
 
-func (*BlockBlank) GetMoveStatus() MoveStatus {
+func (*Blank) GetMoveStatus() MoveStatus {
 	return MoveStatus{false, true}
 }
 
 func toBlockBlank(_ uint16, _ uint16) Block {
-	return Block(&BlockBlank{})
+	return Block(&Blank{})
 }
 
-func (*BlockBlank) MoveTo(ownerId uint16, number uint16) Block {
+func (*Blank) MoveTo(ownerId uint16, number uint16) Block {
 	return toBlockSoldier(number, ownerId)
 }

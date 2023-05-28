@@ -1,10 +1,10 @@
 package block
 
-type BlockMountain struct {
+type Mountain struct {
 	BaseBlock
 }
 
-var BlockMountainMeta = BlockMeta{
+var MountainMeta = Meta{
 	BlockId:           4,
 	Name:              "mountain",
 	Description:       "",
@@ -12,17 +12,17 @@ var BlockMountainMeta = BlockMeta{
 }
 
 func init() {
-	RegisterBlockType(BlockMountainMeta, toBlockMountain)
+	RegisterBlockType(MountainMeta, toBlockMountain)
 }
 
 func toBlockMountain(number uint16, ownerId uint16) Block {
-	return Block(&BlockMountain{})
+	return Block(&Mountain{})
 }
 
-func (*BlockMountain) GetMeta() BlockMeta {
-	return BlockMountainMeta
+func (*Mountain) GetMeta() Meta {
+	return MountainMeta
 }
 
-func (*BlockMountain) GetMoveStatus() MoveStatus { // same as `BaseBlock`'s, in order to remain the function
+func (*Mountain) GetMoveStatus() MoveStatus { // same as `BaseBlock`'s, in order to remain the function
 	return MoveStatus{false, false}
 }

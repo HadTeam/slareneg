@@ -1,6 +1,6 @@
 package block
 
-type BlockMeta struct {
+type Meta struct {
 	Name              string
 	Description       string
 	BlockId           uint8
@@ -27,7 +27,7 @@ type Block interface {
 	// MoveTo Ret: a new block to replace this place
 	MoveTo(ownerId uint16, number uint16) Block
 
-	GetMeta() BlockMeta
+	GetMeta() Meta
 }
 
 type Position struct{ X, Y uint8 }

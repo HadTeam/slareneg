@@ -4,13 +4,13 @@ import (
 	"math/rand"
 )
 
-var _ Block = (*BlockCastle)(nil)
+var _ Block = (*Castle)(nil)
 
-type BlockCastle struct {
+type Castle struct {
 	BaseBuilding
 }
 
-var BlockCastleMeta = BlockMeta{
+var CastleMeta = Meta{
 	BlockId:           3,
 	Name:              "castle",
 	Description:       "",
@@ -18,11 +18,11 @@ var BlockCastleMeta = BlockMeta{
 }
 
 func init() {
-	RegisterBlockType(BlockCastleMeta, toBlockCastle)
+	RegisterBlockType(CastleMeta, toBlockCastle)
 }
 
 func toBlockCastle(number uint16, ownerId uint16) Block {
-	var ret BlockCastle
+	var ret Castle
 	if number == 0 {
 		ret.number = uint16(30) + uint16(rand.Intn(30))
 	} else {
@@ -32,6 +32,6 @@ func toBlockCastle(number uint16, ownerId uint16) Block {
 	return Block(&ret)
 }
 
-func (*BlockCastle) GetMeta() BlockMeta {
-	return BlockCastleMeta
+func (*Castle) GetMeta() Meta {
+	return CastleMeta
 }

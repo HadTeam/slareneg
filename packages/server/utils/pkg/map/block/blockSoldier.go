@@ -1,50 +1,50 @@
 package block
 
-type BlockSoldier struct {
+type Soldier struct {
 	BaseBlock
 }
 
-var BlockSoldierMeta = BlockMeta{
+var SoldierMeta = Meta{
 	BlockId:           1,
 	Name:              "soldier",
 	Description:       "",
-	VisitFallBackType: BlockBlankMeta.BlockId,
+	VisitFallBackType: BlankMeta.BlockId,
 }
 
 func init() {
-	RegisterBlockType(BlockSoldierMeta, toBlockSoldier)
+	RegisterBlockType(SoldierMeta, toBlockSoldier)
 }
 
 func toBlockSoldier(number uint16, ownerId uint16) Block {
-	var ret BlockSoldier
+	var ret Soldier
 	ret.number = number
 	ret.ownerId = ownerId
 	return Block(&ret)
 }
 
-func (*BlockSoldier) GetMeta() BlockMeta {
-	return BlockSoldierMeta
+func (*Soldier) GetMeta() Meta {
+	return SoldierMeta
 }
 
-func (block *BlockSoldier) GetNumber() uint16 {
+func (block *Soldier) GetNumber() uint16 {
 	return block.number
 }
 
-func (block *BlockSoldier) RoundStart(roundNum uint16) {
+func (block *Soldier) RoundStart(roundNum uint16) {
 	if (roundNum%25)-1 == 0 && roundNum != 1 {
 		block.number += 1
 	}
 }
 
-func (*BlockSoldier) GetMoveStatus() MoveStatus {
+func (*Soldier) GetMoveStatus() MoveStatus {
 	return MoveStatus{true, true}
 }
 
-func (block *BlockSoldier) MoveFrom(number uint16) {
+func (block *Soldier) MoveFrom(number uint16) {
 	block.number -= number
 }
 
-func (block *BlockSoldier) MoveTo(ownerId uint16, number uint16) Block {
+func (block *Soldier) MoveTo(ownerId uint16, number uint16) Block {
 
 	if block.ownerId != ownerId {
 		if block.number < number {

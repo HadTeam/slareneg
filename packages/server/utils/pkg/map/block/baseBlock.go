@@ -7,7 +7,7 @@ type BaseBlock struct {
 	number  uint16
 }
 
-func (block *BaseBlock) GetMeta() BlockMeta {
+func (block *BaseBlock) GetMeta() Meta {
 	panic("no block meta can be provided")
 }
 
