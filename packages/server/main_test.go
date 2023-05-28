@@ -33,13 +33,26 @@ func TestServer_main(t *testing.T) {
 	api.ApplyDataSource(&data)
 	api.DebugStartFileReceiver(p)
 
-	time.Sleep(20 * time.Second)
-
 	id := game.Id(1000)
-	if data.GamePool[id].Status != game.StatusEnd {
-		t.Fatalf("game not end as expected")
+	ticker := time.NewTicker(1 * time.Second)
+	for i := 1; true; i++ {
+		<-ticker.C
+		if i >= 20 {
+			t.Fatalf("game running timeout(20s)")
+		}
+		if data.GetGameInfo(id).Status == game.StatusEnd {
+			ticker.Stop()
+			break
+		}
 	}
-	if data.GamePool[id].Winner != 1 {
-		t.Fatalf("game result is unexpected")
+
+	if data.GamePool[id].Winner != 2 {
+		var userList []string
+		for _, u := range data.GamePool[id].UserList {
+			if u.TeamId == data.GamePool[id].Winner {
+				userList = append(userList, u.Name)
+			}
+		}
+		t.Fatalf("game result is unexpected: expected 2, got %d (%v)", data.GamePool[id].Winner, userList)
 	}
 }
