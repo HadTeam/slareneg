@@ -46,13 +46,13 @@ func TestServer_main(t *testing.T) {
 		}
 	}
 
-	if data.GamePool[id].Winner != 2 {
-		var userList []string
-		for _, u := range data.GamePool[id].UserList {
-			if u.TeamId == data.GamePool[id].Winner {
-				userList = append(userList, u.Name)
-			}
+	var userList []string
+	for _, u := range data.GamePool[id].UserList {
+		if u.TeamId == data.GamePool[id].Winner {
+			userList = append(userList, u.Name)
 		}
-		t.Fatalf("game result is unexpected: expected 2, got %d (%v)", data.GamePool[id].Winner, userList)
+	}
+	if userList[0] != "2" {
+		t.Fatalf("game result is unexpected: expected [\"2\"], got %v (team %d)", userList, data.GamePool[id].Winner)
 	}
 }
