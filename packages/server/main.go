@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"flag"
 	nested "github.com/antonfisher/nested-logrus-formatter"
+	"github.com/gookit/ini/v2"
 	"github.com/sirupsen/logrus"
 	"server/api"
 	judge_pool "server/judgepool"
@@ -13,7 +15,31 @@ import (
 	"time"
 )
 
+var configFile string
+
+const defaultConfigPath = "./slareneg.server.ini"
+const defaultConfigOptions = `
+	[db]
+	host = localhost
+	port = 5432
+	user = postgres
+	password = slareneg
+	sslMode = disable
+	name = slareneg
+	`
+
 func main() {
+	flag.StringVar(&configFile, "config", defaultConfigPath, "config file path")
+	flag.Parse()
+
+	if err := ini.LoadStrings(defaultConfigOptions); err != nil {
+		logrus.Panic(err)
+	}
+
+	if err := ini.LoadExists(configFile); err != nil {
+		logrus.Panic(err)
+	}
+
 	ctx, exit := context.WithCancel(context.Background())
 	defer exit()
 
