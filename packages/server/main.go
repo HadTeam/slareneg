@@ -12,6 +12,7 @@ import (
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
 	_ "server/utils/pkg/map/block"
+	db "server/utils/pkg/pg"
 	"time"
 )
 
@@ -39,6 +40,9 @@ func main() {
 	if err := ini.LoadExists(configFile); err != nil {
 		logrus.Panic(err)
 	}
+
+	db.Bootstrap()
+	defer db.Exit()
 
 	ctx, exit := context.WithCancel(context.Background())
 	defer exit()
