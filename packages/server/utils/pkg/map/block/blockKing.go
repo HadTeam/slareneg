@@ -30,7 +30,7 @@ func (block *King) IsDied() bool {
 	return block.originalOwnerId != block.ownerId
 }
 
-func (*King) GetMeta() Meta {
+func (*King) Meta() Meta {
 	return KingMeta
 }
 

@@ -51,7 +51,7 @@ func getVisibility(id game.Id, userId uint16) [][]bool {
 
 	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
 		for colNum := uint8(0); colNum <= m.Size().W-1; colNum++ {
-			o := m.GetBlock(block.Position{X: colNum + 1, Y: rowNum + 1}).GetOwnerId()
+			o := m.GetBlock(block.Position{X: colNum + 1, Y: rowNum + 1}).OwnerId()
 			if o == 0 {
 				continue
 			}
@@ -74,10 +74,10 @@ func getProcessedMap(id game.Id, userId uint16, m *_map.Map) [][][]uint16 {
 		for colNum := uint8(0); colNum <= m.Size().W-1; colNum++ {
 			b := m.GetBlock(block.Position{X: colNum + 1, Y: rowNum + 1})
 			if vis[rowNum][colNum] {
-				mr[rowNum][colNum] = []uint16{uint16(b.GetMeta().BlockId), b.GetOwnerId(), b.GetNumber()}
+				mr[rowNum][colNum] = []uint16{uint16(b.Meta().BlockId), b.OwnerId(), b.Number()}
 			} else {
 				const noOwner = uint16(0)
-				mr[rowNum][colNum] = []uint16{uint16(b.GetMeta().VisitFallBackType), noOwner, 0}
+				mr[rowNum][colNum] = []uint16{uint16(b.Meta().VisitFallBackType), noOwner, 0}
 			}
 		}
 	}

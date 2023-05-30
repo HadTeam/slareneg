@@ -19,7 +19,7 @@ func toBlockMountain(number uint16, ownerId uint16) Block {
 	return Block(&Mountain{})
 }
 
-func (*Mountain) GetMeta() Meta {
+func (*Mountain) Meta() Meta {
 	return MountainMeta
 }
 

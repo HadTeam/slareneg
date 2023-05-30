@@ -22,7 +22,7 @@ func ToBlockByTypeId(typeId uint8, block Block) Block {
 		log.Println("[Warn] Get an unknown blockTypeId", typeId)
 		transFunc = transBlockTypeFunc[0] // Note: Must ensure blocks.BlockBlankMeta.BlockId=0
 	}
-	return transFunc(block.GetNumber(), block.GetOwnerId())
+	return transFunc(block.Number(), block.OwnerId())
 }
 
 func NewBlock(typeId uint8, number uint16, ownerId uint16) Block {

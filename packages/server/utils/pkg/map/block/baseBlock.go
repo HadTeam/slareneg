@@ -7,15 +7,15 @@ type BaseBlock struct {
 	number  uint16
 }
 
-func (block *BaseBlock) GetMeta() Meta {
+func (block *BaseBlock) Meta() Meta {
 	panic("no block meta can be provided")
 }
 
-func (block *BaseBlock) GetNumber() uint16 {
+func (block *BaseBlock) Number() uint16 {
 	return block.number
 }
 
-func (block *BaseBlock) GetOwnerId() uint16 {
+func (block *BaseBlock) OwnerId() uint16 {
 	return block.ownerId
 }
 

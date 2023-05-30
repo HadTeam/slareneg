@@ -133,12 +133,12 @@ func (p *Map) Move(ins instruction.Move) bool {
 	 * 1 => select half
 	 */
 	if ins.Number == 0 {
-		ins.Number = thisBlock.GetNumber()
+		ins.Number = thisBlock.Number()
 	} else if ins.Number == 65535 {
-		ins.Number = thisBlock.GetNumber() / 2
+		ins.Number = thisBlock.Number() / 2
 	}
 
-	if thisBlock.GetNumber() < ins.Number {
+	if thisBlock.Number() < ins.Number {
 		return false
 	}
 
@@ -149,7 +149,7 @@ func (p *Map) Move(ins instruction.Move) bool {
 
 	var toBlockNew block.Block
 	thisBlock.MoveFrom(ins.Number)
-	toBlockNew = toBlock.MoveTo(thisBlock.GetOwnerId(), ins.Number)
+	toBlockNew = toBlock.MoveTo(thisBlock.OwnerId(), ins.Number)
 	if toBlockNew != nil {
 		p.SetBlock(newPosition, toBlockNew)
 	}

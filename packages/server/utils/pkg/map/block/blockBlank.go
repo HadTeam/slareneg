@@ -17,7 +17,7 @@ func init() {
 	RegisterBlockType(BlankMeta, toBlockBlank)
 }
 
-func (*Blank) GetMeta() Meta {
+func (*Blank) Meta() Meta {
 	return BlankMeta
 }
 

@@ -22,11 +22,11 @@ func toBlockSoldier(number uint16, ownerId uint16) Block {
 	return Block(&ret)
 }
 
-func (*Soldier) GetMeta() Meta {
+func (*Soldier) Meta() Meta {
 	return SoldierMeta
 }
 
-func (block *Soldier) GetNumber() uint16 {
+func (block *Soldier) Number() uint16 {
 	return block.number
 }
 

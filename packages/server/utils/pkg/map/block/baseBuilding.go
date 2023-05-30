@@ -6,12 +6,12 @@ type BaseBuilding struct {
 	BaseBlock
 }
 
-func (block *BaseBuilding) GetNumber() uint16 {
+func (block *BaseBuilding) Number() uint16 {
 	return block.number
 }
 
 func (block *BaseBuilding) RoundStart(_ uint16) {
-	if block.GetOwnerId() != 0 {
+	if block.OwnerId() != 0 {
 		block.number += 1
 	}
 }

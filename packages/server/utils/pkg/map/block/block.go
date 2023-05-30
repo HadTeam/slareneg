@@ -15,8 +15,8 @@ type MoveStatus struct {
 }
 
 type Block interface {
-	GetNumber() uint16
-	GetOwnerId() uint16
+	Number() uint16
+	OwnerId() uint16
 
 	// Round Events
 	RoundStart(roundNumber uint16)
@@ -27,7 +27,7 @@ type Block interface {
 	// MoveTo Ret: a new block to replace this place
 	MoveTo(ownerId uint16, number uint16) Block
 
-	GetMeta() Meta
+	Meta() Meta
 }
 
 type Position struct{ X, Y uint8 }

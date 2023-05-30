@@ -113,7 +113,7 @@ func judgeWorking(j *GameJudge) {
 				data.SetGameMap(j.gameId, g.Map)
 
 				_map.DebugOutput(g.Map, func(block block.Block) uint16 {
-					return uint16(block.GetMeta().BlockId)
+					return uint16(block.Meta().BlockId)
 				}) // TODO
 			}
 		}
@@ -125,7 +125,7 @@ func getKingPos(g *game.Game) []block.Position {
 	for y := uint8(1); y <= g.Map.Size().H; y++ {
 		for x := uint8(1); x <= g.Map.Size().W; x++ {
 			b := g.Map.GetBlock(block.Position{X: x, Y: y})
-			if b.GetMeta().BlockId == block.KingMeta.BlockId {
+			if b.Meta().BlockId == block.KingMeta.BlockId {
 				kingPos = append(kingPos, block.Position{X: x, Y: y})
 			}
 		}
@@ -160,7 +160,7 @@ func judgeGame(g *game.Game, kingPos []block.Position) game.Status {
 	if g.Mode == game.Mode1v1 {
 		flag := true
 		for _, k := range kingPos {
-			if g.Map.GetBlock(k).GetMeta().BlockId != block.KingMeta.BlockId {
+			if g.Map.GetBlock(k).Meta().BlockId != block.KingMeta.BlockId {
 				flag = false
 				break
 			}
@@ -168,8 +168,8 @@ func judgeGame(g *game.Game, kingPos []block.Position) game.Status {
 		if !flag {
 			var w uint16
 			for _, k := range kingPos {
-				if g.Map.GetBlock(k).GetMeta().BlockId == block.KingMeta.BlockId {
-					w = g.Map.GetBlock(k).GetOwnerId()
+				if g.Map.GetBlock(k).Meta().BlockId == block.KingMeta.BlockId {
+					w = g.Map.GetBlock(k).OwnerId()
 				}
 			}
 			var wt uint8
@@ -190,7 +190,7 @@ func judgeGame(g *game.Game, kingPos []block.Position) game.Status {
 func allocateKing(g *game.Game, kingPos []block.Position) {
 	allocatableKingNum := 0
 	for _, k := range kingPos {
-		if g.Map.GetBlock(k).GetOwnerId() == 0 {
+		if g.Map.GetBlock(k).OwnerId() == 0 {
 			allocatableKingNum++
 		}
 	}
@@ -201,7 +201,7 @@ func allocateKing(g *game.Game, kingPos []block.Position) {
 			break
 		}
 		g.Map.SetBlock(kingPos[i],
-			block.NewBlock(block.KingMeta.BlockId, g.Map.GetBlock(kingPos[i]).GetNumber(), u.UserId))
+			block.NewBlock(block.KingMeta.BlockId, g.Map.GetBlock(kingPos[i]).Number(), u.UserId))
 		allocatableKingNum--
 	}
 }

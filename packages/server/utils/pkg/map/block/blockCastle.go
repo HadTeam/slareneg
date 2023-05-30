@@ -32,6 +32,6 @@ func toBlockCastle(number uint16, ownerId uint16) Block {
 	return Block(&ret)
 }
 
-func (*Castle) GetMeta() Meta {
+func (*Castle) Meta() Meta {
 	return CastleMeta
 }
