@@ -59,6 +59,7 @@ func judgeWorking(j *GameJudge) {
 			judgeLogger.Infof("Working")
 
 			g := data.GetGameInfo(j.gameId)
+			g.Map = data.GetCurrentMap(g.Id)
 			if !g.Map.HasBlocks() {
 				g.Map = pData.GetOriginalMap(g.Map.Id())
 			}

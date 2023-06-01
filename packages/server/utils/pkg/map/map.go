@@ -60,6 +60,16 @@ func (p *Map) RoundEnd(roundNum uint16) {
 	}
 }
 
+func CreateMapWithInfo(mapId uint32, size MapSize) *Map {
+	return &Map{
+		blocks: nil,
+		mapInfo: mapInfo{
+			size: size,
+			id:   mapId,
+		},
+	}
+}
+
 func DebugOutput(p *Map, f func(block.Block) uint16) { // Only for debugging
 	tmp := ""
 	ex := func(i uint16) string {
