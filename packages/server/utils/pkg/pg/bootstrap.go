@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/gookit/ini/v2"
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"log"
 	"strconv"
