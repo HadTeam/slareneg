@@ -63,7 +63,7 @@ func generatorMapJson(m *_map.Map) string {
 
 var sqlQueryGame = "SELECT * FROM game WHERE game_id=$1"
 
-func (p Pg) CreateGame(mode game.Mode) game.Id {
+func (p *Pg) CreateGame(mode game.Mode) game.Id {
 	var gameId game.Id
 	for {
 		gameId = game.Id(rand.Uint32())
@@ -80,7 +80,7 @@ func (p Pg) CreateGame(mode game.Mode) game.Id {
 	return gameId
 }
 
-func (p Pg) DebugCreateGame(g *game.Game) (ok bool) {
+func (p *Pg) DebugCreateGame(g *game.Game) (ok bool) {
 	r := db.SqlExec(sqlCreateGame, g.Id, g.Mode.NameStr, game.StatusWaiting, g.RoundNum, generatorMapJson(g.Map), "[]")
 	if row, err := r.RowsAffected(); err != nil || row == 1 {
 		logrus.Warn("create game filed: ", err)
@@ -90,29 +90,44 @@ func (p Pg) DebugCreateGame(g *game.Game) (ok bool) {
 	}
 }
 
-func (p Pg) GetGameList(mode game.Mode) []game.Game {
+var sqlQueryGameList = "SELECT game_id FROM game WHERE mode=$1 AND (status=1 OR status=2)"
+
+func (p *Pg) GetGameList(mode game.Mode) []game.Game {
+	r := db.SqlQuery(sqlQueryGameList)
+	var list []game.Id
+	for {
+		var id game.Id
+		r.Next()
+		if err := r.Scan(&id); err != nil {
+			break
+		}
+		list = append(list, id)
+	}
+	ret := make([]game.Game, len(list))
+	for i, id := range list {
+		ret[i] = *p.GetGameInfo(id)
+	}
+	return ret
+}
+
+func (p *Pg) CancelGame(id game.Id) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Pg) CancelGame(id game.Id) (ok bool) {
+func (p *Pg) GetCurrentUserList(id game.Id) []game.User {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Pg) GetCurrentUserList(id game.Id) []game.User {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (p Pg) GetInstructions(id game.Id, tempId uint16) []instruction.Instruction {
+func (p *Pg) GetInstructions(id game.Id, tempId uint16) []instruction.Instruction {
 	//TODO implement me
 	panic("implement me")
 }
 
 var sqlQueryGameInfo = "SELECT mode,status,round_num,create_time FROM game WHERE game_id=$1"
 
-func (p Pg) GetGameInfo(id game.Id) *game.Game {
+func (p *Pg) GetGameInfo(id game.Id) *game.Game {
 	r := db.SqlQuery(sqlQueryGameInfo, id)
 	defer func() { _ = r.Close() }()
 
@@ -135,42 +150,42 @@ func (p Pg) GetGameInfo(id game.Id) *game.Game {
 	return g
 }
 
-func (p Pg) NewInstructionTemp(id game.Id, tempId uint16) (ok bool) {
+func (p *Pg) NewInstructionTemp(id game.Id, tempId uint16) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Pg) SetGameStatus(id game.Id, status game.Status) (ok bool) {
+func (p *Pg) SetGameStatus(id game.Id, status game.Status) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Pg) SetGameMap(id game.Id, m *_map.Map) (ok bool) {
+func (p *Pg) SetGameMap(id game.Id, m *_map.Map) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Pg) SetUserStatus(id game.Id, user game.User) (ok bool) {
+func (p *Pg) SetUserStatus(id game.Id, user game.User) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Pg) SetWinner(id game.Id, teamId uint8) (ok bool) {
+func (p *Pg) SetWinner(id game.Id, teamId uint8) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Pg) UpdateInstruction(id game.Id, user game.User, instruction instruction.Instruction) (ok bool) {
+func (p *Pg) UpdateInstruction(id game.Id, user game.User, instruction instruction.Instruction) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Pg) GetCurrentMap(id game.Id) *_map.Map {
+func (p *Pg) GetCurrentMap(id game.Id) *_map.Map {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p Pg) GetOriginalMap(mapId uint32) *_map.Map {
+func (p *Pg) GetOriginalMap(mapId uint32) *_map.Map {
 	sql := "SELECT map_str FROM original_map WHERE map_id=$1"
 	r := db.SqlQuery(sql, mapId)
 	defer func() {
