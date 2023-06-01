@@ -3,6 +3,7 @@ package pg
 import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
+	"math/rand"
 	data_source "server/utils/pkg/datasource"
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
@@ -17,9 +18,9 @@ var _ data_source.TempDataSource = (*Pg)(nil)
 type Pg struct {
 }
 
-const sqlCreateGame = "INSERT INTO game(game_id,mode,status,round_num,map,user_list) VALUES($1,$2,$3,$4,$5,$6)"
+const sqlCreateGame = "INSERT INTO game(game_id,mode,status,round_num,create_time,map,user_list) VALUES($1,$2,$3,$4,now(),$5,$6)"
 
-func generatorMapJsonb(m _map.Map) string {
+func generatorMapJson(m *_map.Map) string {
 	type b struct {
 		TypeId  uint8  `json:"type"`
 		OwnerId uint16 `json:"owner"`
@@ -60,14 +61,33 @@ func generatorMapJsonb(m _map.Map) string {
 	return string(str)
 }
 
+var sqlQueryGame = "SELECT * FROM game WHERE game_id=$1"
+
 func (p Pg) CreateGame(mode game.Mode) game.Id {
-	//TODO implement me
-	panic("implement me")
+	var gameId game.Id
+	for {
+		gameId = game.Id(rand.Uint32())
+		if ok := db.SqlQueryExist(sqlQueryGame, gameId); !ok && gameId >= 100 { // gameId 1-99 is for debugging usage
+			break
+		}
+	}
+	g := game.Game{
+		Mode:     mode,
+		Id:       gameId,
+		RoundNum: 0,
+	}
+	p.DebugCreateGame(&g)
+	return gameId
 }
 
-func (p Pg) DebugCreateGame(game *game.Game) (ok bool) {
-	//TODO implement me
-	panic("implement me")
+func (p Pg) DebugCreateGame(g *game.Game) (ok bool) {
+	r := db.SqlExec(sqlCreateGame, g.Id, g.Mode.NameStr, game.StatusWaiting, g.RoundNum, generatorMapJson(g.Map), "[]")
+	if row, err := r.RowsAffected(); err != nil || row == 1 {
+		logrus.Warn("create game filed: ", err)
+		return false
+	} else {
+		return true
+	}
 }
 
 func (p Pg) GetGameList(mode game.Mode) []game.Game {
@@ -90,9 +110,29 @@ func (p Pg) GetInstructions(id game.Id, tempId uint16) []instruction.Instruction
 	panic("implement me")
 }
 
+var sqlQueryGameInfo = "SELECT mode,status,round_num,create_time FROM game WHERE game_id=$1"
+
 func (p Pg) GetGameInfo(id game.Id) *game.Game {
-	//TODO implement me
-	panic("implement me")
+	r := db.SqlQuery(sqlQueryGameInfo, id)
+	defer func() { _ = r.Close() }()
+
+	g := &game.Game{
+		Id: id,
+	}
+
+	var modeStr string
+
+	r.Next()
+	if err := r.Scan(&modeStr, &g.Status, &g.RoundNum, &g.CreateTime); err != nil {
+		logrus.Warn("cannot get game info")
+		return nil
+	}
+	if mode, ok := game.ModeMap[modeStr]; !ok {
+		logrus.Warn("get unknown mode ", modeStr, " when get game info")
+	} else {
+		g.Mode = mode
+	}
+	return g
 }
 
 func (p Pg) NewInstructionTemp(id game.Id, tempId uint16) (ok bool) {

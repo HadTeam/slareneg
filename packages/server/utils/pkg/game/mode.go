@@ -7,3 +7,7 @@ type Mode struct {
 }
 
 var Mode1v1 = Mode{MaxUserNum: 2, MinUserNum: 2, NameStr: "1v1"}
+
+var ModeMap = map[string]Mode{
+	"1v1": Mode1v1,
+}
