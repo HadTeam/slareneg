@@ -82,7 +82,7 @@ func (p *Pg) CreateGame(mode game.Mode) game.Id {
 
 func (p *Pg) DebugCreateGame(g *game.Game) (ok bool) {
 	r := db.SqlExec(sqlCreateGame, g.Id, g.Mode.NameStr, game.StatusWaiting, g.RoundNum, generatorMapJson(g.Map), "[]")
-	if row, err := r.RowsAffected(); err != nil || row == 1 {
+	if row, err := r.RowsAffected(); err != nil || row != 1 {
 		logrus.Warn("create game filed: ", err)
 		return false
 	} else {
