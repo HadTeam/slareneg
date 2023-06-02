@@ -79,9 +79,13 @@ func (l *Local) CancelGame(id game.Id) (ok bool) {
 	if l.lock() {
 		defer l.unlock()
 		g := l.GamePool[id]
-		g.Status = game.StatusEnd
-		g.UserList = nil // TODO
-		return true
+		if g.Status == game.StatusWaiting || g.Status == game.StatusRunning {
+			g.Status = game.StatusEnd
+			g.UserList = nil // TODO
+			return true
+		} else {
+			return false
+		}
 	} else {
 		return false
 	}
