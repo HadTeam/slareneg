@@ -93,7 +93,7 @@ func (p *Pg) DebugCreateGame(g *game.Game) (ok bool) {
 var sqlQueryGameList = "SELECT game_id FROM game WHERE mode=$1 AND (status=1 OR status=2)"
 
 func (p *Pg) GetGameList(mode game.Mode) []game.Game {
-	r := db.SqlQuery(sqlQueryGameList)
+	r := db.SqlQuery(sqlQueryGameList, mode)
 	var list []game.Id
 	for {
 		var id game.Id
