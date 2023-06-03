@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	data_source "server/utils/pkg/datasource"
 	"server/utils/pkg/game"
+	game_temp_pool "server/utils/pkg/gametemppool"
 	"server/utils/pkg/instruction"
 	"server/utils/pkg/map"
 	"server/utils/pkg/map/block"
@@ -59,6 +60,7 @@ func judgeWorking(j *GameJudge) {
 			judgeLogger.Infof("Working")
 
 			g := data.GetGameInfo(j.gameId)
+			game_temp_pool.Create(g.Id)
 			g.Map = data.GetCurrentMap(g.Id)
 			if !g.Map.HasBlocks() {
 				g.Map = pData.GetOriginalMap(g.Map.Id())
@@ -96,6 +98,7 @@ func judgeWorking(j *GameJudge) {
 						data.SetGameStatus(g.Id, game.StatusEnd)
 						data.SetWinner(g.Id, g.Winner)
 						j.status = StatusWaiting
+						game_temp_pool.Delete(g.Id)
 
 						var winnerTeam []string
 						for _, n := range g.UserList {

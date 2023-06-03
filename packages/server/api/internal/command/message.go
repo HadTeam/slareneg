@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"server/utils/pkg/datasource"
 	"server/utils/pkg/game"
+	game_temp_pool "server/utils/pkg/gametemppool"
 	"server/utils/pkg/map"
 	"server/utils/pkg/map/block"
 )
@@ -14,7 +15,9 @@ func ApplyDataSource(source any) {
 	data = source.(datasource.TempDataSource)
 }
 
-func getVisibility(id game.Id, userId uint16) [][]bool {
+type visibilityArr [][]bool
+
+func getVisibility(id game.Id, userId uint16) *visibilityArr {
 	m := data.GetCurrentMap(id)
 	ul := data.GetCurrentUserList(id)
 
@@ -31,9 +34,17 @@ func getVisibility(id game.Id, userId uint16) [][]bool {
 		}
 	}
 
-	ret := make([][]bool, m.Size().H)
+	var ret *visibilityArr
+	if r, ok := game_temp_pool.Get(id, "visibility"); ok {
+		ret = r.(*visibilityArr)
+	} else {
+		t := make(visibilityArr, m.Size().H)
+		ret = &t
+		game_temp_pool.Put(id, "visibility", &t)
+	}
+
 	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
-		ret[rowNum] = make([]bool, m.Size().W)
+		(*ret)[rowNum] = make([]bool, m.Size().W)
 	}
 
 	light := func(x int, y int) {
@@ -44,7 +55,7 @@ func getVisibility(id game.Id, userId uint16) [][]bool {
 			ly := y + r.y
 			lx := x + r.x
 			if 0 <= ly && ly <= int(m.Size().H-1) && 0 <= lx && lx <= int(m.Size().W-1) {
-				ret[ly][lx] = true
+				(*ret)[ly][lx] = true
 			}
 		}
 	}
@@ -66,22 +77,32 @@ func getVisibility(id game.Id, userId uint16) [][]bool {
 	return ret
 }
 
-func getProcessedMap(id game.Id, userId uint16, m *_map.Map) [][][]uint16 {
+type processedMap [][][]uint16
+
+func getProcessedMap(id game.Id, userId uint16, m *_map.Map) *processedMap {
 	vis := getVisibility(id, userId)
-	mr := make([][][]uint16, m.Size().H)
+	var ret *processedMap
+	if r, ok := game_temp_pool.Get(id, "processedMap"); ok {
+		ret = r.(*processedMap)
+	} else {
+		t := make(processedMap, m.Size().H)
+		ret = &t
+		game_temp_pool.Put(id, "processedMap", &t)
+	}
+
 	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
-		mr[rowNum] = make([][]uint16, m.Size().W)
+		(*ret)[rowNum] = make([][]uint16, m.Size().W)
 		for colNum := uint8(0); colNum <= m.Size().W-1; colNum++ {
 			b := m.GetBlock(block.Position{X: colNum + 1, Y: rowNum + 1})
-			if vis[rowNum][colNum] {
-				mr[rowNum][colNum] = []uint16{uint16(b.Meta().BlockId), b.OwnerId(), b.Number()}
+			if (*vis)[rowNum][colNum] {
+				(*ret)[rowNum][colNum] = []uint16{uint16(b.Meta().BlockId), b.OwnerId(), b.Number()}
 			} else {
 				const noOwner = uint16(0)
-				mr[rowNum][colNum] = []uint16{uint16(b.Meta().VisitFallBackType), noOwner, 0}
+				(*ret)[rowNum][colNum] = []uint16{uint16(b.Meta().VisitFallBackType), noOwner, 0}
 			}
 		}
 	}
-	return mr
+	return ret
 }
 
 type playerInfo struct {
@@ -123,7 +144,7 @@ func GenerateMessage(_type string, id game.Id, userId uint16) string {
 				MapWidth  uint8        `json:"mapWidth"`
 				MapHeight uint8        `json:"mapHeight"`
 				Map       [][][]uint16 `json:"map"`
-			}{"start", m.Size().W, m.Size().H, getProcessedMap(id, userId, m)}
+			}{"start", m.Size().W, m.Size().H, *getProcessedMap(id, userId, m)}
 			ret, _ := json.Marshal(res)
 			return string(ret)
 		}
@@ -164,7 +185,7 @@ func GenerateMessage(_type string, id game.Id, userId uint16) string {
 				Action     string       `json:"action"`
 				TurnNumber uint16       `json:"turnNumber"`
 				Map        [][][]uint16 `json:"map"`
-			}{"newTurn", g.RoundNum, getProcessedMap(id, userId, m)}
+			}{"newTurn", g.RoundNum, *getProcessedMap(id, userId, m)}
 			ret, _ := json.Marshal(res)
 			return string(ret)
 		}
