@@ -8,12 +8,22 @@ import (
 type tranFunc func(_type.Block) _type.Block
 
 var transBlockTypeFunc map[uint8]tranFunc
+var GetBlockIdByName map[string]uint8
+var GetMetaById map[uint8]_type.Meta
 
 func Register(meta _type.Meta, transFunc tranFunc) {
 	if transBlockTypeFunc == nil {
 		transBlockTypeFunc = make(map[uint8]tranFunc)
 	}
+	if GetBlockIdByName == nil {
+		GetBlockIdByName = make(map[string]uint8)
+	}
+	if GetMetaById == nil {
+		GetMetaById = make(map[uint8]_type.Meta)
+	}
 
+	GetBlockIdByName[meta.Name] = meta.BlockId
+	GetMetaById[meta.BlockId] = meta
 	transBlockTypeFunc[meta.BlockId] = transFunc
 	logrus.Println("Registered a block type", "id:", meta.BlockId, " name:", meta.Name, " description:", meta.Description)
 }
