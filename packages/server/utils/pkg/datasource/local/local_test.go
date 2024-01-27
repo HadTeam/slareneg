@@ -4,6 +4,7 @@ import (
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
 	"server/utils/pkg/map"
+	_ "server/utils/pkg/map/blockManager/block"
 	"server/utils/pkg/map/type"
 	"strconv"
 	"testing"
