@@ -6,7 +6,7 @@ import (
 	"server/utils/pkg/game"
 	game_temp_pool "server/utils/pkg/gametemppool"
 	"server/utils/pkg/map"
-	"server/utils/pkg/map/block"
+	"server/utils/pkg/map/type"
 )
 
 var data datasource.TempDataSource
@@ -62,7 +62,7 @@ func getVisibility(id game.Id, userId uint16) *visibilityArr {
 
 	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
 		for colNum := uint8(0); colNum <= m.Size().W-1; colNum++ {
-			o := m.GetBlock(block.Position{X: colNum + 1, Y: rowNum + 1}).OwnerId()
+			o := m.GetBlock(_type.Position{X: colNum + 1, Y: rowNum + 1}).OwnerId()
 			if o == 0 {
 				continue
 			}
@@ -93,7 +93,7 @@ func getProcessedMap(id game.Id, userId uint16, m *_map.Map) *processedMap {
 	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
 		(*ret)[rowNum] = make([][]uint16, m.Size().W)
 		for colNum := uint8(0); colNum <= m.Size().W-1; colNum++ {
-			b := m.GetBlock(block.Position{X: colNum + 1, Y: rowNum + 1})
+			b := m.GetBlock(_type.Position{X: colNum + 1, Y: rowNum + 1})
 			if (*vis)[rowNum][colNum] {
 				(*ret)[rowNum][colNum] = []uint16{uint16(b.Meta().BlockId), b.OwnerId(), b.Number()}
 			} else {

@@ -11,7 +11,7 @@ import (
 	"server/utils/pkg/datasource/local"
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
-	_ "server/utils/pkg/map/block"
+	_ "server/utils/pkg/map/blockManager/block"
 	db "server/utils/pkg/pg"
 	"time"
 )
@@ -30,6 +30,11 @@ const defaultConfigOptions = `
 	`
 
 func main() {
+	logrus.SetLevel(logrus.TraceLevel)
+	logrus.SetFormatter(&nested.Formatter{
+		TimestampFormat: time.RFC3339,
+	})
+
 	flag.StringVar(&configFile, "config", defaultConfigPath, "config file path")
 	flag.Parse()
 
@@ -46,11 +51,6 @@ func main() {
 
 	ctx, exit := context.WithCancel(context.Background())
 	defer exit()
-
-	logrus.SetLevel(logrus.TraceLevel)
-	logrus.SetFormatter(&nested.Formatter{
-		TimestampFormat: time.RFC3339,
-	})
 
 	data := local.Local{
 		GamePool:           make(map[game.Id]*game.Game),

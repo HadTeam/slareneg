@@ -8,7 +8,7 @@ import (
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
 	_map "server/utils/pkg/map"
-	"server/utils/pkg/map/block"
+	"server/utils/pkg/map/type"
 	db "server/utils/pkg/pg"
 )
 
@@ -45,7 +45,7 @@ func generatorMapJson(m *_map.Map) string {
 	for y := uint8(1); y <= m.Size().H; y++ {
 		ret.Blocks[y] = make([]b, m.Size().W)
 		for x := uint8(1); x <= m.Size().W; x++ {
-			ob := m.GetBlock(block.Position{X: x, Y: y})
+			ob := m.GetBlock(_type.Position{X: x, Y: y})
 			ret.Blocks[y][x] = b{
 				TypeId:  ob.Meta().BlockId,
 				OwnerId: ob.OwnerId(),

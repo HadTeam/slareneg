@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
 	"server/utils/pkg/instruction"
-	"server/utils/pkg/map/block"
+	"server/utils/pkg/map/blockManager"
+	"server/utils/pkg/map/type"
 	"strconv"
 )
 
@@ -16,7 +17,7 @@ type mapInfo struct {
 }
 
 type Map struct {
-	blocks [][]block.Block
+	blocks [][]_type.Block
 	mapInfo
 }
 
@@ -28,11 +29,11 @@ func (p *Map) Id() uint32 {
 	return p.id
 }
 
-func (p *Map) GetBlock(position block.Position) block.Block {
+func (p *Map) GetBlock(position _type.Position) _type.Block {
 	return p.blocks[position.Y-1][position.X-1]
 }
 
-func (p *Map) SetBlock(position block.Position, block block.Block) {
+func (p *Map) SetBlock(position _type.Position, block _type.Block) {
 	p.blocks[position.Y-1][position.X-1] = block
 }
 
@@ -70,7 +71,7 @@ func CreateMapWithInfo(mapId uint32, size MapSize) *Map {
 	}
 }
 
-func DebugOutput(p *Map, f func(block.Block) uint16) { // Only for debugging
+func DebugOutput(p *Map, f func(_type.Block) uint16) { // Only for debugging
 	tmp := ""
 	ex := func(i uint16) string {
 		ex := ""
@@ -95,7 +96,7 @@ func DebugOutput(p *Map, f func(block.Block) uint16) { // Only for debugging
 	logrus.Tracef("\n%s\n", tmp)
 }
 
-func isPositionLegal(position block.Position, size MapSize) bool {
+func isPositionLegal(position _type.Position, size MapSize) bool {
 	return 1 <= position.X && position.X <= size.W && 1 <= position.Y && position.Y <= size.H
 }
 
@@ -124,12 +125,12 @@ func (p *Map) Move(ins instruction.Move) bool {
 		}
 	}
 
-	instructionPosition := block.Position{X: ins.Position.X, Y: ins.Position.Y}
+	instructionPosition := _type.Position{X: ins.Position.X, Y: ins.Position.Y}
 	if !isPositionLegal(instructionPosition, p.size) {
 		return false
 	}
 
-	newPosition := block.Position{X: uint8(int(ins.Position.X) + offsetX), Y: uint8(int(ins.Position.Y) + offsetY)}
+	newPosition := _type.Position{X: uint8(int(ins.Position.X) + offsetX), Y: uint8(int(ins.Position.Y) + offsetY)}
 	// It won't overflow 'cause the min value is 0
 	if !isPositionLegal(newPosition, p.size) {
 		return false
@@ -157,9 +158,9 @@ func (p *Map) Move(ins instruction.Move) bool {
 		return false
 	}
 
-	var toBlockNew block.Block
+	var toBlockNew _type.Block
 	thisBlock.MoveFrom(ins.Number)
-	toBlockNew = toBlock.MoveTo(thisBlock.OwnerId(), ins.Number)
+	toBlockNew = toBlock.MoveTo(_type.BlockVal{Number: thisBlock.OwnerId(), OwnerId: ins.Number})
 	if toBlockNew != nil {
 		p.SetBlock(newPosition, toBlockNew)
 	}
@@ -174,11 +175,11 @@ func Str2GameMap(mapId uint32, originalMapStr string) *Map {
 		return nil
 	}
 	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
-	ret := make([][]block.Block, size.H)
+	ret := make([][]_type.Block, size.H)
 	for rowNum, row := range result {
-		ret[rowNum] = make([]block.Block, size.W)
+		ret[rowNum] = make([]_type.Block, size.W)
 		for colNum, typeId := range row {
-			ret[rowNum][colNum] = block.NewBlock(typeId, 0, 0)
+			ret[rowNum][colNum] = blockManager.NewBlock(typeId, 0, 0)
 		}
 	}
 	return &Map{
@@ -194,15 +195,15 @@ func FullStr2GameMap(mapId uint32, originalMapStr string) *Map {
 		return nil
 	}
 	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
-	ret := make([][]block.Block, size.H)
+	ret := make([][]_type.Block, size.H)
 	for rowNum, row := range result {
-		ret[rowNum] = make([]block.Block, size.W)
+		ret[rowNum] = make([]_type.Block, size.W)
 		for colNum, blockInfo := range row {
 			blockId := blockInfo[0]
 			ownerId := blockInfo[1]
 			number := blockInfo[2]
 
-			newBlock := block.NewBlock(uint8(blockId), number, ownerId)
+			newBlock := blockManager.NewBlock(uint8(blockId), number, ownerId)
 
 			ret[rowNum][colNum] = newBlock
 		}

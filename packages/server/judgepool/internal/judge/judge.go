@@ -7,7 +7,9 @@ import (
 	game_temp_pool "server/utils/pkg/gametemppool"
 	"server/utils/pkg/instruction"
 	"server/utils/pkg/map"
-	"server/utils/pkg/map/block"
+	"server/utils/pkg/map/blockManager"
+	"server/utils/pkg/map/blockManager/block"
+	"server/utils/pkg/map/type"
 	"time"
 )
 
@@ -116,7 +118,7 @@ func judgeWorking(j *GameJudge) {
 				g.Map.RoundStart(g.RoundNum)
 				data.SetGameMap(j.gameId, g.Map)
 
-				_map.DebugOutput(g.Map, func(block block.Block) uint16 {
+				_map.DebugOutput(g.Map, func(block _type.Block) uint16 {
 					return uint16(block.Meta().BlockId)
 				}) // TODO
 			}
@@ -124,13 +126,13 @@ func judgeWorking(j *GameJudge) {
 	}
 }
 
-func getKingPos(g *game.Game) []block.Position {
-	var kingPos []block.Position
+func getKingPos(g *game.Game) []_type.Position {
+	var kingPos []_type.Position
 	for y := uint8(1); y <= g.Map.Size().H; y++ {
 		for x := uint8(1); x <= g.Map.Size().W; x++ {
-			b := g.Map.GetBlock(block.Position{X: x, Y: y})
+			b := g.Map.GetBlock(_type.Position{X: x, Y: y})
 			if b.Meta().BlockId == block.KingMeta.BlockId {
-				kingPos = append(kingPos, block.Position{X: x, Y: y})
+				kingPos = append(kingPos, _type.Position{X: x, Y: y})
 			}
 		}
 	}
@@ -138,7 +140,7 @@ func getKingPos(g *game.Game) []block.Position {
 }
 
 // judgeGame TODO: Add unit test
-func judgeGame(g *game.Game, kingPos []block.Position) game.Status {
+func judgeGame(g *game.Game, kingPos []_type.Position) game.Status {
 	// Check online player number
 	onlinePlayerNum := uint8(0)
 	for _, u := range g.UserList {
@@ -191,7 +193,7 @@ func judgeGame(g *game.Game, kingPos []block.Position) game.Status {
 	return game.StatusRunning
 }
 
-func allocateKing(g *game.Game, kingPos []block.Position) {
+func allocateKing(g *game.Game, kingPos []_type.Position) {
 	allocatableKingNum := 0
 	for _, k := range kingPos {
 		if g.Map.GetBlock(k).OwnerId() == 0 {
@@ -205,7 +207,7 @@ func allocateKing(g *game.Game, kingPos []block.Position) {
 			break
 		}
 		g.Map.SetBlock(kingPos[i],
-			block.NewBlock(block.KingMeta.BlockId, g.Map.GetBlock(kingPos[i]).Number(), u.UserId))
+			blockManager.NewBlock(block.KingMeta.BlockId, g.Map.GetBlock(kingPos[i]).Number(), u.UserId))
 		allocatableKingNum--
 	}
 }

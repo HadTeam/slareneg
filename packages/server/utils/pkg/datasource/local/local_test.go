@@ -4,7 +4,7 @@ import (
 	"server/utils/pkg/game"
 	"server/utils/pkg/instruction"
 	"server/utils/pkg/map"
-	"server/utils/pkg/map/block"
+	"server/utils/pkg/map/type"
 	"strconv"
 	"testing"
 )
@@ -185,8 +185,8 @@ func TestLocal_Map(t *testing.T) {
 			if a.Size() == b.Size() && a.Id() == b.Id() {
 				for y := uint8(1); y <= a.Size().H; y++ {
 					for x := uint8(1); x <= a.Size().W; x++ {
-						blockA := a.GetBlock(block.Position{x, y})
-						blockB := b.GetBlock(block.Position{x, y})
+						blockA := a.GetBlock(_type.Position{x, y})
+						blockB := b.GetBlock(_type.Position{x, y})
 						if blockA != blockB {
 							ret = false
 							break

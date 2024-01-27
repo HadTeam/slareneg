@@ -1,4 +1,4 @@
-package block
+package _type
 
 type Meta struct {
 	Name              string
@@ -25,9 +25,14 @@ type Block interface {
 	GetMoveStatus() MoveStatus
 	MoveFrom(number uint16)
 	// MoveTo Ret: a new block to replace this place
-	MoveTo(ownerId uint16, number uint16) Block
+	MoveTo(BlockVal) Block
 
 	Meta() Meta
 }
 
 type Position struct{ X, Y uint8 }
+
+type BlockVal struct {
+	Number  uint16
+	OwnerId uint16
+}
