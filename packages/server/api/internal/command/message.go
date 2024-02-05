@@ -2,22 +2,22 @@ package command
 
 import (
 	"encoding/json"
-	"server/utils/pkg/datasource"
-	"server/utils/pkg/game"
-	game_temp_pool "server/utils/pkg/gametemppool"
-	"server/utils/pkg/map"
-	"server/utils/pkg/map/type"
+	"server/game_logic"
+	gameDef "server/game_logic/game_def"
+	"server/game_logic/map"
+	"server/utils/pkg/data_source"
+	game_temp_pool "server/utils/pkg/game_temp_pool"
 )
 
-var data datasource.TempDataSource
+var data data_source.TempDataSource
 
 func ApplyDataSource(source any) {
-	data = source.(datasource.TempDataSource)
+	data = source.(data_source.TempDataSource)
 }
 
 type visibilityArr [][]bool
 
-func getVisibility(id game.Id, userId uint16) *visibilityArr {
+func getVisibility(id game_logic.Id, userId uint16) *visibilityArr {
 	m := data.GetCurrentMap(id)
 	ul := data.GetCurrentUserList(id)
 
@@ -62,7 +62,7 @@ func getVisibility(id game.Id, userId uint16) *visibilityArr {
 
 	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
 		for colNum := uint8(0); colNum <= m.Size().W-1; colNum++ {
-			o := m.GetBlock(_type.Position{X: colNum + 1, Y: rowNum + 1}).OwnerId()
+			o := m.GetBlock(gameDef.Position{X: colNum + 1, Y: rowNum + 1}).OwnerId()
 			if o == 0 {
 				continue
 			}
@@ -79,7 +79,7 @@ func getVisibility(id game.Id, userId uint16) *visibilityArr {
 
 type processedMap [][][]uint16
 
-func getProcessedMap(id game.Id, userId uint16, m *_map.Map) *processedMap {
+func getProcessedMap(id game_logic.Id, userId uint16, m *_map.Map) *processedMap {
 	vis := getVisibility(id, userId)
 	var ret *processedMap
 	if r, ok := game_temp_pool.Get(id, "processedMap"); ok {
@@ -93,7 +93,7 @@ func getProcessedMap(id game.Id, userId uint16, m *_map.Map) *processedMap {
 	for rowNum := uint8(0); rowNum <= m.Size().H-1; rowNum++ {
 		(*ret)[rowNum] = make([][]uint16, m.Size().W)
 		for colNum := uint8(0); colNum <= m.Size().W-1; colNum++ {
-			b := m.GetBlock(_type.Position{X: colNum + 1, Y: rowNum + 1})
+			b := m.GetBlock(gameDef.Position{X: colNum + 1, Y: rowNum + 1})
 			if (*vis)[rowNum][colNum] {
 				(*ret)[rowNum][colNum] = []uint16{uint16(b.Meta().BlockId), b.OwnerId(), b.Number()}
 			} else {
@@ -113,12 +113,12 @@ type playerInfo struct {
 	Status     string `json:"status"`
 }
 
-func getUserList(id game.Id) []playerInfo {
+func getUserList(id game_logic.Id) []playerInfo {
 	l := data.GetCurrentUserList(id)
 	ret := make([]playerInfo, len(l))
 	var status string
 	for i, u := range l {
-		if u.Status == game.UserStatusConnected {
+		if u.Status == gameDef.UserStatusConnected {
 			status = "connected"
 		} else {
 			status = "disconnect"
@@ -134,7 +134,7 @@ func getUserList(id game.Id) []playerInfo {
 	return ret
 }
 
-func GenerateMessage(_type string, id game.Id, userId uint16) string {
+func GenerateMessage(_type string, id game_logic.Id, userId uint16) string {
 	switch _type {
 	case "start":
 		{
@@ -172,7 +172,7 @@ func GenerateMessage(_type string, id game.Id, userId uint16) string {
 			res := struct {
 				Action  string       `json:"action"`
 				Players []playerInfo `json:"players"`
-				Mode    game.Mode    `json:"mode"`
+				Mode    gameDef.Mode `json:"mode"`
 			}{"info", getUserList(id), g.Mode}
 			ret, _ := json.Marshal(res)
 			return string(ret)

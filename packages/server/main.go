@@ -7,11 +7,11 @@ import (
 	"github.com/gookit/ini/v2"
 	"github.com/sirupsen/logrus"
 	"server/api"
-	judge_pool "server/judgepool"
-	"server/utils/pkg/datasource/local"
-	"server/utils/pkg/game"
-	"server/utils/pkg/instruction"
-	_ "server/utils/pkg/map/blockManager/block"
+	"server/game_logic"
+	_ "server/game_logic/block"
+	"server/game_logic/game_def"
+	judge_pool "server/judge_pool"
+	"server/utils/pkg/data_source/local"
 	db "server/utils/pkg/pg"
 	"time"
 )
@@ -53,14 +53,14 @@ func main() {
 	defer exit()
 
 	data := local.Local{
-		GamePool:           make(map[game.Id]*game.Game),
+		GamePool:           make(map[game_logic.Id]*game_logic.Game),
 		OriginalMapStrPool: make(map[uint32]string),
-		InstructionLog:     make(map[game.Id]map[uint16]map[uint16]instruction.Instruction),
+		InstructionLog:     make(map[game_logic.Id]map[uint16]map[uint16]_type.Instruction),
 	}
 	data.OriginalMapStrPool[0] = "[\n[0,0,0,0,2],\n[0,2,0,0,0],\n[0,0,0,0,0],\n[0,3,3,0,3],\n[0,3,0,2,0]\n]"
 
 	judge_pool.ApplyDataSource(&data)
-	p := judge_pool.CreatePool([]game.Mode{game.Mode1v1})
+	p := judge_pool.CreatePool([]_type.Mode{_type.Mode1v1})
 
 	time.Sleep(200 * time.Millisecond)
 
