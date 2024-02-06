@@ -96,7 +96,7 @@ func TestLocal_Game(t *testing.T) {
 	t.Run("update instruction", func(t *testing.T) {
 		u := l.GamePool[id].UserList[0]
 		ins := _type.Move{
-			Position: _type.BlockPosition{1, 1},
+			Position: _type.Position{1, 1},
 			Towards:  "down",
 			Number:   1,
 		}

@@ -11,12 +11,8 @@ const (
 	MoveTowardsDown  MoveTowardsType = "down"
 )
 
-type BlockPosition struct {
-	X, Y uint8
-}
-
 type Move struct {
-	Position BlockPosition
+	Position Position
 	Towards  MoveTowardsType
 	Number   uint16
 }

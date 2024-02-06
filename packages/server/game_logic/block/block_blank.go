@@ -11,7 +11,7 @@ type Blank struct {
 	BaseBlock
 }
 
-var BlankMeta = _type.Meta{
+var BlankMeta = _type.BlockMeta{
 	BlockId:           0,
 	Name:              "blank",
 	Description:       "",
@@ -22,7 +22,7 @@ func init() {
 	block_manager.Register(BlankMeta, toBlockBlank)
 }
 
-func (*Blank) Meta() _type.Meta {
+func (*Blank) Meta() _type.BlockMeta {
 	return BlankMeta
 }
 

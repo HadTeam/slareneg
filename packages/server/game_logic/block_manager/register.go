@@ -9,9 +9,9 @@ type tranFunc func(_type.Block) _type.Block
 
 var transBlockTypeFunc map[uint8]tranFunc
 var GetBlockIdByName map[string]uint8
-var GetMetaById map[uint8]_type.Meta
+var GetMetaById map[uint8]_type.BlockMeta
 
-func Register(meta _type.Meta, transFunc tranFunc) {
+func Register(meta _type.BlockMeta, transFunc tranFunc) {
 	if transBlockTypeFunc == nil {
 		transBlockTypeFunc = make(map[uint8]tranFunc)
 	}
@@ -19,7 +19,7 @@ func Register(meta _type.Meta, transFunc tranFunc) {
 		GetBlockIdByName = make(map[string]uint8)
 	}
 	if GetMetaById == nil {
-		GetMetaById = make(map[uint8]_type.Meta)
+		GetMetaById = make(map[uint8]_type.BlockMeta)
 	}
 
 	GetBlockIdByName[meta.Name] = meta.BlockId

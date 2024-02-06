@@ -12,7 +12,7 @@ type King struct {
 	originalOwnerId uint16
 }
 
-var KingMeta = _type.Meta{
+var KingMeta = _type.BlockMeta{
 	BlockId:           2,
 	Name:              "king",
 	Description:       "",
@@ -35,7 +35,7 @@ func (block *King) IsDied() bool {
 	return block.originalOwnerId != block.ownerId
 }
 
-func (*King) Meta() _type.Meta {
+func (*King) Meta() _type.BlockMeta {
 	return KingMeta
 }
 

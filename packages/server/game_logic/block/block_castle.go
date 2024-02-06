@@ -12,7 +12,7 @@ type Castle struct {
 	BaseBuilding
 }
 
-var CastleMeta = _type.Meta{
+var CastleMeta = _type.BlockMeta{
 	BlockId:           3,
 	Name:              "castle",
 	Description:       "",
@@ -34,6 +34,6 @@ func toBlockCastle(b _type.Block) _type.Block {
 	return _type.Block(&ret)
 }
 
-func (*Castle) Meta() _type.Meta {
+func (*Castle) Meta() _type.BlockMeta {
 	return CastleMeta
 }

@@ -29,7 +29,7 @@ func PauseCommandStr(userId uint16, str string) (_type.Instruction, error) {
 					x, _ := strconv.Atoi(c.X)
 					y, _ := strconv.Atoi(c.Y)
 					ret = _type.Move{
-						Position: _type.BlockPosition{X: uint8(x), Y: uint8(y)},
+						Position: _type.Position{X: uint8(x), Y: uint8(y)},
 						Towards:  _type.MoveTowardsType(c.Towards),
 						Number:   uint16(n),
 					}
