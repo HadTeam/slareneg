@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-func PauseCommandStr(userId uint16, str string) (_type.Instruction, error) {
+func PauseCommandStr(userId uint16, str string) (game_def.Instruction, error) {
 	var err error = nil
-	ret := _type.Instruction(nil)
+	ret := game_def.Instruction(nil)
 	args := strings.Split(str, " ")
 	v := validator.New()
 	switch args[0] {
@@ -28,9 +28,9 @@ func PauseCommandStr(userId uint16, str string) (_type.Instruction, error) {
 					n, _ := strconv.Atoi(c.Number)
 					x, _ := strconv.Atoi(c.X)
 					y, _ := strconv.Atoi(c.Y)
-					ret = _type.Move{
-						Position: _type.Position{X: uint8(x), Y: uint8(y)},
-						Towards:  _type.MoveTowardsType(c.Towards),
+					ret = game_def.Move{
+						Position: game_def.Position{X: uint8(x), Y: uint8(y)},
+						Towards:  game_def.MoveTowardsType(c.Towards),
 						Number:   uint16(n),
 					}
 				} else {
@@ -51,7 +51,7 @@ func PauseCommandStr(userId uint16, str string) (_type.Instruction, error) {
 					if c.Status == "true" {
 						s = true
 					}
-					ret = _type.ForceStart{
+					ret = game_def.ForceStart{
 						UserId: userId,
 						Status: s,
 					}
@@ -66,7 +66,7 @@ func PauseCommandStr(userId uint16, str string) (_type.Instruction, error) {
 	case "Surrender":
 		{
 			if len(args)-1 == 0 {
-				ret = _type.Surrender{UserId: userId}
+				ret = game_def.Surrender{UserId: userId}
 			} else {
 				err = fmt.Errorf("argument number not right")
 			}

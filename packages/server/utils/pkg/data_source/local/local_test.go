@@ -17,17 +17,17 @@ func create() *Local {
 	return &Local{
 		GamePool:           make(map[game_logic.Id]*game_logic.Game),
 		OriginalMapStrPool: make(map[uint32]string),
-		InstructionLog:     make(map[game_logic.Id]map[uint16]map[uint16]_type.Instruction),
+		InstructionLog:     make(map[game_logic.Id]map[uint16]map[uint16]game_def.Instruction),
 	}
 }
 
 var userCount = uint16(1)
 
-func getUser() _type.User {
-	return _type.User{
+func getUser() game_def.User {
+	return game_def.User{
 		Name:             strconv.Itoa(int(userCount)),
 		UserId:           userCount,
-		Status:           _type.UserStatusDisconnected,
+		Status:           game_def.UserStatusDisconnected,
 		TeamId:           uint8(userCount),
 		ForceStartStatus: false,
 	}
@@ -56,9 +56,9 @@ func TestLocal_Game(t *testing.T) {
 	// This function must be correct
 	l.DebugCreateGame(&game_logic.Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"), // Wait
-		Mode:       _type.Mode1v1,
+		Mode:       game_def.Mode1v1,
 		Id:         id,
-		UserList:   []_type.User{getUser()},
+		UserList:   []game_def.User{getUser()},
 		CreateTime: 0,
 		Status:     game_logic.StatusWaiting,
 		RoundNum:   0,
@@ -78,7 +78,7 @@ func TestLocal_Game(t *testing.T) {
 		}
 	})
 	t.Run("get game list", func(t *testing.T) {
-		gl := l.GetGameList(_type.Mode1v1)
+		gl := l.GetGameList(game_def.Mode1v1)
 		if len(gl) != 1 {
 			t.Fatalf("game count is incorrect")
 		}
@@ -95,8 +95,8 @@ func TestLocal_Game(t *testing.T) {
 	})
 	t.Run("update instruction", func(t *testing.T) {
 		u := l.GamePool[id].UserList[0]
-		ins := _type.Move{
-			Position: _type.Position{1, 1},
+		ins := game_def.Move{
+			Position: game_def.Position{1, 1},
 			Towards:  "down",
 			Number:   1,
 		}
@@ -122,9 +122,9 @@ func TestLocal_User(t *testing.T) {
 	id := game_logic.Id(2)
 	l.DebugCreateGame(&game_logic.Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"),
-		Mode:       _type.Mode1v1,
+		Mode:       game_def.Mode1v1,
 		Id:         id,
-		UserList:   []_type.User{},
+		UserList:   []game_def.User{},
 		CreateTime: 0,
 		Status:     game_logic.StatusWaiting,
 		RoundNum:   0,
@@ -137,14 +137,14 @@ func TestLocal_User(t *testing.T) {
 			t.Fatalf("user has been added unexpectedly")
 		}
 
-		u.Status = _type.UserStatusConnected
+		u.Status = game_def.UserStatusConnected
 		l.SetUserStatus(id, u)
 
 		if len(l.GamePool[id].UserList) != 1 || l.GamePool[id].UserList[0].UserId != u.UserId {
 			t.Fatalf("user has not been added")
 		}
 
-		u.Status = _type.UserStatusDisconnected
+		u.Status = game_def.UserStatusDisconnected
 
 		l.SetUserStatus(id, u)
 
@@ -159,9 +159,9 @@ func TestLocal_Map(t *testing.T) {
 	id := game_logic.Id(3)
 	l.DebugCreateGame(&game_logic.Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"),
-		Mode:       _type.Mode1v1,
+		Mode:       game_def.Mode1v1,
 		Id:         id,
-		UserList:   []_type.User{},
+		UserList:   []game_def.User{},
 		CreateTime: 0,
 		Status:     game_logic.StatusWaiting,
 		RoundNum:   0,
@@ -185,8 +185,8 @@ func TestLocal_Map(t *testing.T) {
 			if a.Size() == b.Size() && a.Id() == b.Id() {
 				for y := uint8(1); y <= a.Size().H; y++ {
 					for x := uint8(1); x <= a.Size().W; x++ {
-						blockA := a.GetBlock(_type.Position{x, y})
-						blockB := b.GetBlock(_type.Position{x, y})
+						blockA := a.GetBlock(game_def.Position{x, y})
+						blockB := b.GetBlock(game_def.Position{x, y})
 						if blockA != blockB {
 							ret = false
 							break

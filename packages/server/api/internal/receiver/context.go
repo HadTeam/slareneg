@@ -9,7 +9,7 @@ import (
 type Context struct {
 	context.Context
 	Game    *game_logic.Game
-	User    _type.User
+	User    game_def.User
 	Command chan string
 	Message chan string
 }

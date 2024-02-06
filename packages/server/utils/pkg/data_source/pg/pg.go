@@ -44,7 +44,7 @@ func generatorMapJson(m *_map.Map) string {
 	for y := uint8(1); y <= m.Size().H; y++ {
 		ret.Blocks[y] = make([]b, m.Size().W)
 		for x := uint8(1); x <= m.Size().W; x++ {
-			ob := m.GetBlock(_type.Position{X: x, Y: y})
+			ob := m.GetBlock(game_def.Position{X: x, Y: y})
 			ret.Blocks[y][x] = b{
 				TypeId:  ob.Meta().BlockId,
 				OwnerId: ob.OwnerId(),
@@ -62,7 +62,7 @@ func generatorMapJson(m *_map.Map) string {
 
 var sqlQueryGame = "SELECT * FROM game WHERE game_id=$1"
 
-func (p *Pg) CreateGame(mode _type.Mode) game_logic.Id {
+func (p *Pg) CreateGame(mode game_def.Mode) game_logic.Id {
 	var gameId game_logic.Id
 	for {
 		gameId = game_logic.Id(rand.Uint32())
@@ -91,7 +91,7 @@ func (p *Pg) DebugCreateGame(g *game_logic.Game) (ok bool) {
 
 var sqlQueryGameList = "SELECT game_id FROM game WHERE mode=$1 AND (status=1 OR status=2)"
 
-func (p *Pg) GetGameList(mode _type.Mode) []game_logic.Game {
+func (p *Pg) GetGameList(mode game_def.Mode) []game_logic.Game {
 	r := db.SqlQuery(sqlQueryGameList, mode)
 	var list []game_logic.Id
 	for {
@@ -114,12 +114,12 @@ func (p *Pg) CancelGame(id game_logic.Id) (ok bool) {
 	panic("implement me")
 }
 
-func (p *Pg) GetCurrentUserList(id game_logic.Id) []_type.User {
+func (p *Pg) GetCurrentUserList(id game_logic.Id) []game_def.User {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (p *Pg) GetInstructions(id game_logic.Id, tempId uint16) map[uint16]_type.Instruction {
+func (p *Pg) GetInstructions(id game_logic.Id, tempId uint16) map[uint16]game_def.Instruction {
 	//TODO implement me
 	panic("implement me")
 }
@@ -141,7 +141,7 @@ func (p *Pg) GetGameInfo(id game_logic.Id) *game_logic.Game {
 		logrus.Warn("cannot get game info")
 		return nil
 	}
-	if mode, ok := _type.ModeMap[modeStr]; !ok {
+	if mode, ok := game_def.ModeMap[modeStr]; !ok {
 		logrus.Warn("get unknown mode ", modeStr, " when get game info")
 	} else {
 		g.Mode = mode
@@ -164,7 +164,7 @@ func (p *Pg) SetGameMap(id game_logic.Id, m *_map.Map) (ok bool) {
 	panic("implement me")
 }
 
-func (p *Pg) SetUserStatus(id game_logic.Id, user _type.User) (ok bool) {
+func (p *Pg) SetUserStatus(id game_logic.Id, user game_def.User) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -174,7 +174,7 @@ func (p *Pg) SetWinner(id game_logic.Id, teamId uint8) (ok bool) {
 	panic("implement me")
 }
 
-func (p *Pg) UpdateInstruction(id game_logic.Id, user _type.User, instruction _type.Instruction) (ok bool) {
+func (p *Pg) UpdateInstruction(id game_logic.Id, user game_def.User, instruction game_def.Instruction) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }

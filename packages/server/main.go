@@ -55,12 +55,12 @@ func main() {
 	data := local.Local{
 		GamePool:           make(map[game_logic.Id]*game_logic.Game),
 		OriginalMapStrPool: make(map[uint32]string),
-		InstructionLog:     make(map[game_logic.Id]map[uint16]map[uint16]_type.Instruction),
+		InstructionLog:     make(map[game_logic.Id]map[uint16]map[uint16]game_def.Instruction),
 	}
 	data.OriginalMapStrPool[0] = "[\n[0,0,0,0,2],\n[0,2,0,0,0],\n[0,0,0,0,0],\n[0,3,3,0,3],\n[0,3,0,2,0]\n]"
 
 	judge_pool.ApplyDataSource(&data)
-	p := judge_pool.CreatePool([]_type.Mode{_type.Mode1v1})
+	p := judge_pool.CreatePool([]game_def.Mode{game_def.Mode1v1})
 
 	time.Sleep(200 * time.Millisecond)
 

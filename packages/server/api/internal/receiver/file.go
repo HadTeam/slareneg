@@ -33,9 +33,9 @@ func NewFileReceiver(pool *judge_pool.Pool) {
 		logrus.Infof("start game by reply file #%d", r.Id)
 		g := &game_logic.Game{
 			Map:        r.Map,
-			Mode:       _type.Mode1v1,
+			Mode:       game_def.Mode1v1,
 			Id:         game_logic.Id(index + 1e3),
-			UserList:   []_type.User{},
+			UserList:   []game_def.User{},
 			CreateTime: time.Now().UnixMicro(),
 			Status:     game_logic.StatusWaiting,
 			RoundNum:   0,
@@ -58,7 +58,7 @@ func NewFileReceiver(pool *judge_pool.Pool) {
 }
 
 type command struct {
-	User _type.User
+	User game_def.User
 	Ins  []string
 }
 
@@ -112,10 +112,10 @@ func LoadFile() []reply {
 			cmdStr := strings.Split(t[1], "\n")
 
 			cmd := command{
-				User: _type.User{
+				User: game_def.User{
 					Name:             name,
 					UserId:           uint16(userId),
-					Status:           _type.UserStatusConnected,
+					Status:           game_def.UserStatusConnected,
 					TeamId:           uint8(userId) - 1,
 					ForceStartStatus: false,
 				},
@@ -151,7 +151,7 @@ func fakePlayer(ctx *Context, c []string) {
 					playerLogger.Infof("Command(tot: %d) runs out, quit", len(c))
 					ticker.Stop()
 					player := ctx.User
-					player.Status = _type.UserStatusDisconnected
+					player.Status = game_def.UserStatusDisconnected
 					data.SetUserStatus(ctx.Game.Id, player)
 				}
 				if ctx.Game.RoundNum > currentRound {
@@ -180,7 +180,7 @@ func fakePlayer(ctx *Context, c []string) {
 
 func receiver(ctx *Context) {
 	//ctx.User.Name = strconv.Itoa(int(ctx.User.UserId)) // DEBUG ONLY, avoiding strange username from `gioreply` file
-	ctx.User.Status = _type.UserStatusConnected
+	ctx.User.Status = game_def.UserStatusConnected
 	data.SetUserStatus(ctx.Game.Id, ctx.User)
 
 	receiverLogger := logrus.WithFields(logrus.Fields{
@@ -189,7 +189,7 @@ func receiver(ctx *Context) {
 	receiverLogger.Infof("user join")
 
 	defer func() {
-		ctx.User.Status = _type.UserStatusDisconnected
+		ctx.User.Status = game_def.UserStatusDisconnected
 		data.SetUserStatus(ctx.Game.Id, ctx.User)
 		receiverLogger.Infof("user quit")
 	}()

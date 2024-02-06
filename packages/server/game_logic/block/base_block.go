@@ -5,16 +5,16 @@ import (
 	"server/game_logic/game_def"
 )
 
-var _ _type.Block = (*BaseBlock)(nil)
+var _ game_def.Block = (*BaseBlock)(nil)
 
 type BaseBlock struct {
 	ownerId uint16
 	number  uint16
 }
 
-func (*BaseBlock) Meta() _type.BlockMeta {
+func (*BaseBlock) Meta() game_def.BlockMeta {
 	logrus.Panic("no block meta can be provided")
-	return _type.BlockMeta{}
+	return game_def.BlockMeta{}
 }
 
 func (block *BaseBlock) Number() uint16 {
@@ -29,14 +29,14 @@ func (*BaseBlock) RoundStart(_ uint16) {}
 
 func (*BaseBlock) RoundEnd(_ uint16) {}
 
-func (*BaseBlock) GetMoveStatus() _type.MoveStatus {
-	return _type.MoveStatus{}
+func (*BaseBlock) GetMoveStatus() game_def.MoveStatus {
+	return game_def.MoveStatus{}
 }
 
 func (*BaseBlock) MoveFrom(_ uint16) uint16 {
 	return 0
 }
 
-func (*BaseBlock) MoveTo(_type.BlockVal) _type.Block {
+func (*BaseBlock) MoveTo(game_def.BlockVal) game_def.Block {
 	return nil
 }

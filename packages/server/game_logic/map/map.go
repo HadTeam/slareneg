@@ -18,7 +18,7 @@ type mapInfo struct {
 }
 
 type Map struct {
-	Blocks [][]_type.Block
+	Blocks [][]game_def.Block
 	mapInfo
 }
 
@@ -30,11 +30,11 @@ func (p *Map) Id() uint32 {
 	return p.id
 }
 
-func (p *Map) GetBlock(position _type.Position) _type.Block {
+func (p *Map) GetBlock(position game_def.Position) game_def.Block {
 	return p.Blocks[position.Y-1][position.X-1]
 }
 
-func (p *Map) SetBlock(position _type.Position, block _type.Block) {
+func (p *Map) SetBlock(position game_def.Position, block game_def.Block) {
 	p.Blocks[position.Y-1][position.X-1] = block
 }
 
@@ -72,7 +72,7 @@ func CreateMapWithInfo(mapId uint32, size MapSize) *Map {
 	}
 }
 
-func DebugOutput(p *Map, f func(_type.Block) uint16) { // Only for debugging
+func DebugOutput(p *Map, f func(game_def.Block) uint16) { // Only for debugging
 	tmp := ""
 	ex := func(i uint16) string {
 		ex := ""
@@ -97,41 +97,41 @@ func DebugOutput(p *Map, f func(_type.Block) uint16) { // Only for debugging
 	logrus.Tracef("\n%s\n", tmp)
 }
 
-func isPositionLegal(position _type.Position, size MapSize) bool {
+func isPositionLegal(position game_def.Position, size MapSize) bool {
 	return 1 <= position.X && position.X <= size.W && 1 <= position.Y && position.Y <= size.H
 }
 
-func (p *Map) Move(ins _type.Move) bool {
+func (p *Map) Move(ins game_def.Move) bool {
 	var offsetX, offsetY int
 	switch ins.Towards {
-	case _type.MoveTowardsDown:
+	case game_def.MoveTowardsDown:
 		{
 			offsetX = 0
 			offsetY = 1
 		}
-	case _type.MoveTowardsUp:
+	case game_def.MoveTowardsUp:
 		{
 			offsetX = 0
 			offsetY = -1
 		}
-	case _type.MoveTowardsLeft:
+	case game_def.MoveTowardsLeft:
 		{
 			offsetX = -1
 			offsetY = 0
 		}
-	case _type.MoveTowardsRight:
+	case game_def.MoveTowardsRight:
 		{
 			offsetX = 1
 			offsetY = 0
 		}
 	}
 
-	instructionPosition := _type.Position{X: ins.Position.X, Y: ins.Position.Y}
+	instructionPosition := game_def.Position{X: ins.Position.X, Y: ins.Position.Y}
 	if !isPositionLegal(instructionPosition, p.size) {
 		return false
 	}
 
-	newPosition := _type.Position{X: uint8(int(ins.Position.X) + offsetX), Y: uint8(int(ins.Position.Y) + offsetY)}
+	newPosition := game_def.Position{X: uint8(int(ins.Position.X) + offsetX), Y: uint8(int(ins.Position.Y) + offsetY)}
 	// It won't overflow 'cause the min value is 0
 	if !isPositionLegal(newPosition, p.size) {
 		return false
@@ -159,9 +159,9 @@ func (p *Map) Move(ins _type.Move) bool {
 		return false
 	}
 
-	var toBlockNew _type.Block
+	var toBlockNew game_def.Block
 	hasMovedNum := thisBlock.MoveFrom(ins.Number)
-	toBlockNew = toBlock.MoveTo(_type.BlockVal{Number: hasMovedNum, OwnerId: thisBlock.OwnerId()})
+	toBlockNew = toBlock.MoveTo(game_def.BlockVal{Number: hasMovedNum, OwnerId: thisBlock.OwnerId()})
 	if toBlockNew != nil {
 		p.SetBlock(newPosition, toBlockNew)
 	}
@@ -176,9 +176,9 @@ func Str2GameMap(mapId uint32, originalMapStr string) *Map {
 		return nil
 	}
 	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
-	ret := make([][]_type.Block, size.H)
+	ret := make([][]game_def.Block, size.H)
 	for rowNum, row := range result {
-		ret[rowNum] = make([]_type.Block, size.W)
+		ret[rowNum] = make([]game_def.Block, size.W)
 		for colNum, typeId := range row {
 			ret[rowNum][colNum] = block_manager.NewBlock(typeId, 0, 0)
 		}
@@ -196,9 +196,9 @@ func FullStr2GameMap(mapId uint32, originalMapStr string) *Map {
 		return nil
 	}
 	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
-	ret := make([][]_type.Block, size.H)
+	ret := make([][]game_def.Block, size.H)
 	for rowNum, row := range result {
-		ret[rowNum] = make([]_type.Block, size.W)
+		ret[rowNum] = make([]game_def.Block, size.W)
 		for colNum, blockInfo := range row {
 			blockId := blockInfo[0]
 			ownerId := blockInfo[1]
@@ -259,17 +259,17 @@ func JsonStrToMap(jsonStr string) *Map {
 		res.Mappings.Owner = append([]uint16{0}, res.Mappings.Owner...)
 	}
 
-	var blocks [][]_type.Block
+	var blocks [][]game_def.Block
 	if (res.Number != nil && len(res.Type) != len(res.Number)) || (res.Owner != nil && len(res.Type) != len(res.Owner)) {
 		logrus.Panic("original block game_def, number, owner id must have the same size")
 	}
-	blocks = make([][]_type.Block, len(res.Type))
+	blocks = make([][]game_def.Block, len(res.Type))
 
 	for i, v := range res.Type {
 		if (res.Number != nil && len(v) != len(res.Number[i])) || (res.Owner != nil && len(v) != len(res.Owner[i])) {
 			logrus.Panic("original block game_def, number, owner id must have the same size")
 		}
-		blocks[i] = make([]_type.Block, len(v))
+		blocks[i] = make([]game_def.Block, len(v))
 
 		for j, typeId := range v {
 			n := uint16(0)

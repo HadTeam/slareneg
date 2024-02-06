@@ -12,7 +12,7 @@ import (
 
 type Pool struct {
 	judges        sync.Map
-	AllowGameMode []_type.Mode
+	AllowGameMode []game_def.Mode
 }
 
 var data data_source.TempDataSource
@@ -22,7 +22,7 @@ func ApplyDataSource(source interface{}) {
 	judge.ApplyDataSource(source)
 
 }
-func (p *Pool) NewGame(mode _type.Mode) {
+func (p *Pool) NewGame(mode game_def.Mode) {
 	id := data.CreateGame(mode)
 	if id == 0 {
 		logrus.Panic("cannot create game")
@@ -40,7 +40,7 @@ func (p *Pool) DebugNewGame(g *game_logic.Game) {
 	p.judges.Store(g.Id, judge.NewGameJudge(g.Id))
 }
 
-func CreatePool(allowGameMode []_type.Mode) *Pool {
+func CreatePool(allowGameMode []game_def.Mode) *Pool {
 	p := &Pool{AllowGameMode: allowGameMode}
 	go poolWorking(p)
 	return p

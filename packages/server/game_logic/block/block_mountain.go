@@ -9,7 +9,7 @@ type Mountain struct {
 	BaseBlock
 }
 
-var MountainMeta = _type.BlockMeta{
+var MountainMeta = game_def.BlockMeta{
 	BlockId:           4,
 	Name:              "mountain",
 	Description:       "",
@@ -20,14 +20,14 @@ func init() {
 	block_manager.Register(MountainMeta, toBlockMountain)
 }
 
-func toBlockMountain(_type.Block) _type.Block {
-	return _type.Block(&Mountain{})
+func toBlockMountain(game_def.Block) game_def.Block {
+	return game_def.Block(&Mountain{})
 }
 
-func (*Mountain) Meta() _type.BlockMeta {
+func (*Mountain) Meta() game_def.BlockMeta {
 	return MountainMeta
 }
 
-func (*Mountain) GetMoveStatus() _type.MoveStatus { // same as `BaseBlock`'s, in order to remain the function
-	return _type.MoveStatus{false, false}
+func (*Mountain) GetMoveStatus() game_def.MoveStatus { // same as `BaseBlock`'s, in order to remain the function
+	return game_def.MoveStatus{false, false}
 }

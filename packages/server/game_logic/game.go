@@ -16,9 +16,9 @@ const (
 
 type Game struct {
 	Map        *_map.Map
-	Mode       _type.Mode
+	Mode       game_def.Mode
 	Id         Id
-	UserList   []_type.User
+	UserList   []game_def.User
 	CreateTime int64
 	Status     Status
 	RoundNum   uint16

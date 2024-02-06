@@ -5,13 +5,13 @@ import (
 	"server/game_logic/game_def"
 )
 
-var _ _type.Block = (*Blank)(nil)
+var _ game_def.Block = (*Blank)(nil)
 
 type Blank struct {
 	BaseBlock
 }
 
-var BlankMeta = _type.BlockMeta{
+var BlankMeta = game_def.BlockMeta{
 	BlockId:           0,
 	Name:              "blank",
 	Description:       "",
@@ -22,18 +22,18 @@ func init() {
 	block_manager.Register(BlankMeta, toBlockBlank)
 }
 
-func (*Blank) Meta() _type.BlockMeta {
+func (*Blank) Meta() game_def.BlockMeta {
 	return BlankMeta
 }
 
-func (*Blank) GetMoveStatus() _type.MoveStatus {
-	return _type.MoveStatus{false, true}
+func (*Blank) GetMoveStatus() game_def.MoveStatus {
+	return game_def.MoveStatus{false, true}
 }
 
-func toBlockBlank(_type.Block) _type.Block {
-	return _type.Block(&Blank{})
+func toBlockBlank(game_def.Block) game_def.Block {
+	return game_def.Block(&Blank{})
 }
 
-func (b *Blank) MoveTo(_type.BlockVal) _type.Block {
+func (b *Blank) MoveTo(game_def.BlockVal) game_def.Block {
 	return toBlockSoldier(b)
 }
