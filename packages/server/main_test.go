@@ -7,7 +7,7 @@ import (
 	"server/game"
 	_ "server/game/block"
 	"server/game/instruction"
-	judge_pool "server/game/judge_pool"
+	"server/game/judge"
 	"server/utils/pkg/data_source/local"
 	"testing"
 	"time"
@@ -26,8 +26,8 @@ func TestServer_main(t *testing.T) {
 	}
 	data.OriginalMapStrPool[0] = "[\n[0,0,0,0,2],\n[0,2,0,0,0],\n[0,0,0,0,0],\n[0,3,3,0,3],\n[0,3,0,2,0]\n]"
 
-	judge_pool.ApplyDataSource(&data)
-	p := judge_pool.CreatePool([]game.Mode{game.Mode1v1})
+	judge.ApplyDataSource(&data)
+	p := judge.CreatePool([]game.Mode{game.Mode1v1})
 
 	time.Sleep(200 * time.Millisecond)
 
@@ -54,6 +54,6 @@ func TestServer_main(t *testing.T) {
 		}
 	}
 	if userList[0] != "test2" {
-		t.Fatalf("game result is unexpected: expected [\"2\"], got %v (team %d)", userList, data.GamePool[id].Winner)
+		t.Fatalf("game result is unexpected: expected [test2], got %v (team %d)", userList, data.GamePool[id].Winner)
 	}
 }

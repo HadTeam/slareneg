@@ -6,7 +6,7 @@ type Blank struct {
 	BaseBlock
 }
 
-var BlankMeta = BlockMeta{
+var BlankMeta = Meta{
 	BlockId:           0,
 	Name:              "blank",
 	Description:       "",
@@ -17,7 +17,7 @@ func init() {
 	Register(BlankMeta, toBlockBlank)
 }
 
-func (*Blank) Meta() BlockMeta {
+func (*Blank) Meta() Meta {
 	return BlankMeta
 }
 

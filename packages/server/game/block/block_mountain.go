@@ -4,7 +4,7 @@ type Mountain struct {
 	BaseBlock
 }
 
-var MountainMeta = BlockMeta{
+var MountainMeta = Meta{
 	BlockId:           4,
 	Name:              "mountain",
 	Description:       "",
@@ -19,7 +19,7 @@ func toBlockMountain(Block) Block {
 	return Block(&Mountain{})
 }
 
-func (*Mountain) Meta() BlockMeta {
+func (*Mountain) Meta() Meta {
 	return MountainMeta
 }
 

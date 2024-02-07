@@ -6,7 +6,7 @@ type Soldier struct {
 	BaseBlock
 }
 
-var SoldierMeta = BlockMeta{
+var SoldierMeta = Meta{
 	BlockId:           1,
 	Name:              "soldier",
 	Description:       "",
@@ -24,7 +24,7 @@ func toBlockSoldier(b Block) Block {
 	return Block(&ret)
 }
 
-func (*Soldier) Meta() BlockMeta {
+func (*Soldier) Meta() Meta {
 	return SoldierMeta
 }
 

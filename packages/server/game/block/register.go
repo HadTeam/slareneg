@@ -8,9 +8,9 @@ type tranFunc func(Block) Block
 
 var transBlockTypeFunc map[uint8]tranFunc
 var GetBlockIdByName map[string]uint8
-var GetMetaById map[uint8]BlockMeta
+var GetMetaById map[uint8]Meta
 
-func Register(meta BlockMeta, transFunc tranFunc) {
+func Register(meta Meta, transFunc tranFunc) {
 	if transBlockTypeFunc == nil {
 		transBlockTypeFunc = make(map[uint8]tranFunc)
 	}
@@ -18,13 +18,13 @@ func Register(meta BlockMeta, transFunc tranFunc) {
 		GetBlockIdByName = make(map[string]uint8)
 	}
 	if GetMetaById == nil {
-		GetMetaById = make(map[uint8]BlockMeta)
+		GetMetaById = make(map[uint8]Meta)
 	}
 
 	GetBlockIdByName[meta.Name] = meta.BlockId
 	GetMetaById[meta.BlockId] = meta
 	transBlockTypeFunc[meta.BlockId] = transFunc
-	logrus.Println("Registered a block game_def", "id:", meta.BlockId, " name:", meta.Name, " description:", meta.Description)
+	logrus.Println("Registered a block", "id:", meta.BlockId, "name:", meta.Name, "description:", meta.Description)
 }
 
 func ToBlockByTypeId(typeId uint8, block Block) Block {

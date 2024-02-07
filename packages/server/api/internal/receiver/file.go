@@ -6,7 +6,7 @@ import (
 	"os"
 	_command "server/api/internal/command"
 	"server/game"
-	judge_pool "server/game/judge_pool"
+	"server/game/judge"
 	"server/game/map"
 	"server/utils/pkg/data_source"
 	"strconv"
@@ -24,7 +24,7 @@ func ApplyDataSource(source any) {
 	data = source.(data_source.TempDataSource)
 }
 
-func NewFileReceiver(pool *judge_pool.Pool) {
+func NewFileReceiver(pool *judge.Pool) {
 	f := LoadFile()
 
 	for index, r := range f {

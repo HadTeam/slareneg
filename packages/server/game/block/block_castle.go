@@ -10,7 +10,7 @@ type Castle struct {
 	BaseBuilding
 }
 
-var CastleMeta = BlockMeta{
+var CastleMeta = Meta{
 	BlockId:           3,
 	Name:              "castle",
 	Description:       "",
@@ -32,6 +32,6 @@ func toBlockCastle(b Block) Block {
 	return Block(&ret)
 }
 
-func (*Castle) Meta() BlockMeta {
+func (*Castle) Meta() Meta {
 	return CastleMeta
 }

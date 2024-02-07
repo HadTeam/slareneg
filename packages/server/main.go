@@ -10,7 +10,7 @@ import (
 	"server/game"
 	_ "server/game/block"
 	"server/game/instruction"
-	"server/game/judge_pool"
+	"server/game/judge"
 	"server/utils/pkg/data_source/local"
 	db "server/utils/pkg/pg"
 	"time"
@@ -59,8 +59,9 @@ func main() {
 	}
 	data.OriginalMapStrPool[0] = "[\n[0,0,0,0,2],\n[0,2,0,0,0],\n[0,0,0,0,0],\n[0,3,3,0,3],\n[0,3,0,2,0]\n]"
 
-	judge_pool.ApplyDataSource(&data)
-	p := judge_pool.CreatePool([]game.Mode{game.Mode1v1})
+	judge.ApplyDataSource(&data)
+	judge.ApplyDataSource(&data)
+	p := judge.CreatePool([]game.Mode{game.Mode1v1})
 
 	time.Sleep(200 * time.Millisecond)
 

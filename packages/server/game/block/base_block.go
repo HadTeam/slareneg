@@ -11,9 +11,9 @@ type BaseBlock struct {
 	number  uint16
 }
 
-func (*BaseBlock) Meta() BlockMeta {
+func (*BaseBlock) Meta() Meta {
 	logrus.Panic("no block meta can be provided")
-	return BlockMeta{}
+	return Meta{}
 }
 
 func (block *BaseBlock) Number() uint16 {
