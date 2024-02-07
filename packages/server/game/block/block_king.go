@@ -26,20 +26,15 @@ func toBlockKing(b Block) Block {
 	return Block(&ret)
 }
 
-func (block *King) IsDied() bool {
-	return block.originalOwnerId != block.ownerId
-}
-
 func (*King) Meta() Meta {
 	return KingMeta
 }
 
 func (block *King) MoveTo(info Val) Block {
-	if !block.IsDied() {
+	if block.originalOwnerId == block.ownerId {
 		block.BaseBuilding.MoveTo(info)
-	}
-	if block.IsDied() {
+		return nil
+	} else {
 		return toBlockCastle(block)
 	}
-	return nil
 }
