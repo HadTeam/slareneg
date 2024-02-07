@@ -97,7 +97,7 @@ func TestConvJsonStrMap(t *testing.T) {
 			j1 = JsonStrToMap(got)
 			j2 = JsonStrToMap(tt.args.jsonStr)
 			if !reflect.DeepEqual(j1, j2) {
-				t.Errorf("MapToJsonStr() = \n%s, want \n%s", spew.Sdump(j1), spew.Sdump(j2))
+				t.Errorf("MapToJsonStr() = \n%s, want \n%s\nStr: \n%s", spew.Sdump(j1), spew.Sdump(j2), spew.Sdump(got))
 			}
 		})
 	}
