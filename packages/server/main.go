@@ -10,7 +10,7 @@ import (
 	"server/game"
 	_ "server/game/block"
 	"server/game/instruction"
-	judge_pool "server/game/judge_pool"
+	"server/game/judge_pool"
 	"server/utils/pkg/data_source/local"
 	db "server/utils/pkg/pg"
 	"time"

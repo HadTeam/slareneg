@@ -161,7 +161,7 @@ func (p *Map) Move(inst instruction.Move) bool {
 
 	var toBlockNew block.Block
 	hasMovedNum := thisBlock.MoveFrom(inst.Number)
-	toBlockNew = toBlock.MoveTo(block.BlockVal{Number: hasMovedNum, OwnerId: thisBlock.OwnerId()})
+	toBlockNew = toBlock.MoveTo(block.Val{Number: hasMovedNum, OwnerId: thisBlock.OwnerId()})
 	if toBlockNew != nil {
 		p.SetBlock(newPosition, toBlockNew)
 	}

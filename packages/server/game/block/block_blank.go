@@ -29,6 +29,6 @@ func toBlockBlank(Block) Block {
 	return Block(&Blank{})
 }
 
-func (b *Blank) MoveTo(BlockVal) Block {
+func (b *Blank) MoveTo(Val) Block {
 	return toBlockSoldier(b)
 }

@@ -25,14 +25,14 @@ type Block interface {
 	GetMoveStatus() MoveStatus
 	MoveFrom(number uint16) uint16
 	// MoveTo Ret: a new block to replace this place
-	MoveTo(BlockVal) Block
+	MoveTo(Val) Block
 
 	Meta() BlockMeta
 }
 
 type Position struct{ X, Y uint8 }
 
-type BlockVal struct {
+type Val struct {
 	Number  uint16
 	OwnerId uint16
 }

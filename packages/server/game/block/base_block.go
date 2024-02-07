@@ -36,6 +36,6 @@ func (*BaseBlock) MoveFrom(_ uint16) uint16 {
 	return 0
 }
 
-func (*BaseBlock) MoveTo(BlockVal) Block {
+func (*BaseBlock) MoveTo(Val) Block {
 	return nil
 }

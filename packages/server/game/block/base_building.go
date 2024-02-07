@@ -32,7 +32,7 @@ func (block *BaseBuilding) MoveFrom(number uint16) uint16 {
 	return ret
 }
 
-func (block *BaseBuilding) MoveTo(info BlockVal) Block {
+func (block *BaseBuilding) MoveTo(info Val) Block {
 	if block.ownerId != info.OwnerId {
 		if block.number < info.Number {
 			block.ownerId = info.OwnerId

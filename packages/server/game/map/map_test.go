@@ -114,14 +114,14 @@ func TestConvJsonStrMap(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run("JsonStrToMap: "+tt.name, func(t *testing.T) {
+		t.Run("JsonStrToMap:"+tt.name, func(t *testing.T) {
 			if got := JsonStrToMap(tt.args.jsonStr); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("JsonStrToMap() = \n%s, want \n%s", spew.Sdump(got), spew.Sdump(tt.want))
 			}
 		})
 	}
 	for _, tt := range tests {
-		t.Run("MapToJsonStr: "+tt.name, func(t *testing.T) {
+		t.Run("MapToJsonStr:"+tt.name, func(t *testing.T) {
 			got := MapToJsonStr(tt.want)
 			var j1, j2 *Map
 			j1 = JsonStrToMap(got)

@@ -54,7 +54,7 @@ func (block *Soldier) MoveFrom(number uint16) uint16 {
 	return ret
 }
 
-func (block *Soldier) MoveTo(info BlockVal) Block {
+func (block *Soldier) MoveTo(info Val) Block {
 	if block.ownerId != info.OwnerId {
 		if block.number < info.Number {
 			block.ownerId = info.OwnerId

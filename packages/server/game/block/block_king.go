@@ -34,7 +34,7 @@ func (*King) Meta() BlockMeta {
 	return KingMeta
 }
 
-func (block *King) MoveTo(info BlockVal) Block {
+func (block *King) MoveTo(info Val) Block {
 	if !block.IsDied() {
 		block.BaseBuilding.MoveTo(info)
 	}
