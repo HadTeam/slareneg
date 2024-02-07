@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
+	github.com/davecgh/go-spew v1.1.1
 	github.com/go-playground/validator/v10 v10.14.0
 	github.com/gookit/ini/v2 v2.2.2
 	github.com/lib/pq v1.10.9
