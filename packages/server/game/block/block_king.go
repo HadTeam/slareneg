@@ -31,10 +31,9 @@ func (*King) Meta() Meta {
 }
 
 func (block *King) MoveTo(info Val) Block {
-	if block.originalOwnerId == block.ownerId {
-		block.BaseBuilding.MoveTo(info)
-		return nil
-	} else {
+	block.BaseBuilding.MoveTo(info)
+	if block.originalOwnerId != block.ownerId {
 		return toBlockCastle(block)
 	}
+	return nil
 }
