@@ -1,4 +1,4 @@
-package game_def
+package block
 
 type BlockMeta struct {
 	Name              string

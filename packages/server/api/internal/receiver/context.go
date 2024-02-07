@@ -2,14 +2,13 @@ package receiver
 
 import (
 	"context"
-	"server/game_logic"
-	"server/game_logic/game_def"
+	"server/game"
 )
 
 type Context struct {
 	context.Context
-	Game    *game_logic.Game
-	User    game_def.User
+	Game    *game.Game
+	User    game.User
 	Command chan string
 	Message chan string
 }

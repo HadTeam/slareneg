@@ -2,17 +2,15 @@ package block
 
 import (
 	"math/rand"
-	"server/game_logic/block_manager"
-	"server/game_logic/game_def"
 )
 
-var _ game_def.Block = (*Castle)(nil)
+var _ Block = (*Castle)(nil)
 
 type Castle struct {
 	BaseBuilding
 }
 
-var CastleMeta = game_def.BlockMeta{
+var CastleMeta = BlockMeta{
 	BlockId:           3,
 	Name:              "castle",
 	Description:       "",
@@ -20,10 +18,10 @@ var CastleMeta = game_def.BlockMeta{
 }
 
 func init() {
-	block_manager.Register(CastleMeta, toBlockCastle)
+	Register(CastleMeta, toBlockCastle)
 }
 
-func toBlockCastle(b game_def.Block) game_def.Block {
+func toBlockCastle(b Block) Block {
 	var ret Castle
 	if b.Number() == 0 {
 		ret.number = uint16(30) + uint16(rand.Intn(30))
@@ -31,9 +29,9 @@ func toBlockCastle(b game_def.Block) game_def.Block {
 		ret.number = b.Number()
 	}
 	ret.ownerId = b.OwnerId()
-	return game_def.Block(&ret)
+	return Block(&ret)
 }
 
-func (*Castle) Meta() game_def.BlockMeta {
+func (*Castle) Meta() BlockMeta {
 	return CastleMeta
 }

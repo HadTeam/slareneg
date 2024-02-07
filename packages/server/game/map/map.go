@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
-	"server/game_logic/block_manager"
-	"server/game_logic/game_def"
+	"server/game/block"
+	"server/game/instruction"
 	"strconv"
 	"strings"
 )
@@ -18,7 +18,7 @@ type mapInfo struct {
 }
 
 type Map struct {
-	Blocks [][]game_def.Block
+	Blocks [][]block.Block
 	mapInfo
 }
 
@@ -30,11 +30,11 @@ func (p *Map) Id() uint32 {
 	return p.id
 }
 
-func (p *Map) GetBlock(position game_def.Position) game_def.Block {
+func (p *Map) GetBlock(position block.Position) block.Block {
 	return p.Blocks[position.Y-1][position.X-1]
 }
 
-func (p *Map) SetBlock(position game_def.Position, block game_def.Block) {
+func (p *Map) SetBlock(position block.Position, block block.Block) {
 	p.Blocks[position.Y-1][position.X-1] = block
 }
 
@@ -72,7 +72,7 @@ func CreateMapWithInfo(mapId uint32, size MapSize) *Map {
 	}
 }
 
-func DebugOutput(p *Map, f func(game_def.Block) uint16) { // Only for debugging
+func DebugOutput(p *Map, f func(block.Block) uint16) { // Only for debugging
 	tmp := ""
 	ex := func(i uint16) string {
 		ex := ""
@@ -97,41 +97,41 @@ func DebugOutput(p *Map, f func(game_def.Block) uint16) { // Only for debugging
 	logrus.Tracef("\n%s\n", tmp)
 }
 
-func isPositionLegal(position game_def.Position, size MapSize) bool {
+func isPositionLegal(position block.Position, size MapSize) bool {
 	return 1 <= position.X && position.X <= size.W && 1 <= position.Y && position.Y <= size.H
 }
 
-func (p *Map) Move(ins game_def.Move) bool {
+func (p *Map) Move(inst instruction.Move) bool {
 	var offsetX, offsetY int
-	switch ins.Towards {
-	case game_def.MoveTowardsDown:
+	switch inst.Towards {
+	case instruction.MoveTowardsDown:
 		{
 			offsetX = 0
 			offsetY = 1
 		}
-	case game_def.MoveTowardsUp:
+	case instruction.MoveTowardsUp:
 		{
 			offsetX = 0
 			offsetY = -1
 		}
-	case game_def.MoveTowardsLeft:
+	case instruction.MoveTowardsLeft:
 		{
 			offsetX = -1
 			offsetY = 0
 		}
-	case game_def.MoveTowardsRight:
+	case instruction.MoveTowardsRight:
 		{
 			offsetX = 1
 			offsetY = 0
 		}
 	}
 
-	instructionPosition := game_def.Position{X: ins.Position.X, Y: ins.Position.Y}
+	instructionPosition := block.Position{X: inst.Position.X, Y: inst.Position.Y}
 	if !isPositionLegal(instructionPosition, p.size) {
 		return false
 	}
 
-	newPosition := game_def.Position{X: uint8(int(ins.Position.X) + offsetX), Y: uint8(int(ins.Position.Y) + offsetY)}
+	newPosition := block.Position{X: uint8(int(inst.Position.X) + offsetX), Y: uint8(int(inst.Position.Y) + offsetY)}
 	// It won't overflow 'cause the min value is 0
 	if !isPositionLegal(newPosition, p.size) {
 		return false
@@ -144,13 +144,13 @@ func (p *Map) Move(ins game_def.Move) bool {
 	 * 0 => select all
 	 * 1 => select half
 	 */
-	if ins.Number == 0 {
-		ins.Number = thisBlock.Number()
-	} else if ins.Number == 65535 {
-		ins.Number = thisBlock.Number() / 2
+	if inst.Number == 0 {
+		inst.Number = thisBlock.Number()
+	} else if inst.Number == 65535 {
+		inst.Number = thisBlock.Number() / 2
 	}
 
-	if thisBlock.Number() < ins.Number {
+	if thisBlock.Number() < inst.Number {
 		return false
 	}
 
@@ -159,9 +159,9 @@ func (p *Map) Move(ins game_def.Move) bool {
 		return false
 	}
 
-	var toBlockNew game_def.Block
-	hasMovedNum := thisBlock.MoveFrom(ins.Number)
-	toBlockNew = toBlock.MoveTo(game_def.BlockVal{Number: hasMovedNum, OwnerId: thisBlock.OwnerId()})
+	var toBlockNew block.Block
+	hasMovedNum := thisBlock.MoveFrom(inst.Number)
+	toBlockNew = toBlock.MoveTo(block.BlockVal{Number: hasMovedNum, OwnerId: thisBlock.OwnerId()})
 	if toBlockNew != nil {
 		p.SetBlock(newPosition, toBlockNew)
 	}
@@ -176,11 +176,11 @@ func Str2GameMap(mapId uint32, originalMapStr string) *Map {
 		return nil
 	}
 	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
-	ret := make([][]game_def.Block, size.H)
+	ret := make([][]block.Block, size.H)
 	for rowNum, row := range result {
-		ret[rowNum] = make([]game_def.Block, size.W)
+		ret[rowNum] = make([]block.Block, size.W)
 		for colNum, typeId := range row {
-			ret[rowNum][colNum] = block_manager.NewBlock(typeId, 0, 0)
+			ret[rowNum][colNum] = block.NewBlock(typeId, 0, 0)
 		}
 	}
 	return &Map{
@@ -196,15 +196,15 @@ func FullStr2GameMap(mapId uint32, originalMapStr string) *Map {
 		return nil
 	}
 	size := MapSize{W: uint8(len(result[0])), H: uint8(len(result))}
-	ret := make([][]game_def.Block, size.H)
+	ret := make([][]block.Block, size.H)
 	for rowNum, row := range result {
-		ret[rowNum] = make([]game_def.Block, size.W)
+		ret[rowNum] = make([]block.Block, size.W)
 		for colNum, blockInfo := range row {
 			blockId := blockInfo[0]
 			ownerId := blockInfo[1]
 			number := blockInfo[2]
 
-			newBlock := block_manager.NewBlock(uint8(blockId), number, ownerId)
+			newBlock := block.NewBlock(uint8(blockId), number, ownerId)
 
 			ret[rowNum][colNum] = newBlock
 		}
@@ -248,7 +248,7 @@ func JsonStrToMap(jsonStr string) *Map {
 	// process original mapping
 	blockMapping := make(map[uint8]uint8)
 	for i, v := range res.Mappings.Block {
-		blockMapping[uint8(i)] = block_manager.GetBlockIdByName[v]
+		blockMapping[uint8(i)] = block.GetBlockIdByName[v]
 	}
 
 	if res.Mappings.Owner == nil || res.Owner == nil {
@@ -259,17 +259,17 @@ func JsonStrToMap(jsonStr string) *Map {
 		res.Mappings.Owner = append([]uint16{0}, res.Mappings.Owner...)
 	}
 
-	var blocks [][]game_def.Block
+	var blocks [][]block.Block
 	if (res.Number != nil && len(res.Type) != len(res.Number)) || (res.Owner != nil && len(res.Type) != len(res.Owner)) {
 		logrus.Panic("original block game_def, number, owner id must have the same size")
 	}
-	blocks = make([][]game_def.Block, len(res.Type))
+	blocks = make([][]block.Block, len(res.Type))
 
 	for i, v := range res.Type {
 		if (res.Number != nil && len(v) != len(res.Number[i])) || (res.Owner != nil && len(v) != len(res.Owner[i])) {
 			logrus.Panic("original block game_def, number, owner id must have the same size")
 		}
-		blocks[i] = make([]game_def.Block, len(v))
+		blocks[i] = make([]block.Block, len(v))
 
 		for j, typeId := range v {
 			n := uint16(0)
@@ -289,7 +289,7 @@ func JsonStrToMap(jsonStr string) *Map {
 				logrus.Panic("original block game_def must be less than block game_def mapping size")
 			}
 
-			blocks[i][j] = block_manager.NewBlock(blockMapping[typeId], n, o)
+			blocks[i][j] = block.NewBlock(blockMapping[typeId], n, o)
 		}
 	}
 	return &Map{
@@ -328,7 +328,7 @@ func MapToJsonStr(m *Map) string {
 	}
 
 	for k := range typeMapping {
-		ret.Mappings.Block = append(ret.Mappings.Block, block_manager.GetMetaById[k].Name)
+		ret.Mappings.Block = append(ret.Mappings.Block, block.GetMetaById[k].Name)
 	}
 	for k := range ownerMapping {
 		ret.Mappings.Owner = append(ret.Mappings.Owner, k)

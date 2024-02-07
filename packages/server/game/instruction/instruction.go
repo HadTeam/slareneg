@@ -1,4 +1,6 @@
-package game_def
+package instruction
+
+import "server/game/block"
 
 type Instruction interface{}
 
@@ -12,7 +14,7 @@ const (
 )
 
 type Move struct {
-	Position Position
+	Position block.Position
 	Towards  MoveTowardsType
 	Number   uint16
 }

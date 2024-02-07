@@ -1,8 +1,7 @@
-package game_logic
+package game
 
 import (
-	"server/game_logic/game_def"
-	"server/game_logic/map"
+	"server/game/map"
 )
 
 type Status uint8
@@ -16,9 +15,9 @@ const (
 
 type Game struct {
 	Map        *_map.Map
-	Mode       game_def.Mode
+	Mode       Mode
 	Id         Id
-	UserList   []game_def.User
+	UserList   []User
 	CreateTime int64
 	Status     Status
 	RoundNum   uint16

@@ -3,7 +3,7 @@ package api
 import (
 	"server/api/internal/command"
 	"server/api/internal/receiver"
-	judge_pool "server/judge_pool"
+	judge_pool "server/game/judge_pool"
 	"time"
 )
 

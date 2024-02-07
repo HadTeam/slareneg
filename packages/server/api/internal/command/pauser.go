@@ -3,14 +3,15 @@ package command
 import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
-	"server/game_logic/game_def"
+	"server/game/block"
+	"server/game/instruction"
 	"strconv"
 	"strings"
 )
 
-func PauseCommandStr(userId uint16, str string) (game_def.Instruction, error) {
+func PauseCommandStr(userId uint16, str string) (instruction.Instruction, error) {
 	var err error = nil
-	ret := game_def.Instruction(nil)
+	ret := instruction.Instruction(nil)
 	args := strings.Split(str, " ")
 	v := validator.New()
 	switch args[0] {
@@ -28,9 +29,9 @@ func PauseCommandStr(userId uint16, str string) (game_def.Instruction, error) {
 					n, _ := strconv.Atoi(c.Number)
 					x, _ := strconv.Atoi(c.X)
 					y, _ := strconv.Atoi(c.Y)
-					ret = game_def.Move{
-						Position: game_def.Position{X: uint8(x), Y: uint8(y)},
-						Towards:  game_def.MoveTowardsType(c.Towards),
+					ret = instruction.Move{
+						Position: block.Position{X: uint8(x), Y: uint8(y)},
+						Towards:  instruction.MoveTowardsType(c.Towards),
 						Number:   uint16(n),
 					}
 				} else {
@@ -51,7 +52,7 @@ func PauseCommandStr(userId uint16, str string) (game_def.Instruction, error) {
 					if c.Status == "true" {
 						s = true
 					}
-					ret = game_def.ForceStart{
+					ret = instruction.ForceStart{
 						UserId: userId,
 						Status: s,
 					}
@@ -66,7 +67,7 @@ func PauseCommandStr(userId uint16, str string) (game_def.Instruction, error) {
 	case "Surrender":
 		{
 			if len(args)-1 == 0 {
-				ret = game_def.Surrender{UserId: userId}
+				ret = instruction.Surrender{UserId: userId}
 			} else {
 				err = fmt.Errorf("argument number not right")
 			}

@@ -1,7 +1,7 @@
 package data_source
 
 import (
-	"server/game_logic/map"
+	"server/game/map"
 )
 
 type PersistentDataSource interface {

@@ -1,17 +1,12 @@
 package block
 
-import (
-	"server/game_logic/block_manager"
-	"server/game_logic/game_def"
-)
-
-var _ game_def.Block = (*Soldier)(nil)
+var _ Block = (*Soldier)(nil)
 
 type Soldier struct {
 	BaseBlock
 }
 
-var SoldierMeta = game_def.BlockMeta{
+var SoldierMeta = BlockMeta{
 	BlockId:           1,
 	Name:              "soldier",
 	Description:       "",
@@ -19,17 +14,17 @@ var SoldierMeta = game_def.BlockMeta{
 }
 
 func init() {
-	block_manager.Register(SoldierMeta, toBlockSoldier)
+	Register(SoldierMeta, toBlockSoldier)
 }
 
-func toBlockSoldier(b game_def.Block) game_def.Block {
+func toBlockSoldier(b Block) Block {
 	var ret Soldier
 	ret.number = b.Number()
 	ret.ownerId = b.OwnerId()
-	return game_def.Block(&ret)
+	return Block(&ret)
 }
 
-func (*Soldier) Meta() game_def.BlockMeta {
+func (*Soldier) Meta() BlockMeta {
 	return SoldierMeta
 }
 
@@ -43,8 +38,8 @@ func (block *Soldier) RoundStart(roundNum uint16) {
 	}
 }
 
-func (*Soldier) GetMoveStatus() game_def.MoveStatus {
-	return game_def.MoveStatus{true, true}
+func (*Soldier) GetMoveStatus() MoveStatus {
+	return MoveStatus{true, true}
 }
 
 func (block *Soldier) MoveFrom(number uint16) uint16 {
@@ -59,7 +54,7 @@ func (block *Soldier) MoveFrom(number uint16) uint16 {
 	return ret
 }
 
-func (block *Soldier) MoveTo(info game_def.BlockVal) game_def.Block {
+func (block *Soldier) MoveTo(info BlockVal) Block {
 	if block.ownerId != info.OwnerId {
 		if block.number < info.Number {
 			block.ownerId = info.OwnerId

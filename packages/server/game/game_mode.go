@@ -1,4 +1,4 @@
-package game_def
+package game
 
 type Mode struct {
 	MaxUserNum uint8

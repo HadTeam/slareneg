@@ -1,17 +1,16 @@
-package block_manager
+package block
 
 import (
 	"github.com/sirupsen/logrus"
-	"server/game_logic/game_def"
 )
 
-type tranFunc func(game_def.Block) game_def.Block
+type tranFunc func(Block) Block
 
 var transBlockTypeFunc map[uint8]tranFunc
 var GetBlockIdByName map[string]uint8
-var GetMetaById map[uint8]game_def.BlockMeta
+var GetMetaById map[uint8]BlockMeta
 
-func Register(meta game_def.BlockMeta, transFunc tranFunc) {
+func Register(meta BlockMeta, transFunc tranFunc) {
 	if transBlockTypeFunc == nil {
 		transBlockTypeFunc = make(map[uint8]tranFunc)
 	}
@@ -19,7 +18,7 @@ func Register(meta game_def.BlockMeta, transFunc tranFunc) {
 		GetBlockIdByName = make(map[string]uint8)
 	}
 	if GetMetaById == nil {
-		GetMetaById = make(map[uint8]game_def.BlockMeta)
+		GetMetaById = make(map[uint8]BlockMeta)
 	}
 
 	GetBlockIdByName[meta.Name] = meta.BlockId
@@ -28,7 +27,7 @@ func Register(meta game_def.BlockMeta, transFunc tranFunc) {
 	logrus.Println("Registered a block game_def", "id:", meta.BlockId, " name:", meta.Name, " description:", meta.Description)
 }
 
-func ToBlockByTypeId(typeId uint8, block game_def.Block) game_def.Block {
+func ToBlockByTypeId(typeId uint8, block Block) Block {
 	transFunc, err := transBlockTypeFunc[typeId]
 	if !err {
 		logrus.Warningln("Get an unknown blockTypeId", typeId)
@@ -37,6 +36,6 @@ func ToBlockByTypeId(typeId uint8, block game_def.Block) game_def.Block {
 	return transFunc(block)
 }
 
-func NewBlock(typeId uint8, number uint16, ownerId uint16) game_def.Block {
+func NewBlock(typeId uint8, number uint16, ownerId uint16) Block {
 	return ToBlockByTypeId(typeId, &BaseBlock{number: number, ownerId: ownerId})
 }

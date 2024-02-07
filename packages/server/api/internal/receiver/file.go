@@ -5,10 +5,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	_command "server/api/internal/command"
-	"server/game_logic"
-	"server/game_logic/game_def"
-	"server/game_logic/map"
-	judge_pool "server/judge_pool"
+	"server/game"
+	judge_pool "server/game/judge_pool"
+	"server/game/map"
 	"server/utils/pkg/data_source"
 	"strconv"
 	"strings"
@@ -31,13 +30,13 @@ func NewFileReceiver(pool *judge_pool.Pool) {
 	for index, r := range f {
 		time.Sleep(time.Millisecond * 200)
 		logrus.Infof("start game by reply file #%d", r.Id)
-		g := &game_logic.Game{
+		g := &game.Game{
 			Map:        r.Map,
-			Mode:       game_def.Mode1v1,
-			Id:         game_logic.Id(index + 1e3),
-			UserList:   []game_def.User{},
+			Mode:       game.Mode1v1,
+			Id:         game.Id(index + 1e3),
+			UserList:   []game.User{},
 			CreateTime: time.Now().UnixMicro(),
-			Status:     game_logic.StatusWaiting,
+			Status:     game.StatusWaiting,
 			RoundNum:   0,
 		}
 		pool.DebugNewGame(g)
@@ -58,12 +57,12 @@ func NewFileReceiver(pool *judge_pool.Pool) {
 }
 
 type command struct {
-	User game_def.User
+	User game.User
 	Ins  []string
 }
 
 type reply struct {
-	Id       game_logic.Id
+	Id       game.Id
 	UserPack []command
 	Map      *_map.Map
 }
@@ -88,7 +87,7 @@ func LoadFile() []reply {
 
 		id, _ := strconv.Atoi(s[0])
 		r := reply{
-			Id:       game_logic.Id(id),
+			Id:       game.Id(id),
 			UserPack: []command{},
 		}
 
@@ -112,10 +111,10 @@ func LoadFile() []reply {
 			cmdStr := strings.Split(t[1], "\n")
 
 			cmd := command{
-				User: game_def.User{
+				User: game.User{
 					Name:             name,
 					UserId:           uint16(userId),
-					Status:           game_def.UserStatusConnected,
+					Status:           game.UserStatusConnected,
 					TeamId:           uint8(userId) - 1,
 					ForceStartStatus: false,
 				},
@@ -143,7 +142,7 @@ func fakePlayer(ctx *Context, c []string) {
 		case <-ticker.C:
 			{
 				g := data.GetGameInfo(ctx.Game.Id)
-				if g.Status == game_logic.StatusEnd {
+				if g.Status == game.StatusEnd {
 					return
 				}
 
@@ -151,7 +150,7 @@ func fakePlayer(ctx *Context, c []string) {
 					playerLogger.Infof("Command(tot: %d) runs out, quit", len(c))
 					ticker.Stop()
 					player := ctx.User
-					player.Status = game_def.UserStatusDisconnected
+					player.Status = game.UserStatusDisconnected
 					data.SetUserStatus(ctx.Game.Id, player)
 				}
 				if ctx.Game.RoundNum > currentRound {
@@ -180,7 +179,7 @@ func fakePlayer(ctx *Context, c []string) {
 
 func receiver(ctx *Context) {
 	//ctx.User.Name = strconv.Itoa(int(ctx.User.UserId)) // DEBUG ONLY, avoiding strange username from `gioreply` file
-	ctx.User.Status = game_def.UserStatusConnected
+	ctx.User.Status = game.UserStatusConnected
 	data.SetUserStatus(ctx.Game.Id, ctx.User)
 
 	receiverLogger := logrus.WithFields(logrus.Fields{
@@ -189,7 +188,7 @@ func receiver(ctx *Context) {
 	receiverLogger.Infof("user join")
 
 	defer func() {
-		ctx.User.Status = game_def.UserStatusDisconnected
+		ctx.User.Status = game.UserStatusDisconnected
 		data.SetUserStatus(ctx.Game.Id, ctx.User)
 		receiverLogger.Infof("user quit")
 	}()
@@ -218,7 +217,7 @@ func receiver(ctx *Context) {
 			}
 		case <-ticker.C:
 			{
-				done := func(g *game_logic.Game, d string) {
+				done := func(g *game.Game, d string) {
 					res := _command.GenerateMessage(d, ctx.Game.Id, ctx.User.UserId)
 					ctx.Message <- res
 					ctx.Game = g
@@ -227,11 +226,11 @@ func receiver(ctx *Context) {
 				// Check game status
 				g := data.GetGameInfo(ctx.Game.Id)
 				if g.Status != ctx.Game.Status {
-					if ctx.Game.Status == game_logic.StatusWaiting && g.Status == game_logic.StatusRunning {
+					if ctx.Game.Status == game.StatusWaiting && g.Status == game.StatusRunning {
 						done(g, "info")
 						done(g, "start")
 						continue
-					} else if g.Status == game_logic.StatusEnd {
+					} else if g.Status == game.StatusEnd {
 						done(g, "end")
 						ticker.Stop()
 						flag = false
@@ -240,12 +239,12 @@ func receiver(ctx *Context) {
 				} else {
 					if i%20 == 0 {
 						done(g, "info")
-						if ctx.Game.Status == game_logic.StatusWaiting {
+						if ctx.Game.Status == game.StatusWaiting {
 							done(g, "wait")
 						}
 					}
 
-					if ctx.Game.Status == game_logic.StatusRunning && ctx.Game.RoundNum != g.RoundNum {
+					if ctx.Game.Status == game.StatusRunning && ctx.Game.RoundNum != g.RoundNum {
 						done(g, "newTurn")
 						continue
 					}

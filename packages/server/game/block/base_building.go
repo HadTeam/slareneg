@@ -1,10 +1,6 @@
 package block
 
-import (
-	"server/game_logic/game_def"
-)
-
-var _ game_def.Block = (*BaseBuilding)(nil)
+var _ Block = (*BaseBuilding)(nil)
 
 type BaseBuilding struct {
 	BaseBlock
@@ -20,8 +16,8 @@ func (block *BaseBuilding) RoundStart(_ uint16) {
 	}
 }
 
-func (*BaseBuilding) GetMoveStatus() game_def.MoveStatus {
-	return game_def.MoveStatus{AllowMoveFrom: true, AllowMoveTo: true}
+func (*BaseBuilding) GetMoveStatus() MoveStatus {
+	return MoveStatus{AllowMoveFrom: true, AllowMoveTo: true}
 }
 
 func (block *BaseBuilding) MoveFrom(number uint16) uint16 {
@@ -36,7 +32,7 @@ func (block *BaseBuilding) MoveFrom(number uint16) uint16 {
 	return ret
 }
 
-func (block *BaseBuilding) MoveTo(info game_def.BlockVal) game_def.Block {
+func (block *BaseBuilding) MoveTo(info BlockVal) Block {
 	if block.ownerId != info.OwnerId {
 		if block.number < info.Number {
 			block.ownerId = info.OwnerId

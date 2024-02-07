@@ -2,10 +2,8 @@ package _map
 
 import (
 	"reflect"
-	"server/game_logic/block"
-	_ "server/game_logic/block"
-	"server/game_logic/block_manager"
-	"server/game_logic/game_def"
+	"server/game/block"
+	_ "server/game/block"
 	"testing"
 )
 
@@ -24,7 +22,7 @@ func TestConvJsonStrMap(t *testing.T) {
 				jsonStr: `{"mappings":{"block":["blank"]},"game_def":[[0,0,0]]}`,
 			},
 			want: &Map{
-				[][]game_def.Block{
+				[][]block.Block{
 					{
 						&block.Blank{},
 						&block.Blank{},
@@ -43,7 +41,7 @@ func TestConvJsonStrMap(t *testing.T) {
 				jsonStr: `{"mappings":{"block":["blank"],"owner":[1,2]},"game_def":[[0,0,0]]}`,
 			},
 			want: &Map{
-				[][]game_def.Block{
+				[][]block.Block{
 					{
 						&block.Blank{},
 						&block.Blank{},
@@ -62,7 +60,7 @@ func TestConvJsonStrMap(t *testing.T) {
 				jsonStr: `{"mappings":{"block":["blank"]},"game_def":[[0,0,0]],"owner":[[1,1,1]]}`,
 			},
 			want: &Map{
-				[][]game_def.Block{
+				[][]block.Block{
 					{
 						&block.Blank{},
 						&block.Blank{},
@@ -81,11 +79,11 @@ func TestConvJsonStrMap(t *testing.T) {
 				jsonStr: `{"mappings":{"block":["soldier"],"owner":[1]},"game_def":[[0,0,0]],"owner":[[1,1,1]]}`,
 			},
 			want: &Map{
-				[][]game_def.Block{
+				[][]block.Block{
 					{
-						block_manager.NewBlock(1, 0, 1),
-						block_manager.NewBlock(1, 0, 1),
-						block_manager.NewBlock(1, 0, 1),
+						block.NewBlock(1, 0, 1),
+						block.NewBlock(1, 0, 1),
+						block.NewBlock(1, 0, 1),
 					},
 				},
 				mapInfo{
@@ -100,11 +98,11 @@ func TestConvJsonStrMap(t *testing.T) {
 				jsonStr: `{"mappings":{"block":["soldier"],"owner":[1]},"game_def":[[0,0,0]],"owner":[[1,1,1]],"number":[[1,2,255]]}`,
 			},
 			want: &Map{
-				[][]game_def.Block{
+				[][]block.Block{
 					{
-						block_manager.NewBlock(1, 1, 1),
-						block_manager.NewBlock(1, 2, 1),
-						block_manager.NewBlock(1, 255, 1),
+						block.NewBlock(1, 1, 1),
+						block.NewBlock(1, 2, 1),
+						block.NewBlock(1, 255, 1),
 					},
 				},
 				mapInfo{

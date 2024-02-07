@@ -1,10 +1,11 @@
 package local
 
 import (
-	"server/game_logic"
-	_ "server/game_logic/block"
-	"server/game_logic/game_def"
-	"server/game_logic/map"
+	"server/game"
+	"server/game/block"
+	_ "server/game/block"
+	"server/game/instruction"
+	"server/game/map"
 	"strconv"
 	"testing"
 )
@@ -15,19 +16,19 @@ func init() {
 
 func create() *Local {
 	return &Local{
-		GamePool:           make(map[game_logic.Id]*game_logic.Game),
+		GamePool:           make(map[game.Id]*game.Game),
 		OriginalMapStrPool: make(map[uint32]string),
-		InstructionLog:     make(map[game_logic.Id]map[uint16]map[uint16]game_def.Instruction),
+		InstructionLog:     make(map[game.Id]map[uint16]map[uint16]instruction.Instruction),
 	}
 }
 
 var userCount = uint16(1)
 
-func getUser() game_def.User {
-	return game_def.User{
+func getUser() game.User {
+	return game.User{
 		Name:             strconv.Itoa(int(userCount)),
 		UserId:           userCount,
-		Status:           game_def.UserStatusDisconnected,
+		Status:           game.UserStatusDisconnected,
 		TeamId:           uint8(userCount),
 		ForceStartStatus: false,
 	}
@@ -51,23 +52,23 @@ func TestLocal_lock(t *testing.T) {
 
 func TestLocal_Game(t *testing.T) {
 	l := create()
-	id := game_logic.Id(1)
+	id := game.Id(1)
 
 	// This function must be correct
-	l.DebugCreateGame(&game_logic.Game{
+	l.DebugCreateGame(&game.Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"), // Wait
-		Mode:       game_def.Mode1v1,
+		Mode:       game.Mode1v1,
 		Id:         id,
-		UserList:   []game_def.User{getUser()},
+		UserList:   []game.User{getUser()},
 		CreateTime: 0,
-		Status:     game_logic.StatusWaiting,
+		Status:     game.StatusWaiting,
 		RoundNum:   0,
 		Winner:     0,
 	})
 
 	t.Run("set game status", func(t *testing.T) {
-		l.SetGameStatus(id, game_logic.StatusRunning)
-		if l.GamePool[id].Status != game_logic.StatusRunning {
+		l.SetGameStatus(id, game.StatusRunning)
+		if l.GamePool[id].Status != game.StatusRunning {
 			t.Fatalf("the status has unchanged")
 		}
 	})
@@ -78,7 +79,7 @@ func TestLocal_Game(t *testing.T) {
 		}
 	})
 	t.Run("get game list", func(t *testing.T) {
-		gl := l.GetGameList(game_def.Mode1v1)
+		gl := l.GetGameList(game.Mode1v1)
 		if len(gl) != 1 {
 			t.Fatalf("game count is incorrect")
 		}
@@ -95,8 +96,8 @@ func TestLocal_Game(t *testing.T) {
 	})
 	t.Run("update instruction", func(t *testing.T) {
 		u := l.GamePool[id].UserList[0]
-		ins := game_def.Move{
-			Position: game_def.Position{1, 1},
+		ins := instruction.Move{
+			Position: block.Position{1, 1},
 			Towards:  "down",
 			Number:   1,
 		}
@@ -108,7 +109,7 @@ func TestLocal_Game(t *testing.T) {
 
 	t.Run("cancel game", func(t *testing.T) {
 		l.CancelGame(id)
-		if l.GamePool[id].Status != game_logic.StatusEnd {
+		if l.GamePool[id].Status != game.StatusEnd {
 			t.Fatalf("the status has unchanged")
 		}
 		if l.GamePool[id].UserList != nil {
@@ -119,14 +120,14 @@ func TestLocal_Game(t *testing.T) {
 
 func TestLocal_User(t *testing.T) {
 	l := create()
-	id := game_logic.Id(2)
-	l.DebugCreateGame(&game_logic.Game{
+	id := game.Id(2)
+	l.DebugCreateGame(&game.Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"),
-		Mode:       game_def.Mode1v1,
+		Mode:       game.Mode1v1,
 		Id:         id,
-		UserList:   []game_def.User{},
+		UserList:   []game.User{},
 		CreateTime: 0,
-		Status:     game_logic.StatusWaiting,
+		Status:     game.StatusWaiting,
 		RoundNum:   0,
 		Winner:     0,
 	})
@@ -137,14 +138,14 @@ func TestLocal_User(t *testing.T) {
 			t.Fatalf("user has been added unexpectedly")
 		}
 
-		u.Status = game_def.UserStatusConnected
+		u.Status = game.UserStatusConnected
 		l.SetUserStatus(id, u)
 
 		if len(l.GamePool[id].UserList) != 1 || l.GamePool[id].UserList[0].UserId != u.UserId {
 			t.Fatalf("user has not been added")
 		}
 
-		u.Status = game_def.UserStatusDisconnected
+		u.Status = game.UserStatusDisconnected
 
 		l.SetUserStatus(id, u)
 
@@ -156,14 +157,14 @@ func TestLocal_User(t *testing.T) {
 
 func TestLocal_Map(t *testing.T) {
 	l := create()
-	id := game_logic.Id(3)
-	l.DebugCreateGame(&game_logic.Game{
+	id := game.Id(3)
+	l.DebugCreateGame(&game.Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"),
-		Mode:       game_def.Mode1v1,
+		Mode:       game.Mode1v1,
 		Id:         id,
-		UserList:   []game_def.User{},
+		UserList:   []game.User{},
 		CreateTime: 0,
-		Status:     game_logic.StatusWaiting,
+		Status:     game.StatusWaiting,
 		RoundNum:   0,
 		Winner:     0,
 	})
@@ -185,8 +186,8 @@ func TestLocal_Map(t *testing.T) {
 			if a.Size() == b.Size() && a.Id() == b.Id() {
 				for y := uint8(1); y <= a.Size().H; y++ {
 					for x := uint8(1); x <= a.Size().W; x++ {
-						blockA := a.GetBlock(game_def.Position{x, y})
-						blockB := b.GetBlock(game_def.Position{x, y})
+						blockA := a.GetBlock(block.Position{x, y})
+						blockB := b.GetBlock(block.Position{x, y})
 						if blockA != blockB {
 							ret = false
 							break

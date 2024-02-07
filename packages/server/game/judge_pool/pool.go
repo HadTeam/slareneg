@@ -1,18 +1,17 @@
-package judgePool
+package judge_pool
 
 import (
 	"github.com/sirupsen/logrus"
-	"server/game_logic"
-	"server/game_logic/game_def"
-	"server/judge_pool/internal/judge"
-	data_source "server/utils/pkg/data_source"
+	"server/game"
+	"server/game/judge"
+	"server/utils/pkg/data_source"
 	"sync"
 	"time"
 )
 
 type Pool struct {
 	judges        sync.Map
-	AllowGameMode []game_def.Mode
+	AllowGameMode []game.Mode
 }
 
 var data data_source.TempDataSource
@@ -22,7 +21,7 @@ func ApplyDataSource(source interface{}) {
 	judge.ApplyDataSource(source)
 
 }
-func (p *Pool) NewGame(mode game_def.Mode) {
+func (p *Pool) NewGame(mode game.Mode) {
 	id := data.CreateGame(mode)
 	if id == 0 {
 		logrus.Panic("cannot create game")
@@ -30,7 +29,7 @@ func (p *Pool) NewGame(mode game_def.Mode) {
 	p.judges.Store(id, judge.NewGameJudge(id))
 }
 
-func (p *Pool) DebugNewGame(g *game_logic.Game) {
+func (p *Pool) DebugNewGame(g *game.Game) {
 	if ok := data.DebugCreateGame(g); !ok {
 		logrus.Panic("cannot create game in debug mode")
 	}
@@ -40,7 +39,7 @@ func (p *Pool) DebugNewGame(g *game_logic.Game) {
 	p.judges.Store(g.Id, judge.NewGameJudge(g.Id))
 }
 
-func CreatePool(allowGameMode []game_def.Mode) *Pool {
+func CreatePool(allowGameMode []game.Mode) *Pool {
 	p := &Pool{AllowGameMode: allowGameMode}
 	go poolWorking(p)
 	return p
@@ -53,7 +52,7 @@ func poolWorking(p *Pool) {
 	}
 	for _ = range t.C {
 		// Ensure there is a game always in waiting status
-		tryStartGame := func(game game_logic.Game) {
+		tryStartGame := func(game game.Game) {
 
 			if uint8(len(data.GetCurrentUserList(game.Id))) == game.Mode.MaxUserNum {
 				jAny, _ := p.judges.Load(game.Id)
@@ -66,7 +65,7 @@ func poolWorking(p *Pool) {
 		for _, mode := range p.AllowGameMode {
 			list := data.GetGameList(mode)
 			for _, g := range list {
-				if g.Status == game_logic.StatusWaiting {
+				if g.Status == game.StatusWaiting {
 					tryStartGame(g)
 					break
 				}
