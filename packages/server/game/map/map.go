@@ -62,11 +62,21 @@ func (p *Map) RoundEnd(roundNum uint16) {
 	}
 }
 
-func CreateMapWithInfo(mapId uint32, size MapSize) *Map {
+func CreateEmptyMapWithInfo(mapId uint32, size MapSize) *Map {
 	return &Map{
 		Blocks: nil,
 		mapInfo: mapInfo{
 			size: size,
+			id:   mapId,
+		},
+	}
+}
+
+func CreateMapWithBlocks(mapId uint32, blocks [][]block.Block) *Map {
+	return &Map{
+		Blocks: blocks,
+		mapInfo: mapInfo{
+			size: MapSize{uint8(len(blocks[0])), uint8(len(blocks))},
 			id:   mapId,
 		},
 	}

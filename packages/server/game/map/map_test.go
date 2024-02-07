@@ -22,95 +22,65 @@ func TestConvJsonStrMap(t *testing.T) {
 			args: args{
 				jsonStr: `{"mappings":{"block":["blank"]},"game_def":[[0,0,0]]}`,
 			},
-			want: &Map{
-				[][]block.Block{
-					{
-						&block.Blank{},
-						&block.Blank{},
-						&block.Blank{},
-					},
+			want: CreateMapWithBlocks(0, [][]block.Block{
+				{
+					&block.Blank{},
+					&block.Blank{},
+					&block.Blank{},
 				},
-				mapInfo{
-					size: MapSize{3, 1},
-					id:   0,
-				},
-			},
+			}),
 		},
 		{
 			name: "with not expected owner field 1",
 			args: args{
 				jsonStr: `{"mappings":{"block":["blank"],"owner":[1,2]},"game_def":[[0,0,0]]}`,
 			},
-			want: &Map{
-				[][]block.Block{
-					{
-						&block.Blank{},
-						&block.Blank{},
-						&block.Blank{},
-					},
+			want: CreateMapWithBlocks(0, [][]block.Block{
+				{
+					&block.Blank{},
+					&block.Blank{},
+					&block.Blank{},
 				},
-				mapInfo{
-					size: MapSize{3, 1},
-					id:   0,
-				},
-			},
+			}),
 		},
 		{
 			name: "with not expected owner field 2",
 			args: args{
 				jsonStr: `{"mappings":{"block":["blank"]},"game_def":[[0,0,0]],"owner":[[1,1,1]]}`,
 			},
-			want: &Map{
-				[][]block.Block{
-					{
-						&block.Blank{},
-						&block.Blank{},
-						&block.Blank{},
-					},
+			want: CreateMapWithBlocks(0, [][]block.Block{
+				{
+					&block.Blank{},
+					&block.Blank{},
+					&block.Blank{},
 				},
-				mapInfo{
-					size: MapSize{3, 1},
-					id:   0,
-				},
-			},
+			}),
 		},
 		{
 			name: "with owner field",
 			args: args{
 				jsonStr: `{"mappings":{"block":["soldier"],"owner":[1]},"game_def":[[0,0,0]],"owner":[[1,1,1]]}`,
 			},
-			want: &Map{
-				[][]block.Block{
-					{
-						block.NewBlock(1, 0, 1),
-						block.NewBlock(1, 0, 1),
-						block.NewBlock(1, 0, 1),
-					},
+			want: CreateMapWithBlocks(0, [][]block.Block{
+				{
+					block.NewBlock(1, 0, 1),
+					block.NewBlock(1, 0, 1),
+					block.NewBlock(1, 0, 1),
 				},
-				mapInfo{
-					size: MapSize{3, 1},
-					id:   0,
-				},
-			},
+			}),
 		},
 		{
 			name: "with owner field and number field",
 			args: args{
 				jsonStr: `{"mappings":{"block":["soldier"],"owner":[1]},"game_def":[[0,0,0]],"owner":[[1,1,1]],"number":[[1,2,255]]}`,
 			},
-			want: &Map{
-				[][]block.Block{
-					{
-						block.NewBlock(1, 1, 1),
-						block.NewBlock(1, 2, 1),
-						block.NewBlock(1, 255, 1),
-					},
+			want: CreateMapWithBlocks(0, [][]block.Block{
+				{
+					block.NewBlock(1, 1, 1),
+					block.NewBlock(1, 2, 1),
+					block.NewBlock(1, 255, 1),
 				},
-				mapInfo{
-					size: MapSize{3, 1},
-					id:   0,
-				},
-			},
+			}),
 		},
 	}
 	for _, tt := range tests {

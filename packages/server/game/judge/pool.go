@@ -1,10 +1,8 @@
-package judge_pool
+package judge
 
 import (
 	"github.com/sirupsen/logrus"
 	"server/game"
-	"server/game/judge"
-	"server/utils/pkg/data_source"
 	"sync"
 	"time"
 )
@@ -14,19 +12,12 @@ type Pool struct {
 	AllowGameMode []game.Mode
 }
 
-var data data_source.TempDataSource
-
-func ApplyDataSource(source interface{}) {
-	data = source.(data_source.TempDataSource)
-	judge.ApplyDataSource(source)
-
-}
 func (p *Pool) NewGame(mode game.Mode) {
 	id := data.CreateGame(mode)
 	if id == 0 {
 		logrus.Panic("cannot create game")
 	}
-	p.judges.Store(id, judge.NewGameJudge(id))
+	p.judges.Store(id, NewGameJudge(id))
 }
 
 func (p *Pool) DebugNewGame(g *game.Game) {
@@ -36,7 +27,7 @@ func (p *Pool) DebugNewGame(g *game.Game) {
 	if g.Id == 0 {
 		logrus.Panic("Cannot create game")
 	}
-	p.judges.Store(g.Id, judge.NewGameJudge(g.Id))
+	p.judges.Store(g.Id, NewGameJudge(g.Id))
 }
 
 func CreatePool(allowGameMode []game.Mode) *Pool {
@@ -56,7 +47,7 @@ func poolWorking(p *Pool) {
 
 			if uint8(len(data.GetCurrentUserList(game.Id))) == game.Mode.MaxUserNum {
 				jAny, _ := p.judges.Load(game.Id)
-				j := jAny.(*judge.GameJudge)
+				j := jAny.(*Judge)
 				j.StartGame()
 				p.NewGame(game.Mode)
 			}

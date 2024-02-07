@@ -1,6 +1,7 @@
 package judge
 
 import (
+	"context"
 	"github.com/sirupsen/logrus"
 	"server/game"
 	"server/game/block"
@@ -23,10 +24,17 @@ const (
 	StatusWorking
 )
 
-type GameJudge struct {
+type gameContext struct {
+	context.Context
+	g       *game.Game
+	kingPos []block.Position
+}
+
+type Judge struct {
 	gameId game.Id
 	status Status
 	c      chan Status
+	ctx    *gameContext
 }
 
 func ApplyDataSource(source interface{}) {
@@ -34,21 +42,43 @@ func ApplyDataSource(source interface{}) {
 	pData = source.(data_source.PersistentDataSource)
 }
 
-func NewGameJudge(id game.Id) *GameJudge {
-	j := &GameJudge{
+func NewGameJudge(id game.Id) *Judge {
+	j := &Judge{
 		gameId: id,
 		status: StatusWaiting,
 		c:      make(chan Status),
+		ctx: &gameContext{
+			Context: context.Background(),
+			g:       nil,
+		},
 	}
 	go judgeWorking(j)
 	return j
 }
 
-func (j *GameJudge) StartGame() {
+func (j *Judge) StartGame() {
+	g := data.GetGameInfo(j.gameId)
+	if m := data.GetCurrentMap(g.Id); !m.HasBlocks() {
+		g.Map = pData.GetOriginalMap(g.Map.Id())
+	} else {
+		g.Map = m
+	}
+	g.UserList = data.GetCurrentUserList(g.Id)
+
+	j.ctx.kingPos = getKingPos(g)
+	j.ctx.g = g
+
+	allocateKing(j.ctx)
+	allocateTeam(j.ctx)
+
+	game_temp_pool.Create(g.Id) // create temp pool for game
+	data.SetGameStatus(g.Id, game.StatusRunning)
+	data.SetGameMap(g.Id, g.Map)
+	data.NewInstructionTemp(g.Id, 1)
 	j.c <- StatusWorking
 }
 
-func judgeWorking(j *GameJudge) {
+func judgeWorking(j *Judge) {
 	for {
 		j.status = <-j.c
 
@@ -57,35 +87,28 @@ func judgeWorking(j *GameJudge) {
 				"gameId": j.gameId,
 			})
 
+			g := j.ctx.g
 			judgeLogger.Infof("Working")
-
-			g := data.GetGameInfo(j.gameId)
-			game_temp_pool.Create(g.Id)
-			g.Map = data.GetCurrentMap(g.Id)
-			if !g.Map.HasBlocks() {
-				g.Map = pData.GetOriginalMap(g.Map.Id())
-			}
-			data.SetGameStatus(j.gameId, game.StatusRunning)
-			g.UserList = data.GetCurrentUserList(j.gameId)
-
-			kingPos := getKingPos(g)
-
-			allocateKing(g, kingPos)
-			allocateTeam(g)
-			data.SetGameMap(j.gameId, g.Map)
-			data.NewInstructionTemp(j.gameId, 0)
 			t := time.NewTicker(RoundTime)
 			for range t.C {
 				roundLogger := logrus.WithFields(logrus.Fields{
 					"gameId": j.gameId,
 					"round":  g.RoundNum,
 				})
+
+				// Round Start
+				roundLogger.Infof("Round start")
+				g.RoundNum++ // NOTE: ONLY increase the LOCAL value
+				g.Map.RoundStart(g.RoundNum)
+				data.SetGameMap(j.gameId, g.Map)
+
+				_map.DebugOutput(g.Map, func(block block.Block) uint16 {
+					return uint16(block.Meta().BlockId)
+				}) // TODO
+
 				//Round End
-				if g.RoundNum != 0 {
-					roundLogger.Infof("Round end")
-					if g.RoundNum == 1 {
-						logrus.Info("debug")
-					}
+				roundLogger.Infof("Round end")
+				{
 					data.NewInstructionTemp(j.gameId, g.RoundNum)
 					instructionList := data.GetInstructions(j.gameId, g.RoundNum)
 
@@ -96,48 +119,27 @@ func judgeWorking(j *GameJudge) {
 					}
 					g.UserList = data.GetCurrentUserList(g.Id)
 					g.Map.RoundEnd(g.RoundNum)
-					if judgeGame(g, kingPos) != game.StatusRunning {
-						// Game Over
-						data.SetGameStatus(g.Id, game.StatusEnd)
-						data.SetWinner(g.Id, g.Winner)
-						j.status = StatusWaiting
-						game_temp_pool.Delete(g.Id)
-
-						var winnerTeam []string
-						for _, n := range g.UserList {
-							if n.TeamId == g.Winner {
-								winnerTeam = append(winnerTeam, n.Name)
-							}
-						}
-						judgeLogger.Infof("Game end, winner %#v", winnerTeam)
-						return
-					}
 				}
-				g.RoundNum++ // NOTE: ONLY increase the LOCAL value
-				// Round Start
-				roundLogger.Infof("Round start")
-				g.Map.RoundStart(g.RoundNum)
-				data.SetGameMap(j.gameId, g.Map)
 
-				_map.DebugOutput(g.Map, func(block block.Block) uint16 {
-					return uint16(block.Meta().BlockId)
-				}) // TODO
+				if judgeGame(g, j.ctx.kingPos) != game.StatusRunning {
+					// Game Over
+					data.SetGameStatus(g.Id, game.StatusEnd)
+					data.SetWinner(g.Id, g.Winner)
+					j.status = StatusWaiting
+					game_temp_pool.Delete(g.Id)
+
+					var winnerTeam []string
+					for _, n := range g.UserList {
+						if n.TeamId == g.Winner {
+							winnerTeam = append(winnerTeam, n.Name)
+						}
+					}
+					judgeLogger.Infof("Game end, winner %#v", winnerTeam)
+					return
+				}
 			}
 		}
 	}
-}
-
-func getKingPos(g *game.Game) []block.Position {
-	var kingPos []block.Position
-	for y := uint8(1); y <= g.Map.Size().H; y++ {
-		for x := uint8(1); x <= g.Map.Size().W; x++ {
-			b := g.Map.GetBlock(block.Position{X: x, Y: y})
-			if b.Meta().BlockId == block.KingMeta.BlockId {
-				kingPos = append(kingPos, block.Position{X: x, Y: y})
-			}
-		}
-	}
-	return kingPos
 }
 
 // judgeGame TODO: Add unit test
@@ -166,62 +168,10 @@ func judgeGame(g *game.Game, kingPos []block.Position) game.Status {
 
 	// Check king status
 	if g.Mode == game.Mode1v1 {
-		flag := true
-		for _, k := range kingPos {
-			if g.Map.GetBlock(k).Meta().BlockId != block.KingMeta.BlockId {
-				flag = false
-				break
-			}
-		}
-		if !flag {
-			var w uint16
-			for _, k := range kingPos {
-				if g.Map.GetBlock(k).Meta().BlockId == block.KingMeta.BlockId {
-					w = g.Map.GetBlock(k).OwnerId()
-				}
-			}
-			var wt uint8
-			for _, u := range g.UserList {
-				if u.UserId == w {
-					wt = u.TeamId
-					break
-				}
-			}
-			g.Winner = wt
-			return game.StatusEnd
-		}
+		return judgeGameMode1v1(g, kingPos)
 	}
 
 	return game.StatusRunning
-}
-
-func allocateKing(g *game.Game, kingPos []block.Position) {
-	allocatableKingNum := 0
-	for _, k := range kingPos {
-		if g.Map.GetBlock(k).OwnerId() == 0 {
-			allocatableKingNum++
-		}
-	}
-
-	for i, u := range g.UserList { // allocate king blocks by order, ignoring the part out of user number
-		if allocatableKingNum <= 0 { // check for debug creating behaviour
-
-			break
-		}
-		g.Map.SetBlock(kingPos[i],
-			block.NewBlock(block.KingMeta.BlockId, g.Map.GetBlock(kingPos[i]).Number(), u.UserId))
-		allocatableKingNum--
-	}
-}
-
-func allocateTeam(g *game.Game) {
-	if g.Mode == game.Mode1v1 {
-		for i := range g.UserList {
-			g.UserList[i].TeamId = uint8(i) + 1
-		}
-	} else {
-		panic("unexpected game mod")
-	}
 }
 
 func executeInstruction(id game.Id, userId uint16, ins instruction.Instruction) bool {
