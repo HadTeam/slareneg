@@ -1,4 +1,4 @@
-package data_source
+package game
 
 import (
 	"server/game/map"

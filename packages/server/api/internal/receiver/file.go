@@ -6,9 +6,10 @@ import (
 	"os"
 	_command "server/api/internal/command"
 	"server/game"
-	"server/game/judge"
 	"server/game/map"
-	"server/utils/pkg/data_source"
+	"server/game/mode"
+	"server/game/user"
+	"server/pool"
 	"strconv"
 	"strings"
 	"time"
@@ -17,14 +18,14 @@ import (
 // NOTE: DEBUG ONLY
 // Use to receive instructions from local file, in order to test the game functions
 
-var data data_source.TempDataSource
+var data game.TempDataSource
 var fileDir = "./test/replay"
 
 func ApplyDataSource(source any) {
-	data = source.(data_source.TempDataSource)
+	data = source.(game.TempDataSource)
 }
 
-func NewFileReceiver(pool *judge.Pool) {
+func NewFileReceiver(pool *pool.Pool) {
 	f := LoadFile()
 
 	for index, r := range f {
@@ -32,9 +33,9 @@ func NewFileReceiver(pool *judge.Pool) {
 		logrus.Infof("start game by reply file #%d", r.Id)
 		g := &game.Game{
 			Map:        r.Map,
-			Mode:       game.Mode1v1,
+			Mode:       mode.Mode1v1,
 			Id:         game.Id(index + 1e3),
-			UserList:   []game.User{},
+			UserList:   []user.User{},
 			CreateTime: time.Now().UnixMicro(),
 			Status:     game.StatusWaiting,
 			RoundNum:   0,
@@ -57,7 +58,7 @@ func NewFileReceiver(pool *judge.Pool) {
 }
 
 type command struct {
-	User game.User
+	User user.User
 	Ins  []string
 }
 
@@ -111,10 +112,10 @@ func LoadFile() []reply {
 			cmdStr := strings.Split(t[1], "\n")
 
 			cmd := command{
-				User: game.User{
+				User: user.User{
 					Name:             name,
 					UserId:           uint16(userId),
-					Status:           game.UserStatusConnected,
+					Status:           user.Connected,
 					TeamId:           uint8(userId) - 1,
 					ForceStartStatus: false,
 				},
@@ -150,7 +151,7 @@ func fakePlayer(ctx *Context, c []string) {
 					playerLogger.Infof("Command(tot: %d) runs out, quit", len(c))
 					ticker.Stop()
 					player := ctx.User
-					player.Status = game.UserStatusDisconnected
+					player.Status = user.Disconnected
 					data.SetUserStatus(ctx.Game.Id, player)
 				}
 				if ctx.Game.RoundNum > currentRound {
@@ -179,7 +180,7 @@ func fakePlayer(ctx *Context, c []string) {
 
 func receiver(ctx *Context) {
 	//ctx.User.Name = strconv.Itoa(int(ctx.User.UserId)) // DEBUG ONLY, avoiding strange username from `gioreply` file
-	ctx.User.Status = game.UserStatusConnected
+	ctx.User.Status = user.Connected
 	data.SetUserStatus(ctx.Game.Id, ctx.User)
 
 	receiverLogger := logrus.WithFields(logrus.Fields{
@@ -188,7 +189,7 @@ func receiver(ctx *Context) {
 	receiverLogger.Infof("user join")
 
 	defer func() {
-		ctx.User.Status = game.UserStatusDisconnected
+		ctx.User.Status = user.Disconnected
 		data.SetUserStatus(ctx.Game.Id, ctx.User)
 		receiverLogger.Infof("user quit")
 	}()
@@ -218,7 +219,7 @@ func receiver(ctx *Context) {
 		case <-ticker.C:
 			{
 				done := func(g *game.Game, d string) {
-					res := _command.GenerateMessage(d, ctx.Game.Id, ctx.User.UserId)
+					res := _command.GenerateMessage(d, ctx.Game.Id, ctx.User)
 					ctx.Message <- res
 					ctx.Game = g
 				}

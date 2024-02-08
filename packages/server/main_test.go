@@ -7,8 +7,8 @@ import (
 	"server/game"
 	_ "server/game/block"
 	"server/game/instruction"
-	"server/game/judge"
-	"server/utils/pkg/data_source/local"
+	"server/game/mode"
+	"server/pool"
 	"testing"
 	"time"
 )
@@ -19,15 +19,16 @@ func TestServer_main(t *testing.T) {
 		TimestampFormat: time.RFC3339,
 	})
 
-	data := local.Local{
+	data := game.Local{
 		GamePool:           make(map[game.Id]*game.Game),
 		OriginalMapStrPool: make(map[uint32]string),
 		InstructionLog:     make(map[game.Id]map[uint16]map[uint16]instruction.Instruction),
 	}
 	data.OriginalMapStrPool[0] = "[\n[0,0,0,0,2],\n[0,2,0,0,0],\n[0,0,0,0,0],\n[0,3,3,0,3],\n[0,3,0,2,0]\n]"
 
-	judge.ApplyDataSource(&data)
-	p := judge.CreatePool([]game.Mode{game.Mode1v1})
+	p := pool.CreatePool([]mode.Mode{mode.Mode1v1})
+
+	game.ApplyDataSource(&data)
 
 	time.Sleep(200 * time.Millisecond)
 

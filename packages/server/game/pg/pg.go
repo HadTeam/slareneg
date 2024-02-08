@@ -8,12 +8,13 @@ import (
 	"server/game/block"
 	"server/game/instruction"
 	"server/game/map"
-	data_source "server/utils/pkg/data_source"
+	"server/game/mode"
+	"server/game/user"
 	db "server/utils/pkg/pg"
 )
 
-var _ data_source.PersistentDataSource = (*Pg)(nil)
-var _ data_source.TempDataSource = (*Pg)(nil)
+var _ game.PersistentDataSource = (*Pg)(nil)
+var _ game.TempDataSource = (*Pg)(nil)
 
 type Pg struct {
 }
@@ -63,7 +64,7 @@ func generatorMapJson(m *_map.Map) string {
 
 var sqlQueryGame = "SELECT * FROM game WHERE game_id=$1"
 
-func (p *Pg) CreateGame(mode game.Mode) game.Id {
+func (p *Pg) CreateGame(mode mode.Mode) game.Id {
 	var gameId game.Id
 	for {
 		gameId = game.Id(rand.Uint32())
@@ -92,7 +93,7 @@ func (p *Pg) DebugCreateGame(g *game.Game) (ok bool) {
 
 var sqlQueryGameList = "SELECT game_id FROM game WHERE mode=$1 AND (status=1 OR status=2)"
 
-func (p *Pg) GetGameList(mode game.Mode) []game.Game {
+func (p *Pg) GetGameList(mode mode.Mode) []game.Game {
 	r := db.SqlQuery(sqlQueryGameList, mode)
 	var list []game.Id
 	for {
@@ -115,7 +116,7 @@ func (p *Pg) CancelGame(id game.Id) (ok bool) {
 	panic("implement me")
 }
 
-func (p *Pg) GetCurrentUserList(id game.Id) []game.User {
+func (p *Pg) GetCurrentUserList(id game.Id) []user.User {
 	//TODO implement me
 	panic("implement me")
 }
@@ -142,7 +143,7 @@ func (p *Pg) GetGameInfo(id game.Id) *game.Game {
 		logrus.Warn("cannot get game info")
 		return nil
 	}
-	if mode, ok := game.ModeMap[modeStr]; !ok {
+	if mode, ok := mode.Map[modeStr]; !ok {
 		logrus.Warn("get unknown mode ", modeStr, " when get game info")
 	} else {
 		g.Mode = mode
@@ -165,7 +166,7 @@ func (p *Pg) SetGameMap(id game.Id, m *_map.Map) (ok bool) {
 	panic("implement me")
 }
 
-func (p *Pg) SetUserStatus(id game.Id, user game.User) (ok bool) {
+func (p *Pg) SetUserStatus(id game.Id, user user.User) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -175,7 +176,7 @@ func (p *Pg) SetWinner(id game.Id, teamId uint8) (ok bool) {
 	panic("implement me")
 }
 
-func (p *Pg) UpdateInstruction(id game.Id, user game.User, instruction instruction.Instruction) (ok bool) {
+func (p *Pg) UpdateInstruction(id game.Id, user user.User, instruction instruction.Instruction) (ok bool) {
 	//TODO implement me
 	panic("implement me")
 }

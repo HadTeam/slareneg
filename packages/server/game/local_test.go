@@ -1,11 +1,12 @@
-package local
+package game
 
 import (
-	"server/game"
 	"server/game/block"
 	_ "server/game/block"
 	"server/game/instruction"
 	"server/game/map"
+	"server/game/mode"
+	"server/game/user"
 	"strconv"
 	"testing"
 )
@@ -16,19 +17,19 @@ func init() {
 
 func create() *Local {
 	return &Local{
-		GamePool:           make(map[game.Id]*game.Game),
+		GamePool:           make(map[Id]*Game),
 		OriginalMapStrPool: make(map[uint32]string),
-		InstructionLog:     make(map[game.Id]map[uint16]map[uint16]instruction.Instruction),
+		InstructionLog:     make(map[Id]map[uint16]map[uint16]instruction.Instruction),
 	}
 }
 
 var userCount = uint16(1)
 
-func getUser() game.User {
-	return game.User{
+func getUser() user.User {
+	return user.User{
 		Name:             strconv.Itoa(int(userCount)),
 		UserId:           userCount,
-		Status:           game.UserStatusDisconnected,
+		Status:           user.Disconnected,
 		TeamId:           uint8(userCount),
 		ForceStartStatus: false,
 	}
@@ -52,23 +53,23 @@ func TestLocal_lock(t *testing.T) {
 
 func TestLocal_Game(t *testing.T) {
 	l := create()
-	id := game.Id(1)
+	id := Id(1)
 
 	// This function must be correct
-	l.DebugCreateGame(&game.Game{
+	l.DebugCreateGame(&Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"), // Wait
-		Mode:       game.Mode1v1,
+		Mode:       mode.Mode1v1,
 		Id:         id,
-		UserList:   []game.User{getUser()},
+		UserList:   []user.User{getUser()},
 		CreateTime: 0,
-		Status:     game.StatusWaiting,
+		Status:     StatusWaiting,
 		RoundNum:   0,
 		Winner:     0,
 	})
 
 	t.Run("set game status", func(t *testing.T) {
-		l.SetGameStatus(id, game.StatusRunning)
-		if l.GamePool[id].Status != game.StatusRunning {
+		l.SetGameStatus(id, StatusRunning)
+		if l.GamePool[id].Status != StatusRunning {
 			t.Fatalf("the status has unchanged")
 		}
 	})
@@ -79,7 +80,7 @@ func TestLocal_Game(t *testing.T) {
 		}
 	})
 	t.Run("get game list", func(t *testing.T) {
-		gl := l.GetGameList(game.Mode1v1)
+		gl := l.GetGameList(mode.Mode1v1)
 		if len(gl) != 1 {
 			t.Fatalf("game count is incorrect")
 		}
@@ -109,7 +110,7 @@ func TestLocal_Game(t *testing.T) {
 
 	t.Run("cancel game", func(t *testing.T) {
 		l.CancelGame(id)
-		if l.GamePool[id].Status != game.StatusEnd {
+		if l.GamePool[id].Status != StatusEnd {
 			t.Fatalf("the status has unchanged")
 		}
 		if l.GamePool[id].UserList != nil {
@@ -120,14 +121,14 @@ func TestLocal_Game(t *testing.T) {
 
 func TestLocal_User(t *testing.T) {
 	l := create()
-	id := game.Id(2)
-	l.DebugCreateGame(&game.Game{
+	id := Id(2)
+	l.DebugCreateGame(&Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"),
-		Mode:       game.Mode1v1,
+		Mode:       mode.Mode1v1,
 		Id:         id,
-		UserList:   []game.User{},
+		UserList:   []user.User{},
 		CreateTime: 0,
-		Status:     game.StatusWaiting,
+		Status:     StatusWaiting,
 		RoundNum:   0,
 		Winner:     0,
 	})
@@ -138,14 +139,14 @@ func TestLocal_User(t *testing.T) {
 			t.Fatalf("user has been added unexpectedly")
 		}
 
-		u.Status = game.UserStatusConnected
+		u.Status = user.Connected
 		l.SetUserStatus(id, u)
 
 		if len(l.GamePool[id].UserList) != 1 || l.GamePool[id].UserList[0].UserId != u.UserId {
 			t.Fatalf("user has not been added")
 		}
 
-		u.Status = game.UserStatusDisconnected
+		u.Status = user.Disconnected
 
 		l.SetUserStatus(id, u)
 
@@ -157,14 +158,14 @@ func TestLocal_User(t *testing.T) {
 
 func TestLocal_Map(t *testing.T) {
 	l := create()
-	id := game.Id(3)
-	l.DebugCreateGame(&game.Game{
+	id := Id(3)
+	l.DebugCreateGame(&Game{
 		Map:        _map.FullStr2GameMap(1, "[[[0,0,0]]]"),
-		Mode:       game.Mode1v1,
+		Mode:       mode.Mode1v1,
 		Id:         id,
-		UserList:   []game.User{},
+		UserList:   []user.User{},
 		CreateTime: 0,
-		Status:     game.StatusWaiting,
+		Status:     StatusWaiting,
 		RoundNum:   0,
 		Winner:     0,
 	})

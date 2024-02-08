@@ -1,19 +1,20 @@
-package judge
+package game
 
 import (
 	"math"
 	"math/rand"
-	"server/game"
 	"server/game/block"
+	"server/game/mode"
+	"server/game/user"
 )
 
 // allocateKing allocates a King to the users who don't own one yet.
-func allocateKing(ctx *gameContext) {
-	m := ctx.g.Map
+func (g *Game) allocateKing() {
+	m := g.Map
 	var kingPos []block.Position               // To store the positions of Kings that haven't been allocated
 	userKingMap := map[uint16]block.Position{} // To store the user who already own a King
 
-	for _, k := range ctx.kingPos {
+	for _, k := range g.getKingPos() {
 		id := m.GetBlock(k).OwnerId()
 		if id != 0 {
 			userKingMap[id] = k
@@ -26,8 +27,8 @@ func allocateKing(ctx *gameContext) {
 		kingPos[i], kingPos[j] = kingPos[j], kingPos[i]
 	})
 
-	var userNeedKing []game.User
-	for _, user := range ctx.g.UserList {
+	var userNeedKing []user.User
+	for _, user := range g.UserList {
 		if _, exists := userKingMap[user.UserId]; !exists {
 			userNeedKing = append(userNeedKing, user)
 		}
@@ -49,24 +50,19 @@ func allocateKing(ctx *gameContext) {
 	for _, pos := range kingNeedTrans {
 		m.SetBlock(pos, block.NewBlock(block.CastleMeta.BlockId, 0, 0))
 	}
-
-	ctx.kingPos = make([]block.Position, 0, len(userKingMap))
-	for _, pos := range userKingMap {
-		ctx.kingPos = append(ctx.kingPos, pos)
-	}
 }
 
-func allocateTeam(ctx *gameContext) {
-	if ctx.g.Mode == game.Mode1v1 {
-		for i := range ctx.g.UserList {
-			ctx.g.UserList[i].TeamId = uint8(i) + 1
+func (g *Game) allocateTeam() {
+	if g.Mode == mode.Mode1v1 {
+		for i := range g.UserList {
+			g.UserList[i].TeamId = uint8(i) + 1
 		}
 	} else {
 		panic("unexpected game mod")
 	}
 }
 
-func getKingPos(g *game.Game) []block.Position {
+func (g *Game) getKingPos() []block.Position {
 	var kingPos []block.Position
 	for y := uint8(1); y <= g.Map.Size().H; y++ {
 		for x := uint8(1); x <= g.Map.Size().W; x++ {
