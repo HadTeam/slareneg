@@ -96,7 +96,7 @@ func (l *Local) GetGameInfo(id Id) *Game {
 		defer l.unlock()
 		g := *l.GamePool[id]
 		g.UserList = nil
-		g.Map = _map.CreateEmptyMapWithInfo(g.Map.Id(), g.Map.Size())
+		g.Map = _map.NewWithoutBlocks(g.Map.Id(), g.Map.Size())
 		return &g
 	} else {
 		return nil

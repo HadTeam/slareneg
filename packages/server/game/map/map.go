@@ -60,7 +60,7 @@ func (m *Map) RoundEnd(roundNum uint16) {
 	}
 }
 
-func CreateEmptyMapWithInfo(mapId uint32, size MapSize) *Map {
+func NewWithoutBlocks(mapId uint32, size MapSize) *Map {
 	return &Map{
 		Blocks: nil,
 		mapInfo: mapInfo{
@@ -70,7 +70,7 @@ func CreateEmptyMapWithInfo(mapId uint32, size MapSize) *Map {
 	}
 }
 
-func CreateMapWithBlocks(mapId uint32, blocks [][]block.Block) *Map {
+func New(mapId uint32, blocks [][]block.Block) *Map {
 	return &Map{
 		Blocks: blocks,
 		mapInfo: mapInfo{
@@ -136,6 +136,7 @@ func (m *Map) getVisibilityInFog(gameId uint16, teamId uint8, userList []user.Us
 		lightOffset := []struct {
 			x, y int
 		}{{0, 1}, {0, -1}, {-1, 0}, {1, 0}}
+		(*ret)[y][x] = true
 		for _, r := range lightOffset {
 			ly := y + r.y
 			lx := x + r.x
