@@ -1,65 +1,72 @@
-> 注意：本部分的各个部分按照功能来划分
+## Backend
 
-后端分为以下几个部分
-- Api Provider
-  - Websocket Receiver
-  - HTTP Receiver
-  - Game Operator
-- Game Pool
-  - Game Judge
-- Data Saver
+### 坐标定义 - 基本坐标系
+- **原点 (0,0)**: 地图左上角
+- **X轴**: 水平方向，向右递增 (列)
+- **Y轴**: 垂直方向，向下递增 (行)
+- **最大坐标**: 右下角为 (mapWidth-1, mapHeight-1)
 
-共有两个储存接口
-- Temperature Data Source
-- Persistent Data Source
+基于上述坐标系，移动方向定义为：
+- **up**: Y坐标减小 (向上移动)
+- **down**: Y坐标增大 (向下移动)  
+- **left**: X坐标减小 (向左移动)
+- **right**: X坐标增大 (向右移动)
 
-还有 Rpc 接口
-- Api Provider Rpc
-- Game Pool Rpc
+### API Provider
+- **HTTP Service**: 处理认证、用户管理等HTTP请求
+- **WebSocket Service**: 处理实时游戏通信
+- **Auth Middleware**: JWT验证和权限控制
 
-## Data Source
-### Temperature
-- 获取目前地图
-- 更新地图
-- 获取指令列表
-- 更新游戏指令
-- 修改游戏状态
-- 获取玩家列表
-- 修改玩家状态
+### Game Core
+- **Room Manager**: 房间创建、匹配、管理
+- **Game Engine**: 游戏逻辑核心
+- **Turn System**: 回合管理和定时器
+- **Conflict Resolver**: 多玩家操作冲突判定
 
-### Persistent
-- 获取初始地图
+### Data Layer
+- **Cache Layer (Redis)**: 
+  - 游戏状态缓存
+  - 用户会话管理
+  - 房间信息缓存
+- **Database (MySQL/PostgreSQL)**:
+  - 用户账户信息
+  - 游戏历史记录
+  - 排行榜数据
 
-## Api Provider
+### Message Queue
+- **Redis Pub/Sub**: 实时消息广播
+- **指令队列**: 玩家操作排队处理
 
-### Websocket Receiver
-与 Websocket Client 通讯以接收指令，并与 Game Operator 交互以执行指令。
+## 定时任务系统
 
-### HTTP Receiver
-负责相应 HTTP API 请求。
+### 回合定时器
+- 每回合固定时长（默认30秒）
+- 自动结束超时回合
+- 触发新回合开始
 
-### Authoritarian Handler
-#### 用户操作
-包括以下
-- 注册
-- 登录
-- 修改密码
-- 恢复密码
-- 绑定邮箱
-- 修改邮箱
+### 资源增长
+- 城市单位自动增长
+- 领土收益计算
 
-## Game Pool
-### 回合机制
-通过一个计时器，在特定一段时间内结算旧回合、发起新回合。
+### 状态检查
+- 游戏胜负判定
+- 玩家连接状态监控
+- 数据同步检查
 
-### 多玩家操作冲突判定
-通过 Instruction Temp 机制与按时间戳排序来实现
+## 数据持久化策略
 
-Instruction Temp 机制：在 Temperature Data Source 内设置一个回合数字段，按照回合数与玩家 ID 覆盖保存 Instruction，当回合结束时使回合数递增。
+### 实时数据 (Cache)
+- 当前游戏状态
+- 玩家操作队列
+- 房间信息
 
-## Data Saver
-### 游戏结束时转存数据
-抽取 Temp DataSource 中的操作信息，转存到 Persistent Data Source。
+### 持久化数据 (Database)  
+- 用户账户
+- 游戏历史
+- 统计数据
+- 排行榜
 
-### 更新评级
-定期抽取 Persistent Data Source 中的信息，计算排名。
+### 同步机制
+- 游戏结束时批量写入数据库
+- 关键操作实时备份
+- 定期数据一致性检查

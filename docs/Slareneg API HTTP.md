@@ -1,19 +1,75 @@
-## User
-### 注册
-addr: `/api/user/register?username={username}`
-cookie: `token: <token>`
+## 认证系统 (Authentication)
 
-### 恢复
+### 用户注册
+**地址**: `POST /api/auth/register`
+**请求体**:
+```json
+{
+  "username": "<string>",
+  "password": "<string>",
+  "email": "<string>" // 可选
+}
+```
+**响应**:
+```json
+{
+  "status": "success|failed",
+  "token": "<JWT_TOKEN>", // 成功时返回
+  "message": "<string>"   // 失败时返回错误信息
+}
+```
 
-addr: `/api/user/recover?mail={mail_addr}`
-ret: `{ "status": "<Status>" }`
+### 用户登录
+**地址**: `POST /api/auth/login`
+**请求体**:
+```json
+{
+  "username": "<string>",
+  "password": "<string>"
+}
+```
+**响应**:
+```json
+{
+  "status": "success|failed",
+  "token": "<JWT_TOKEN>",
+  "userInfo": {
+    "id": "<uint>",
+    "username": "<string>",
+    "email": "<string>"
+  }
+}
+```
 
-#### Status
-- success
-- failed
+### 密码恢复
+**地址**: `POST /api/auth/recover`
+**请求体**:
+```json
+{
+  "email": "<string>"
+}
+```
+**响应**:
+```json
+{
+  "status": "success|failed",
+  "message": "<string>"
+}
+```
 
 ### 绑定邮箱
-
-addr: `/api/user/bind?mail={mail_addr}`
-ret: `{ "status": "<Status>" }`
-
+**地址**: `POST /api/auth/bind-email`
+**请求头**: `Authorization: Bearer <JWT_TOKEN>`
+**请求体**:
+```json
+{
+  "email": "<string>"
+}
+```
+**响应**:
+```json
+{
+  "status": "success|failed",
+  "message": "<string>"
+}
+```
