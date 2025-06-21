@@ -33,5 +33,3 @@ type Block interface {
 
 	Meta() Meta
 }
-
-type Position struct{ X, Y uint8 }
