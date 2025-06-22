@@ -30,10 +30,13 @@ type BaseCore struct {
 	// 事件回调
 	onBroadcastEvent func(queue.Event)
 	onControlEvent   func(queue.Event)
+
+	// 地图管理器
+	mapManager gamemap.MapManager
 }
 
 // NewBaseCore 创建新的BaseCore实例
-func NewBaseCore(gameId string, mode GameMode) *BaseCore {
+func NewBaseCore(gameId string, mode GameMode, mapManager gamemap.MapManager) *BaseCore {
 	if mode.Name == "" {
 		panic("game mode cannot be nil or empty")
 	}
@@ -43,6 +46,7 @@ func NewBaseCore(gameId string, mode GameMode) *BaseCore {
 		players:    make([]Player, 0),
 		turnNumber: 0,
 		mode:       mode,
+		mapManager: mapManager,
 	}
 }
 
@@ -646,11 +650,6 @@ func (gc *BaseCore) handleTurnTimeout() {
 
 func (gc *BaseCore) initializeMap() error {
 	mapSize := gamemap.Size{Width: 20, Height: 20}
-	mapInfo := gamemap.Info{
-		Id:   gc.gameId + "_map",
-		Name: "Game Map",
-		Desc: "Generated map for game " + gc.gameId,
-	}
 
 	players := make([]gamemap.Player, len(gc.players))
 	for i, p := range gc.players {
@@ -661,9 +660,12 @@ func (gc *BaseCore) initializeMap() error {
 		}
 	}
 
-	generatedMap, err := gamemap.GenerateMap("base", mapSize, mapInfo, players)
+	config := gamemap.DefaultGeneratorConfig()
+	mapId := gc.mapManager.GenerateMapId("base", mapSize, len(players), config)
+
+	generatedMap, err := gc.mapManager.GetMap(mapId, players)
 	if err != nil {
-		return fmt.Errorf("failed to generate map: %w", err)
+		return fmt.Errorf("failed to get map from manager: %w", err)
 	}
 
 	gc._map = generatedMap

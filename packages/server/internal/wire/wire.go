@@ -10,6 +10,7 @@ import (
 	"server/internal/auth"
 	"server/internal/cache"
 	"server/internal/config"
+	gamemap "server/internal/game/map"
 	"server/internal/lobby"
 	"server/internal/queue"
 	"server/internal/websocket"
@@ -23,6 +24,7 @@ type Application struct {
 	Lobby       *lobby.Lobby
 	WSServer    *websocket.WebSocketServer
 	Cache       *cache.CacheService
+	MapManager  gamemap.MapManager
 }
 
 func InitializeApplication(cfg *config.Config) (*Application, error) {
@@ -43,6 +45,9 @@ func InitializeApplication(cfg *config.Config) (*Application, error) {
 
 		provideCacheService,
 
+		provideMapManager,
+		wire.Bind(new(gamemap.MapManager), new(*gamemap.DefaultMapManager)),
+
 		lobby.NewLobby,
 
 		websocket.NewWebSocketServer,
@@ -59,4 +64,8 @@ func provideJWTTokenService(cfg *config.Config) *auth.JWTTokenService {
 func provideCacheService(cfg *config.Config) *cache.CacheService {
 	inMemoryCache := cache.NewInMemoryCache(cfg.Cache.CleanupInterval)
 	return cache.NewCacheService(inMemoryCache)
+}
+
+func provideMapManager() *gamemap.DefaultMapManager {
+	return gamemap.NewMapManager()
 }

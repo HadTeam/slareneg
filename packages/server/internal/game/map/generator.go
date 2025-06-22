@@ -2,6 +2,7 @@ package gamemap
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"server/internal/game/block"
 )
@@ -21,6 +22,7 @@ type GeneratorConfig struct {
 	MountainDensity   float64 // 0.0-1.0, 默认 0.5
 	CastleDensity     float64 // 0.0-1.0, 默认 0.5
 	MinCastleDistance int     // 城堡间最小距离
+	Seed              int64   // 随机种子，0 表示使用随机种子
 }
 
 func DefaultGeneratorConfig() GeneratorConfig {
@@ -28,10 +30,16 @@ func DefaultGeneratorConfig() GeneratorConfig {
 		MountainDensity:   0.5,
 		CastleDensity:     0.5,
 		MinCastleDistance: 5,
+		Seed:              0,
 	}
 }
 
-type GeneratorFunc func(size Size, info Info, players []Player, config ...GeneratorConfig) (Map, error)
+func (c GeneratorConfig) String() string {
+	return fmt.Sprintf("m%.1f-c%.1f-d%d-s%d",
+		c.MountainDensity, c.CastleDensity, c.MinCastleDistance, c.Seed)
+}
+
+type GeneratorFunc func(size Size, players []Player, config ...GeneratorConfig) (Map, error)
 
 type generatorEntry struct {
 	name      string
@@ -64,7 +72,7 @@ func GeneratorExists(name string) bool {
 	return exists
 }
 
-func GenerateMap(generatorName string, size Size, info Info, players []Player, config ...GeneratorConfig) (Map, error) {
+func GenerateMap(generatorName string, size Size, players []Player, config ...GeneratorConfig) (Map, error) {
 	entry, exists := generators[generatorName]
 	if !exists {
 		slog.Warn("Unknown map generator", "name", generatorName, "available", GetAllGeneratorNames())
@@ -78,5 +86,5 @@ func GenerateMap(generatorName string, size Size, info Info, players []Player, c
 		}
 	}
 
-	return entry.generator(size, info, players, config...)
+	return entry.generator(size, players, config...)
 }

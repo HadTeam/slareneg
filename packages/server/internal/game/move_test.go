@@ -27,7 +27,8 @@ func createTestCore() *BaseCore {
 
 	testMap := gamemap.NewBaseMap(blocks, size, mapInfo)
 
-	core := NewBaseCore("test_game", TestMode)
+	mapManager := createTestMapManager()
+	core := NewBaseCore("test_game", TestMode, mapManager)
 	core._map = testMap
 
 	core.players = append(core.players, Player{Id: "player1", Name: "Player 1", Status: PlayerStatusInGame, Moves: 2})
@@ -214,7 +215,8 @@ func TestMoveExecution(t *testing.T) {
 	mapInfo := gamemap.Info{Id: "test_map", Name: "Test Map", Desc: "test"}
 	testMap := gamemap.NewBaseMap(blocks, size, mapInfo)
 
-	core := NewBaseCore("test_game", TestMode)
+	mapManager := createTestMapManager()
+	core := NewBaseCore("test_game", TestMode, mapManager)
 	core._map = testMap
 	core.players = append(core.players, Player{Id: "player1", Name: "Player 1", Status: PlayerStatusInGame, Moves: 2})
 	core.status = StatusInProgress

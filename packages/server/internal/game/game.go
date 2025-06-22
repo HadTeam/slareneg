@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	gamemap "server/internal/game/map"
 	"server/internal/queue"
 )
 
@@ -23,8 +24,8 @@ type Game struct {
 }
 
 // NewGame 创建新的游戏实例
-func NewGame(gameId string, q queue.Queue, mode GameMode) *Game {
-	core := NewBaseCore(gameId, mode)
+func NewGame(gameId string, q queue.Queue, mode GameMode, mapManager gamemap.MapManager) *Game {
+	core := NewBaseCore(gameId, mode, mapManager)
 
 	game := &Game{
 		gameId: gameId,

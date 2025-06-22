@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-// TestMoveTowards 测试移动方向
 func TestMoveTowards(t *testing.T) {
 	t.Run("move_offsets", func(t *testing.T) {
 		testCases := []struct {
@@ -42,7 +41,6 @@ func TestMoveTowards(t *testing.T) {
 	})
 }
 
-// TestCommandEvents 测试指令事件
 func TestCommandEvents(t *testing.T) {
 	t.Run("join_command", func(t *testing.T) {
 		cmd := JoinCommand{
@@ -109,7 +107,6 @@ func TestCommandEvents(t *testing.T) {
 	})
 }
 
-// TestControlEvents 测试控制事件
 func TestControlEvents(t *testing.T) {
 	t.Run("start_game_control", func(t *testing.T) {
 		event := StartGameControl{}
@@ -134,7 +131,6 @@ func TestControlEvents(t *testing.T) {
 	})
 }
 
-// TestBroadcastEvents 测试广播事件
 func TestBroadcastEvents(t *testing.T) {
 	players := []Player{
 		{Id: "player1", Name: "Player One", Status: PlayerStatusInGame},
@@ -227,7 +223,6 @@ func TestBroadcastEvents(t *testing.T) {
 	})
 }
 
-// TestPlayerEvents 测试玩家事件
 func TestPlayerEvents(t *testing.T) {
 	t.Run("player_error_event", func(t *testing.T) {
 		event := PlayerErrorEvent{
@@ -244,7 +239,6 @@ func TestPlayerEvents(t *testing.T) {
 	})
 }
 
-// TestMove 测试移动数据结构
 func TestMove(t *testing.T) {
 	t.Run("move_structure", func(t *testing.T) {
 		move := Move{
@@ -265,7 +259,6 @@ func TestMove(t *testing.T) {
 	})
 }
 
-// TestEventInheritance 测试事件继承结构
 func TestEventInheritance(t *testing.T) {
 	t.Run("command_event_inheritance", func(t *testing.T) {
 		// 所有指令事件都应该包含CommandEvent
@@ -330,7 +323,6 @@ func TestEventInheritance(t *testing.T) {
 	})
 }
 
-// TestEventConstants 测试事件相关常量
 func TestEventConstants(t *testing.T) {
 	t.Run("move_directions", func(t *testing.T) {
 		directions := []MoveTowards{

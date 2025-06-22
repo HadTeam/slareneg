@@ -2,6 +2,7 @@ package gamemap
 
 import (
 	"errors"
+	"fmt"
 	"math"
 	"math/rand"
 	"server/internal/game/block"
@@ -9,11 +10,20 @@ import (
 
 type BaseMapGenerator struct {
 	config GeneratorConfig
+	rng    *rand.Rand
 }
 
 func NewBaseMapGenerator(config GeneratorConfig) *BaseMapGenerator {
+	var rng *rand.Rand
+	if config.Seed != 0 {
+		rng = rand.New(rand.NewSource(config.Seed))
+	} else {
+		rng = rand.New(rand.NewSource(rand.Int63()))
+	}
+
 	return &BaseMapGenerator{
 		config: config,
+		rng:    rng,
 	}
 }
 
@@ -21,10 +31,21 @@ func (g *BaseMapGenerator) Name() string {
 	return "base"
 }
 
-func (g *BaseMapGenerator) Generate(size Size, info Info, players []Player, config ...GeneratorConfig) (Map, error) {
-	// 如果传递了配置，使用传递的配置，否则保持当前配置
+func (g *BaseMapGenerator) Generate(size Size, players []Player, config ...GeneratorConfig) (Map, error) {
 	if len(config) > 0 {
 		g.config = config[0]
+		if config[0].Seed != 0 {
+			g.rng = rand.New(rand.NewSource(config[0].Seed))
+		} else {
+			g.rng = rand.New(rand.NewSource(rand.Int63()))
+		}
+	}
+
+	mapId := fmt.Sprintf("generated-%d", g.config.Seed)
+	info := Info{
+		Id:   mapId,
+		Name: "Generated Map",
+		Desc: "Procedurally generated map",
 	}
 
 	gameMap := NewEmptyBaseMap(size, info)
@@ -128,13 +149,11 @@ func (g *BaseMapGenerator) generateTerrain(gameMap *BaseMap) error {
 
 	noiseMap := g.generatePerlinNoise(int(size.Width), int(size.Height))
 
-	// 将 0.5 作为默认档位，线性映射到阈值
-	// 0.0 -> 很难生成 (高阈值), 1.0 -> 很容易生成 (低阈值)
-	mountainThreshold := 0.8 - (g.config.MountainDensity * 0.6) // 0.8 到 0.2 的范围
-	castleThreshold := 0.6 - (g.config.CastleDensity * 0.4)     // 0.6 到 0.2 的范围
+	mountainThreshold := 0.8 - (g.config.MountainDensity * 0.6)
+	castleThreshold := 0.6 - (g.config.CastleDensity * 0.4)
 
 	maxAttempts := 100
-	baseCastleCount := int(size.Width * size.Height / 50) // 基础城堡数量根据地图大小
+	baseCastleCount := int(size.Width * size.Height / 50)
 	targetCastleCount := int(float64(baseCastleCount) * (0.5 + g.config.CastleDensity))
 
 	var castlePositions []Pos
@@ -160,7 +179,7 @@ func (g *BaseMapGenerator) generateTerrain(gameMap *BaseMap) error {
 					if len(castlePositions) < targetCastleCount &&
 						g.canPlaceCastle(pos, castlePositions, g.config.MinCastleDistance) {
 
-						castleNum := rand.Intn(20) + 10
+						castleNum := g.rng.Intn(20) + 10
 						castle := block.NewBlock(block.CastleName, block.Num(castleNum), 0)
 						gameMap.SetBlock(pos, castle)
 						castlePositions = append(castlePositions, pos)
@@ -435,8 +454,7 @@ func (g *BaseMapGenerator) clearTerrain(gameMap *BaseMap) {
 }
 
 func init() {
-	RegisterGenerator("base", func(size Size, info Info, players []Player, config ...GeneratorConfig) (Map, error) {
-		// 使用传递的配置，如果没有则使用默认配置
+	RegisterGenerator("base", func(size Size, players []Player, config ...GeneratorConfig) (Map, error) {
 		var cfg GeneratorConfig
 		if len(config) > 0 {
 			cfg = config[0]
@@ -445,6 +463,6 @@ func init() {
 		}
 
 		generator := NewBaseMapGenerator(cfg)
-		return generator.Generate(size, info, players)
+		return generator.Generate(size, players)
 	})
 }

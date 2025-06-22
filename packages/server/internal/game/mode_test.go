@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-// TestGameMode_Classic1v1 测试经典1v1模式
 func TestGameMode_Classic1v1(t *testing.T) {
 	mode := Classic1v1
 
@@ -42,7 +41,6 @@ func TestGameMode_Classic1v1(t *testing.T) {
 	}
 }
 
-// TestGameMode_ValidatePlayerCount 测试玩家数量验证
 func TestGameMode_ValidatePlayerCount(t *testing.T) {
 	mode := Classic1v1
 
@@ -67,7 +65,6 @@ func TestGameMode_ValidatePlayerCount(t *testing.T) {
 	}
 }
 
-// TestGameMode_CalculateTeamCount 测试团队计数计算
 func TestGameMode_CalculateTeamCount(t *testing.T) {
 	mode := Classic1v1
 
@@ -103,7 +100,6 @@ func TestGameMode_CalculateTeamCount(t *testing.T) {
 	}
 }
 
-// TestGameMode_Registry 测试游戏模式注册表
 func TestGameMode_Registry(t *testing.T) {
 	allModes := GetAllGameModes()
 
@@ -172,7 +168,6 @@ func TestGameMode_Registry(t *testing.T) {
 	}
 }
 
-// TestGameMode_CustomModes 测试自定义模式
 func TestGameMode_CustomModes(t *testing.T) {
 	freeForAllMode := GameMode{
 		Name:         "free_for_all",
@@ -250,7 +245,6 @@ func TestGameMode_CustomModes(t *testing.T) {
 	}
 }
 
-// TestGameMode_EdgeCases 测试边界情况
 func TestGameMode_EdgeCases(t *testing.T) {
 	zeroTeamSizeMode := GameMode{
 		Name:         "zero_team",
@@ -395,6 +389,75 @@ func TestSpeedConfiguration(t *testing.T) {
 		expectedTime := time.Duration(float64(time.Second.Nanoseconds()) / 1.5)
 		if customMode.GetTurnTime() != expectedTime {
 			t.Errorf("Expected turn time %v for 1.5x speed, got %v", expectedTime, customMode.GetTurnTime())
+		}
+	})
+}
+
+func TestGameMode_Validation(t *testing.T) {
+	t.Run("classic_1v1_validation", func(t *testing.T) {
+		mode := TestMode
+
+		if !mode.ValidatePlayerCount(2) {
+			t.Error("TestMode should accept 2 players")
+		}
+
+		if mode.ValidatePlayerCount(1) {
+			t.Error("TestMode should not accept 1 player")
+		}
+
+		if mode.ValidatePlayerCount(3) {
+			t.Error("TestMode should not accept 3 players")
+		}
+	})
+
+	t.Run("custom_mode_creation", func(t *testing.T) {
+		customMode := GameMode{
+			Name:        "test_custom_mode",
+			MaxPlayers:  4,
+			MinPlayers:  2,
+			TeamSize:    1,
+			TurnTime:    time.Second * 15,
+			Description: "Custom test mode for validation",
+		}
+
+		if !customMode.ValidatePlayerCount(3) {
+			t.Error("Custom mode should accept 3 players (within range 2-4)")
+		}
+
+		teamCount := customMode.CalculateTeamCount(4)
+		if teamCount != 4 {
+			t.Errorf("Expected 4 teams for 4 players with TeamSize=1, got %d", teamCount)
+		}
+	})
+
+	t.Run("team_calculation", func(t *testing.T) {
+		teamMode := GameMode{
+			Name:       "team_mode",
+			MaxPlayers: 6,
+			MinPlayers: 4,
+			TeamSize:   2,
+		}
+
+		teamCount := teamMode.CalculateTeamCount(6)
+		if teamCount != 3 {
+			t.Errorf("Expected 3 teams for 6 players with TeamSize=2, got %d", teamCount)
+		}
+
+		teamCount = teamMode.CalculateTeamCount(4)
+		if teamCount != 2 {
+			t.Errorf("Expected 2 teams for 4 players with TeamSize=2, got %d", teamCount)
+		}
+	})
+
+	t.Run("turn_time_validation", func(t *testing.T) {
+		mode := GameMode{
+			Name:     "timed_mode",
+			TurnTime: time.Second * 30,
+		}
+
+		turnTime := mode.GetTurnTime()
+		if turnTime != time.Second*30 {
+			t.Errorf("Expected turn time 30s, got %v", turnTime)
 		}
 	})
 }

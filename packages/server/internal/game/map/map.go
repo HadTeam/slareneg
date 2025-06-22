@@ -47,7 +47,7 @@ func (b Blocks) String() string {
 }
 
 func (s Size) String() string {
-	return "Size(" + strconv.Itoa(int(s.Width)) + "x" + strconv.Itoa(int(s.Height)) + ")"
+	return strconv.Itoa(int(s.Width)) + "x" + strconv.Itoa(int(s.Height))
 }
 
 func (p Pos) String() string {

@@ -1,38 +1,103 @@
 package game
 
 import (
+	"fmt"
+	gamemap "server/internal/game/map"
 	"server/internal/queue"
 	"testing"
 	"time"
 )
 
-// TestBaseCore_NewBaseCore 测试 BaseCore 创建
+func createTestMapManager() gamemap.MapManager {
+	return gamemap.NewMapManager()
+}
+
 func TestBaseCore_NewBaseCore(t *testing.T) {
-	gameId := "test-game-1"
+	gameId := "test-game-id"
 	mode := TestMode
+	mapManager := createTestMapManager()
 
-	core := NewBaseCore(gameId, mode)
+	core := NewBaseCore(gameId, mode, mapManager)
 
-	if core.gameId != gameId {
-		t.Errorf("Expected gameId %s, got %s", gameId, core.gameId)
+	if core == nil {
+		t.Error("Expected non-nil BaseCore")
 	}
-
-	if core.status != StatusWaiting {
-		t.Errorf("Expected initial status %s, got %s", StatusWaiting, core.status)
+	if core.Status() != StatusWaiting {
+		t.Errorf("Expected status %v, got %v", StatusWaiting, core.Status())
 	}
-
-	if len(core.players) != 0 {
-		t.Errorf("Expected empty players slice, got %d players", len(core.players))
+	if len(core.Players()) != 0 {
+		t.Errorf("Expected 0 players, got %d", len(core.Players()))
 	}
-
-	if core.turnNumber != 0 {
-		t.Errorf("Expected initial turn number 0, got %d", core.turnNumber)
+	if core.TurnNumber() != 0 {
+		t.Errorf("Expected turn number 0, got %d", core.TurnNumber())
 	}
 }
 
-// TestBaseCore_PlayerJoin 测试玩家加入功能
+func TestBaseCore_BasicOperations(t *testing.T) {
+	t.Run("create_core", func(t *testing.T) {
+		mapManager := createTestMapManager()
+		core := NewBaseCore("test-game-1", TestMode, mapManager)
+		if core == nil {
+			t.Fatal("Failed to create BaseCore")
+		}
+
+		if core.Status() != StatusWaiting {
+			t.Errorf("Expected status waiting, got %v", core.Status())
+		}
+	})
+
+	t.Run("player_management", func(t *testing.T) {
+		mapManager := createTestMapManager()
+		core := NewBaseCore("test-game-2", TestMode, mapManager)
+
+		player := Player{Id: "player1", Name: "Player One"}
+		err := core.Join(player)
+		if err != nil {
+			t.Errorf("Failed to join player: %v", err)
+		}
+
+		players := core.Players()
+		if len(players) != 1 {
+			t.Errorf("Expected 1 player, got %d", len(players))
+		}
+
+		err = core.Leave("player1")
+		if err != nil {
+			t.Errorf("Failed to leave player: %v", err)
+		}
+
+		players = core.Players()
+		if len(players) != 0 {
+			t.Errorf("Expected 0 players after leave, got %d", len(players))
+		}
+	})
+}
+
+func TestBaseCore_EdgeCases(t *testing.T) {
+	t.Run("empty_game_id", func(t *testing.T) {
+		mapManager := createTestMapManager()
+		core := NewBaseCore("", TestMode, mapManager)
+		if core == nil {
+			t.Error("Should handle empty game ID gracefully")
+		}
+	})
+
+	t.Run("nil_mode", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Error("Expected panic when creating core with nil mode")
+			}
+		}()
+
+		mapManager := createTestMapManager()
+		var nilMode GameMode
+		NewBaseCore("test", nilMode, mapManager)
+	})
+}
+
 func TestBaseCore_PlayerJoin(t *testing.T) {
-	core := NewBaseCore("test-game", TestMode)
+	mapManager := createTestMapManager()
+	core := NewBaseCore("test-game", TestMode, mapManager)
 
 	t.Run("successful_join", func(t *testing.T) {
 		player := Player{
@@ -45,18 +110,18 @@ func TestBaseCore_PlayerJoin(t *testing.T) {
 			t.Fatalf("Expected successful join, got error: %v", err)
 		}
 
-		if len(core.players) != 1 {
-			t.Errorf("Expected 1 player, got %d", len(core.players))
+		if len(core.Players()) != 1 {
+			t.Errorf("Expected 1 player, got %d", len(core.Players()))
 		}
 
-		if core.players[0].Status != PlayerStatusWaiting {
-			t.Errorf("Expected player status %s, got %s", PlayerStatusWaiting, core.players[0].Status)
+		if core.Players()[0].Status != PlayerStatusWaiting {
+			t.Errorf("Expected player status %s, got %s", PlayerStatusWaiting, core.Players()[0].Status)
 		}
 	})
 
 	t.Run("duplicate_player_join", func(t *testing.T) {
 		player := Player{
-			Id:   "player1", // 相同ID
+			Id:   "player1",
 			Name: "Player One Again",
 		}
 
@@ -65,13 +130,12 @@ func TestBaseCore_PlayerJoin(t *testing.T) {
 			t.Error("Expected error for duplicate player join, got nil")
 		}
 
-		if len(core.players) != 1 {
-			t.Errorf("Expected 1 player after duplicate join, got %d", len(core.players))
+		if len(core.Players()) != 1 {
+			t.Errorf("Expected 1 player after duplicate join, got %d", len(core.Players()))
 		}
 	})
 
 	t.Run("join_after_game_started", func(t *testing.T) {
-		// 添加第二个玩家并开始游戏
 		player2 := Player{
 			Id:   "player2",
 			Name: "Player Two",
@@ -79,7 +143,6 @@ func TestBaseCore_PlayerJoin(t *testing.T) {
 		core.Join(player2)
 		core.Start()
 
-		// 尝试在游戏开始后加入
 		player3 := Player{
 			Id:   "player3",
 			Name: "Player Three",
@@ -94,58 +157,50 @@ func TestBaseCore_PlayerJoin(t *testing.T) {
 	})
 }
 
-// TestBaseCore_PlayerLeave 测试玩家离开功能
 func TestBaseCore_PlayerLeave(t *testing.T) {
-	t.Run("leave_before_game_start", func(t *testing.T) {
-		core := NewBaseCore("test-game", TestMode)
+	mapManager := createTestMapManager()
+	core := NewBaseCore("test-game", TestMode, mapManager)
 
-		// 添加玩家
+	t.Run("leave_before_game_start", func(t *testing.T) {
 		player1 := Player{Id: "player1", Name: "Player One"}
 		player2 := Player{Id: "player2", Name: "Player Two"}
 		core.Join(player1)
 		core.Join(player2)
 
-		// 玩家离开
 		err := core.Leave("player1")
 		if err != nil {
 			t.Fatalf("Expected successful leave, got error: %v", err)
 		}
 
-		if len(core.players) != 1 {
-			t.Errorf("Expected 1 player after leave, got %d", len(core.players))
+		if len(core.Players()) != 1 {
+			t.Errorf("Expected 1 player after leave, got %d", len(core.Players()))
 		}
 
-		if core.players[0].Id != "player2" {
-			t.Errorf("Expected remaining player to be player2, got %s", core.players[0].Id)
+		if core.Players()[0].Id != "player2" {
+			t.Errorf("Expected remaining player to be player2, got %s", core.Players()[0].Id)
 		}
 	})
 
 	t.Run("leave_during_game", func(t *testing.T) {
-		core := NewBaseCore("test-game", TestMode)
-
-		// 添加玩家并开始游戏
 		player1 := Player{Id: "player1", Name: "Player One"}
 		player2 := Player{Id: "player2", Name: "Player Two"}
 		core.Join(player1)
 		core.Join(player2)
 		core.Start()
 
-		// 玩家在游戏中离开
 		err := core.Leave("player1")
 		if err != nil {
 			t.Fatalf("Expected successful leave, got error: %v", err)
 		}
 
-		// 检查玩家状态变为断线而不是移除
-		if len(core.players) != 2 {
-			t.Errorf("Expected 2 players (disconnected), got %d", len(core.players))
+		if len(core.Players()) != 2 {
+			t.Errorf("Expected 2 players (disconnected), got %d", len(core.Players()))
 		}
 
-		// 找到离开的玩家
 		var leftPlayer *Player
-		for i := range core.players {
-			if core.players[i].Id == "player1" {
-				leftPlayer = &core.players[i]
+		for i := range core.Players() {
+			if core.Players()[i].Id == "player1" {
+				leftPlayer = &core.Players()[i]
 				break
 			}
 		}
@@ -160,8 +215,6 @@ func TestBaseCore_PlayerLeave(t *testing.T) {
 	})
 
 	t.Run("leave_nonexistent_player", func(t *testing.T) {
-		core := NewBaseCore("test-game", TestMode)
-
 		err := core.Leave("nonexistent")
 		if err == nil {
 			t.Error("Expected error for leaving nonexistent player, got nil")
@@ -169,9 +222,9 @@ func TestBaseCore_PlayerLeave(t *testing.T) {
 	})
 }
 
-// TestBaseCore_GetPlayer 测试获取玩家功能
 func TestBaseCore_GetPlayer(t *testing.T) {
-	core := NewBaseCore("test-game", TestMode)
+	mapManager := createTestMapManager()
+	core := NewBaseCore("test-game", TestMode, mapManager)
 
 	player := Player{Id: "player1", Name: "Player One"}
 	core.Join(player)
@@ -199,18 +252,16 @@ func TestBaseCore_GetPlayer(t *testing.T) {
 	})
 }
 
-// TestBaseCore_ForceStart 测试强制开始功能
 func TestBaseCore_ForceStart(t *testing.T) {
 	t.Run("force_start_with_enough_players", func(t *testing.T) {
-		core := NewBaseCore("test-game", TestMode)
+		mapManager := createTestMapManager()
+		core := NewBaseCore("test-game", TestMode, mapManager)
 
-		// 添加足够的玩家
 		player1 := Player{Id: "player1", Name: "Player One"}
 		player2 := Player{Id: "player2", Name: "Player Two"}
 		core.Join(player1)
 		core.Join(player2)
 
-		// 两个玩家都投票强制开始
 		err1 := core.ForceStart("player1", true)
 		if err1 != nil {
 			t.Fatalf("First force start vote failed: %v", err1)
@@ -221,18 +272,17 @@ func TestBaseCore_ForceStart(t *testing.T) {
 			t.Fatalf("Second force start vote failed: %v", err2)
 		}
 
-		// 游戏应该已经开始
-		if core.status != StatusInProgress {
-			t.Errorf("Expected game status %s, got %s", StatusInProgress, core.status)
+		if core.Status() != StatusInProgress {
+			t.Errorf("Expected game status %s, got %s", StatusInProgress, core.Status())
 		}
 
 		core.Stop()
 	})
 
 	t.Run("force_start_insufficient_players", func(t *testing.T) {
-		core := NewBaseCore("test-game", TestMode)
+		mapManager := createTestMapManager()
+		core := NewBaseCore("test-game", TestMode, mapManager)
 
-		// 只添加一个玩家
 		player1 := Player{Id: "player1", Name: "Player One"}
 		core.Join(player1)
 
@@ -241,37 +291,33 @@ func TestBaseCore_ForceStart(t *testing.T) {
 			t.Fatalf("Force start vote failed: %v", err)
 		}
 
-		// 游戏不应该开始（玩家不足）
-		if core.status != StatusWaiting {
-			t.Errorf("Expected game status %s, got %s", StatusWaiting, core.status)
+		if core.Status() != StatusWaiting {
+			t.Errorf("Expected game status %s, got %s", StatusWaiting, core.Status())
 		}
 	})
 
 	t.Run("force_start_cancel_vote", func(t *testing.T) {
-		core := NewBaseCore("test-game", TestMode)
+		mapManager := createTestMapManager()
+		core := NewBaseCore("test-game", TestMode, mapManager)
 
 		player1 := Player{Id: "player1", Name: "Player One"}
 		player2 := Player{Id: "player2", Name: "Player Two"}
 		core.Join(player1)
 		core.Join(player2)
 
-		// 玩家1投票，然后取消
 		core.ForceStart("player1", true)
 		core.ForceStart("player1", false)
-
-		// 玩家2投票
 		core.ForceStart("player2", true)
 
-		// 游戏不应该开始（玩家1取消了投票）
-		if core.status != StatusWaiting {
-			t.Errorf("Expected game status %s after vote cancel, got %s", StatusWaiting, core.status)
+		if core.Status() != StatusWaiting {
+			t.Errorf("Expected game status %s after vote cancel, got %s", StatusWaiting, core.Status())
 		}
 	})
 }
 
-// TestBaseCore_Status 测试状态相关功能
 func TestBaseCore_Status(t *testing.T) {
-	core := NewBaseCore("test-game", TestMode)
+	mapManager := createTestMapManager()
+	core := NewBaseCore("test-game", TestMode, mapManager)
 
 	t.Run("initial_status", func(t *testing.T) {
 		if core.Status() != StatusWaiting {
@@ -301,9 +347,9 @@ func TestBaseCore_Status(t *testing.T) {
 	})
 }
 
-// TestBaseCore_GetActivePlayerCount 测试活跃玩家计数
 func TestBaseCore_GetActivePlayerCount(t *testing.T) {
-	core := NewBaseCore("test-game", TestMode)
+	mapManager := createTestMapManager()
+	core := NewBaseCore("test-game", TestMode, mapManager)
 
 	t.Run("no_players", func(t *testing.T) {
 		count := core.GetActivePlayerCount()
@@ -336,9 +382,9 @@ func TestBaseCore_GetActivePlayerCount(t *testing.T) {
 	})
 }
 
-// TestBaseCore_IsGameReady 测试游戏就绪检查
 func TestBaseCore_IsGameReady(t *testing.T) {
-	core := NewBaseCore("test-game", TestMode)
+	mapManager := createTestMapManager()
+	core := NewBaseCore("test-game", TestMode, mapManager)
 
 	t.Run("not_ready_no_players", func(t *testing.T) {
 		if core.IsGameReady() {
@@ -375,27 +421,25 @@ func TestBaseCore_IsGameReady(t *testing.T) {
 	})
 }
 
-// TestBaseCore_TurnTimer 测试回合定时器
 func TestBaseCore_TurnTimer(t *testing.T) {
 	t.Run("turn_timer_functionality", func(t *testing.T) {
-		// 创建短回合时间的模式用于测试
 		testMode := GameMode{
 			Name:        "test_mode",
 			MaxPlayers:  2,
 			MinPlayers:  2,
 			TeamSize:    1,
-			TurnTime:    time.Millisecond * 100, // 短时间用于测试
+			TurnTime:    time.Millisecond * 100,
 			Description: "Test mode",
 		}
 
-		core := NewBaseCore("test-game", testMode)
+		mapManager := createTestMapManager()
+		core := NewBaseCore("test-game", testMode, mapManager)
 
 		player1 := Player{Id: "player1", Name: "Player One"}
 		player2 := Player{Id: "player2", Name: "Player Two"}
 		core.Join(player1)
 		core.Join(player2)
 
-		// 设置事件回调来捕获定时器事件
 		var receivedEvents []queue.Event
 		core.SetEventHandlers(
 			func(event queue.Event) {
@@ -407,22 +451,18 @@ func TestBaseCore_TurnTimer(t *testing.T) {
 		)
 
 		core.Start()
-
-		// 等待定时器触发
 		time.Sleep(time.Millisecond * 200)
-
 		core.Stop()
 
-		// 验证是否收到了定时器相关的事件
 		if len(receivedEvents) == 0 {
 			t.Error("Expected to receive timer events, got none")
 		}
 	})
 }
 
-// TestBaseCore_EventHandlers 测试事件处理器
 func TestBaseCore_EventHandlers(t *testing.T) {
-	core := NewBaseCore("test-game", TestMode)
+	mapManager := createTestMapManager()
+	core := NewBaseCore("test-game", TestMode, mapManager)
 
 	var broadcastEvents []queue.Event
 	var controlEvents []queue.Event
@@ -436,19 +476,44 @@ func TestBaseCore_EventHandlers(t *testing.T) {
 		},
 	)
 
-	// 添加玩家应该触发广播事件
 	player1 := Player{Id: "player1", Name: "Player One"}
 	player2 := Player{Id: "player2", Name: "Player Two"}
 	core.Join(player1)
 	core.Join(player2)
 
-	// 开始游戏应该触发事件
 	core.Start()
 
-	// 验证事件被正确调用
 	if len(broadcastEvents) == 0 {
 		t.Error("Expected broadcast events, got none")
 	}
 
 	core.Stop()
+}
+
+func BenchmarkCore_PlayerOperations(b *testing.B) {
+	mapManager := createTestMapManager()
+	core := NewBaseCore("bench-test", TestMode, mapManager)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		playerId := fmt.Sprintf("player-%d", i%100)
+		player := Player{Id: playerId, Name: fmt.Sprintf("Player %d", i)}
+		core.Join(player)
+		core.Leave(playerId)
+	}
+}
+
+func BenchmarkCore_EventGeneration(b *testing.B) {
+	mapManager := createTestMapManager()
+	core := NewBaseCore("bench-events", TestMode, mapManager)
+
+	player1 := Player{Id: "player1", Name: "Player One"}
+	player2 := Player{Id: "player2", Name: "Player Two"}
+	core.Join(player1)
+	core.Join(player2)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		core.ForceStart("player1", true)
+	}
 }
