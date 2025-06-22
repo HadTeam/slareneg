@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"log/slog"
 	"server/internal/game"
+	gamemap "server/internal/game/map"
 	"server/internal/queue"
 	"sync"
 )
 
 type Lobby struct {
-	games   map[string]*game.Game
-	gamesMu sync.RWMutex
-	queue   queue.Queue
+	games      map[string]*game.Game
+	gamesMu    sync.RWMutex
+	queue      queue.Queue
+	mapManager gamemap.MapManager
 }
 
 type LobbyCommand struct {
@@ -24,10 +26,11 @@ type CreateGamePayload struct {
 	GameMode game.GameMode `json:"gameMode"`
 }
 
-func NewLobby(q queue.Queue) *Lobby {
+func NewLobby(q queue.Queue, mapManager gamemap.MapManager) *Lobby {
 	return &Lobby{
-		games: make(map[string]*game.Game),
-		queue: q,
+		games:      make(map[string]*game.Game),
+		queue:      q,
+		mapManager: mapManager,
 	}
 }
 
@@ -113,7 +116,7 @@ func (l *Lobby) getOrCreateGame(gameId string, gameMode game.GameMode) *game.Gam
 		return existingGame
 	}
 
-	newGame := game.NewGame(gameId, l.queue, gameMode)
+	newGame := game.NewGame(gameId, l.queue, gameMode, l.mapManager)
 	l.games[gameId] = newGame
 
 	go func() {

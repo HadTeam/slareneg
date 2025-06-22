@@ -24,10 +24,10 @@ func InitializeApplication(cfg *config.Config) (*Application, error) {
 	argon2PasswordService := auth.NewArgon2PasswordService()
 	authService := auth.NewAuthService(inMemoryUserRepository, jwtTokenService, argon2PasswordService)
 	inMemoryQueue := queue.NewInMemoryQueue()
-	lobbyLobby := lobby.NewLobby(inMemoryQueue)
+	defaultMapManager := provideMapManager()
+	lobbyLobby := lobby.NewLobby(inMemoryQueue, defaultMapManager)
 	webSocketServer := websocket.NewWebSocketServer(inMemoryQueue)
 	cacheService := provideCacheService(cfg)
-	defaultMapManager := provideMapManager()
 	application := &Application{
 		Config:      cfg,
 		AuthService: authService,
