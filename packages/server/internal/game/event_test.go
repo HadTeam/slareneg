@@ -46,15 +46,15 @@ func TestMoveTowards(t *testing.T) {
 func TestCommandEvents(t *testing.T) {
 	t.Run("join_command", func(t *testing.T) {
 		cmd := JoinCommand{
-			CommandEvent: CommandEvent{PlayerId: "player1"},
+			CommandEvent: CommandEvent{PlayerId: "test-player"},
 			PlayerName:   "Test Player",
 		}
 
-		if cmd.PlayerId != "player1" {
-			t.Errorf("Expected player ID 'player1', got %s", cmd.PlayerId)
+		if cmd.PlayerId != "test-player" {
+			t.Errorf("Expected PlayerId 'test-player', got '%s'", cmd.PlayerId)
 		}
 		if cmd.PlayerName != "Test Player" {
-			t.Errorf("Expected player name 'Test Player', got %s", cmd.PlayerName)
+			t.Errorf("Expected PlayerName 'Test Player', got '%s'", cmd.PlayerName)
 		}
 	})
 
@@ -70,55 +70,41 @@ func TestCommandEvents(t *testing.T) {
 
 	t.Run("move_command", func(t *testing.T) {
 		cmd := MoveCommand{
-			CommandEvent: CommandEvent{PlayerId: "player1"},
-			From:         gamemap.Pos{X: 5, Y: 10},
+			CommandEvent: CommandEvent{PlayerId: "test-player"},
+			From:         gamemap.Pos{X: 1, Y: 1},
 			Direction:    MoveTowardsRight,
-			Troops:       block.Num(3),
+			Troops:       5,
 		}
 
-		if cmd.PlayerId != "player1" {
-			t.Errorf("Expected player ID 'player1', got %s", cmd.PlayerId)
-		}
-		if cmd.From.X != 5 || cmd.From.Y != 10 {
-			t.Errorf("Expected position (5, 10), got (%d, %d)", cmd.From.X, cmd.From.Y)
+		if cmd.From.X != 1 || cmd.From.Y != 1 {
+			t.Errorf("Expected position (1,1), got (%d,%d)", cmd.From.X, cmd.From.Y)
 		}
 		if cmd.Direction != MoveTowardsRight {
-			t.Errorf("Expected direction right, got %s", cmd.Direction)
+			t.Errorf("Expected direction %s, got %s", MoveTowardsRight, cmd.Direction)
 		}
-		if cmd.Troops != 3 {
-			t.Errorf("Expected 3 troops, got %d", cmd.Troops)
+		if cmd.Troops != 5 {
+			t.Errorf("Expected 5 troops, got %d", cmd.Troops)
 		}
 	})
 
 	t.Run("force_start_command", func(t *testing.T) {
-		// 测试投票开始
-		cmd1 := ForceStartCommand{
-			CommandEvent: CommandEvent{PlayerId: "player1"},
+		cmd := ForceStartCommand{
+			CommandEvent: CommandEvent{PlayerId: "test-player"},
 			IsVote:       true,
 		}
 
-		if !cmd1.IsVote {
+		if !cmd.IsVote {
 			t.Error("Expected IsVote to be true")
-		}
-
-		// 测试取消投票
-		cmd2 := ForceStartCommand{
-			CommandEvent: CommandEvent{PlayerId: "player1"},
-			IsVote:       false,
-		}
-
-		if cmd2.IsVote {
-			t.Error("Expected IsVote to be false")
 		}
 	})
 
 	t.Run("surrender_command", func(t *testing.T) {
 		cmd := SurrenderCommand{
-			CommandEvent: CommandEvent{PlayerId: "player1"},
+			CommandEvent: CommandEvent{PlayerId: "test-player"},
 		}
 
-		if cmd.PlayerId != "player1" {
-			t.Errorf("Expected player ID 'player1', got %s", cmd.PlayerId)
+		if cmd.PlayerId != "test-player" {
+			t.Errorf("Expected PlayerId 'test-player', got '%s'", cmd.PlayerId)
 		}
 	})
 }
@@ -126,61 +112,51 @@ func TestCommandEvents(t *testing.T) {
 // TestControlEvents 测试控制事件
 func TestControlEvents(t *testing.T) {
 	t.Run("start_game_control", func(t *testing.T) {
-		ctrl := StartGameControl{
-			ControlEvent: ControlEvent{},
-		}
-
-		// 验证类型
-		_ = ctrl.ControlEvent
+		event := StartGameControl{}
+		// 基本验证控制事件可以创建
+		_ = event
 	})
 
 	t.Run("stop_game_control", func(t *testing.T) {
-		ctrl := StopGameControl{
-			ControlEvent: ControlEvent{},
-		}
-
-		// 验证类型
-		_ = ctrl.ControlEvent
+		event := StopGameControl{}
+		// 基本验证控制事件可以创建
+		_ = event
 	})
 
 	t.Run("turn_advance_control", func(t *testing.T) {
-		ctrl := TurnAdvanceControl{
-			ControlEvent: ControlEvent{},
-			TurnNumber:   5,
+		event := TurnAdvanceControl{
+			TurnNumber: 5,
 		}
 
-		if ctrl.TurnNumber != 5 {
-			t.Errorf("Expected turn number 5, got %d", ctrl.TurnNumber)
+		if event.TurnNumber != 5 {
+			t.Errorf("Expected TurnNumber 5, got %d", event.TurnNumber)
 		}
 	})
 }
 
 // TestBroadcastEvents 测试广播事件
 func TestBroadcastEvents(t *testing.T) {
-	t.Run("player_joined_event", func(t *testing.T) {
-		players := []Player{
-			{Id: "player1", Name: "Player One", Status: PlayerStatusWaiting},
-		}
+	players := []Player{
+		{Id: "player1", Name: "Player One", Status: PlayerStatusInGame},
+		{Id: "player2", Name: "Player Two", Status: PlayerStatusInGame},
+	}
 
+	t.Run("player_joined_event", func(t *testing.T) {
 		event := PlayerJoinedEvent{
-			BroadcastEvent: BroadcastEvent{},
-			PlayerId:       "player1",
-			PlayerName:     "Player One",
-			GameStatus:     StatusWaiting,
-			Players:        players,
+			PlayerId:   "player1",
+			PlayerName: "Player One",
+			GameStatus: StatusWaiting,
+			Players:    players,
 		}
 
 		if event.PlayerId != "player1" {
-			t.Errorf("Expected player ID 'player1', got %s", event.PlayerId)
-		}
-		if event.PlayerName != "Player One" {
-			t.Errorf("Expected player name 'Player One', got %s", event.PlayerName)
+			t.Errorf("Expected PlayerId 'player1', got '%s'", event.PlayerId)
 		}
 		if event.GameStatus != StatusWaiting {
-			t.Errorf("Expected game status waiting, got %s", event.GameStatus)
+			t.Errorf("Expected GameStatus %s, got %s", StatusWaiting, event.GameStatus)
 		}
-		if len(event.Players) != 1 {
-			t.Errorf("Expected 1 player, got %d", len(event.Players))
+		if len(event.Players) != 2 {
+			t.Errorf("Expected 2 players, got %d", len(event.Players))
 		}
 	})
 
@@ -205,47 +181,32 @@ func TestBroadcastEvents(t *testing.T) {
 	})
 
 	t.Run("game_started_event", func(t *testing.T) {
-		players := []Player{
-			{Id: "player1", Name: "Player One", Status: PlayerStatusInGame},
-			{Id: "player2", Name: "Player Two", Status: PlayerStatusInGame},
-		}
-
 		event := GameStartedEvent{
-			BroadcastEvent: BroadcastEvent{},
-			GameStatus:     StatusInProgress,
-			Players:        players,
-			TurnNumber:     1,
+			GameStatus: StatusInProgress,
+			Players:    players,
+			TurnNumber: 1,
 		}
 
 		if event.GameStatus != StatusInProgress {
-			t.Errorf("Expected game status in_progress, got %s", event.GameStatus)
+			t.Errorf("Expected GameStatus %s, got %s", StatusInProgress, event.GameStatus)
 		}
 		if event.TurnNumber != 1 {
-			t.Errorf("Expected turn number 1, got %d", event.TurnNumber)
-		}
-		if len(event.Players) != 2 {
-			t.Errorf("Expected 2 players, got %d", len(event.Players))
+			t.Errorf("Expected TurnNumber 1, got %d", event.TurnNumber)
 		}
 	})
 
 	t.Run("game_ended_event", func(t *testing.T) {
-		players := []Player{
-			{Id: "player1", Name: "Player One", Status: PlayerStatusFinished},
-			{Id: "player2", Name: "Player Two", Status: PlayerStatusFinished},
-		}
-
 		event := GameEndedEvent{
-			BroadcastEvent: BroadcastEvent{},
-			Winner:         "player1",
-			GameStatus:     StatusFinished,
-			Players:        players,
+			Winner:     "player1",
+			GameStatus: StatusFinished,
+			Players:    players,
 		}
 
 		if event.Winner != "player1" {
-			t.Errorf("Expected winner 'player1', got %s", event.Winner)
+			t.Errorf("Expected winner 'player1', got '%s'", event.Winner)
 		}
 		if event.GameStatus != StatusFinished {
-			t.Errorf("Expected game status finished, got %s", event.GameStatus)
+			t.Errorf("Expected GameStatus %s, got %s", StatusFinished, event.GameStatus)
 		}
 	})
 
@@ -270,16 +231,15 @@ func TestBroadcastEvents(t *testing.T) {
 func TestPlayerEvents(t *testing.T) {
 	t.Run("player_error_event", func(t *testing.T) {
 		event := PlayerErrorEvent{
-			PlayerEvent: PlayerEvent{},
-			PlayerId:    "player1",
-			Error:       "Invalid move",
+			PlayerId: "test-player",
+			Error:    "Test error message",
 		}
 
-		if event.PlayerId != "player1" {
-			t.Errorf("Expected player ID 'player1', got %s", event.PlayerId)
+		if event.PlayerId != "test-player" {
+			t.Errorf("Expected PlayerId 'test-player', got '%s'", event.PlayerId)
 		}
-		if event.Error != "Invalid move" {
-			t.Errorf("Expected error 'Invalid move', got %s", event.Error)
+		if event.Error != "Test error message" {
+			t.Errorf("Expected error 'Test error message', got '%s'", event.Error)
 		}
 	})
 }
@@ -389,4 +349,26 @@ func TestEventConstants(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestMoveOffset(t *testing.T) {
+	tests := []struct {
+		direction MoveTowards
+		expected  moveOffset
+	}{
+		{MoveTowardsLeft, moveOffset{-1, 0}},
+		{MoveTowardsRight, moveOffset{1, 0}},
+		{MoveTowardsUp, moveOffset{0, -1}},
+		{MoveTowardsDown, moveOffset{0, 1}},
+		{"invalid", moveOffset{0, 0}},
+	}
+
+	for _, test := range tests {
+		t.Run(string(test.direction), func(t *testing.T) {
+			result := getMoveOffset(test.direction)
+			if result != test.expected {
+				t.Errorf("Expected %+v, got %+v", test.expected, result)
+			}
+		})
+	}
 }

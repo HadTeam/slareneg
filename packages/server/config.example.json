@@ -1,0 +1,50 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "readTimeout": "15s",
+    "writeTimeout": "15s",
+    "staticDir": "./static"
+  },
+  "auth": {
+    "jwtSecret": "change-this-secret-in-production-environment",
+    "tokenExpiry": "24h",
+    "bcryptCost": 12,
+    "rateLimitRPS": 10,
+    "rateLimitBurst": 20
+  },
+  "cache": {
+    "cleanupInterval": "10m",
+    "defaultTTL": "1h",
+    "maxMemoryMB": 100
+  },
+  "game": {
+    "maxRooms": 100,
+    "maxPlayersPerRoom": 8,
+    "gameTimeout": "30m",
+    "reconnectTimeout": "30s",
+    "heartbeatInterval": "30s",
+    "matchmakingInterval": "5s"
+  },
+  "database": {
+    "type": "sqlite",
+    "host": "localhost",
+    "port": 5432,
+    "database": "slareneg.db",
+    "username": "",
+    "password": "",
+    "maxOpenConns": 25,
+    "maxIdleConns": 25,
+    "sslMode": "disable"
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "outputFile": "",
+    "maxSize": 100,
+    "maxBackups": 3,
+    "maxAge": 28,
+    "compress": true,
+    "development": false
+  }
+} 

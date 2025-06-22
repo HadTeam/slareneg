@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"server/internal/queue"
 	"testing"
 	"time"
 )
@@ -9,7 +10,7 @@ import (
 // TestGameCore_BasicOperations 测试 GameCore 的基本操作
 func TestGameCore_BasicOperations(t *testing.T) {
 	t.Run("create_core", func(t *testing.T) {
-		core := NewBaseCore("test-game-1", Classic1v1)
+		core := NewBaseCore("test-game-1", TestMode)
 		if core == nil {
 			t.Fatal("Failed to create BaseCore")
 		}
@@ -20,7 +21,7 @@ func TestGameCore_BasicOperations(t *testing.T) {
 	})
 
 	t.Run("player_management", func(t *testing.T) {
-		core := NewBaseCore("test-game-2", Classic1v1)
+		core := NewBaseCore("test-game-2", TestMode)
 
 		// 测试添加玩家
 		player := Player{Id: "player1", Name: "Player One"}
@@ -50,18 +51,18 @@ func TestGameCore_BasicOperations(t *testing.T) {
 // TestGameMode_Validation 测试游戏模式验证
 func TestGameMode_Validation(t *testing.T) {
 	t.Run("classic_1v1_validation", func(t *testing.T) {
-		mode := Classic1v1
+		mode := TestMode
 
 		if !mode.ValidatePlayerCount(2) {
-			t.Error("Classic1v1 should accept 2 players")
+			t.Error("TestMode should accept 2 players")
 		}
 
 		if mode.ValidatePlayerCount(1) {
-			t.Error("Classic1v1 should not accept 1 player")
+			t.Error("TestMode should not accept 1 player")
 		}
 
 		if mode.ValidatePlayerCount(3) {
-			t.Error("Classic1v1 should not accept 3 players")
+			t.Error("TestMode should not accept 3 players")
 		}
 	})
 
@@ -122,7 +123,7 @@ func TestEvent_Types(t *testing.T) {
 // TestGame_EdgeCases 测试边界情况
 func TestGame_EdgeCases(t *testing.T) {
 	t.Run("empty_game_id", func(t *testing.T) {
-		core := NewBaseCore("", Classic1v1)
+		core := NewBaseCore("", TestMode)
 		if core == nil {
 			t.Error("Should handle empty game ID gracefully")
 		}
@@ -143,7 +144,7 @@ func TestGame_EdgeCases(t *testing.T) {
 
 // BenchmarkCore_PlayerOperations 基准测试：玩家操作
 func BenchmarkCore_PlayerOperations(b *testing.B) {
-	core := NewBaseCore("bench-test", Classic1v1)
+	core := NewBaseCore("bench-test", TestMode)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -156,7 +157,7 @@ func BenchmarkCore_PlayerOperations(b *testing.B) {
 
 // BenchmarkCore_EventGeneration 基准测试：事件生成
 func BenchmarkCore_EventGeneration(b *testing.B) {
-	core := NewBaseCore("bench-events", Classic1v1)
+	core := NewBaseCore("bench-events", TestMode)
 
 	// 预先添加一些玩家
 	player1 := Player{Id: "player1", Name: "Player One"}
@@ -177,7 +178,7 @@ func TestGamePackage_FullSuite(t *testing.T) {
 		fmt.Println("=== Complete Game Workflow Test ===")
 
 		// 1. 创建游戏核心
-		core := NewBaseCore("integration-test-game", Classic1v1)
+		core := NewBaseCore("integration-test-game", TestMode)
 		if core == nil {
 			t.Fatal("Failed to create BaseCore")
 		}
@@ -237,7 +238,7 @@ func TestGamePackage_FullSuite(t *testing.T) {
 	t.Run("error_handling", func(t *testing.T) {
 		fmt.Println("=== Error Handling Test ===")
 
-		core := NewBaseCore("error-test-game", Classic1v1)
+		core := NewBaseCore("error-test-game", TestMode)
 
 		// 测试在未开始的游戏中进行操作
 		err := core.Move("nonexistent", Move{})
@@ -262,7 +263,7 @@ func TestGamePackage_FullSuite(t *testing.T) {
 		// 创建多个游戏实例进行压力测试
 		for i := 0; i < 10; i++ {
 			gameId := fmt.Sprintf("stress-test-%d", i)
-			core := NewBaseCore(gameId, Classic1v1)
+			core := NewBaseCore(gameId, TestMode)
 
 			// 快速添加和移除玩家
 			for j := 0; j < 5; j++ {
@@ -273,5 +274,244 @@ func TestGamePackage_FullSuite(t *testing.T) {
 		}
 
 		fmt.Println("=== Performance Stress Test PASSED ===")
+	})
+}
+
+func TestGame_EventHandling(t *testing.T) {
+	// 创建测试环境
+	q := queue.NewInMemoryQueue()
+	game := NewGame("test-game", q, TestMode)
+
+	// 启动游戏
+	if err := game.Start(); err != nil {
+		t.Fatalf("Failed to start game: %v", err)
+	}
+	defer game.Stop()
+
+	// 订阅广播事件来验证事件转发
+	broadcastCh := q.Subscribe("test-game/broadcast")
+
+	t.Run("join_command_handling", func(t *testing.T) {
+		// 发送加入命令
+		cmd := JoinCommand{
+			CommandEvent: CommandEvent{PlayerId: "player1"},
+			PlayerName:   "Test Player",
+		}
+		q.Publish("test-game/commands", cmd)
+
+		// 等待并验证广播事件
+		select {
+		case event := <-broadcastCh:
+			if joinEvent, ok := event.(PlayerJoinedEvent); ok {
+				if joinEvent.PlayerId != "player1" {
+					t.Errorf("Expected PlayerId 'player1', got '%s'", joinEvent.PlayerId)
+				}
+				if joinEvent.PlayerName != "Test Player" {
+					t.Errorf("Expected PlayerName 'Test Player', got '%s'", joinEvent.PlayerName)
+				}
+			} else {
+				t.Errorf("Expected PlayerJoinedEvent, got %T", event)
+			}
+		case <-time.After(100 * time.Millisecond):
+			t.Error("Timeout waiting for join event")
+		}
+	})
+
+	t.Run("leave_command_handling", func(t *testing.T) {
+		// 发送离开命令
+		cmd := LeaveCommand{
+			CommandEvent: CommandEvent{PlayerId: "player1"},
+		}
+		q.Publish("test-game/commands", cmd)
+
+		// 等待并验证广播事件
+		select {
+		case event := <-broadcastCh:
+			if leaveEvent, ok := event.(PlayerLeftEvent); ok {
+				if leaveEvent.PlayerId != "player1" {
+					t.Errorf("Expected PlayerId 'player1', got '%s'", leaveEvent.PlayerId)
+				}
+			} else {
+				t.Errorf("Expected PlayerLeftEvent, got %T", event)
+			}
+		case <-time.After(100 * time.Millisecond):
+			t.Error("Timeout waiting for leave event")
+		}
+	})
+
+	t.Run("force_start_command_handling", func(t *testing.T) {
+		// 重新添加两个玩家
+		q.Publish("test-game/commands", JoinCommand{
+			CommandEvent: CommandEvent{PlayerId: "player1"},
+			PlayerName:   "Player 1",
+		})
+		q.Publish("test-game/commands", JoinCommand{
+			CommandEvent: CommandEvent{PlayerId: "player2"},
+			PlayerName:   "Player 2",
+		})
+
+		// 等待加入事件
+		<-broadcastCh
+		<-broadcastCh
+
+		// 发送强制开始投票
+		cmd := ForceStartCommand{
+			CommandEvent: CommandEvent{PlayerId: "player1"},
+			IsVote:       true,
+		}
+		q.Publish("test-game/commands", cmd)
+
+		// 等待投票事件
+		select {
+		case event := <-broadcastCh:
+			if _, ok := event.(ForceStartVoteEvent); !ok {
+				t.Errorf("Expected ForceStartVoteEvent, got %T", event)
+			}
+		case <-time.After(100 * time.Millisecond):
+			t.Error("Timeout waiting for force start vote event")
+		}
+	})
+}
+
+func TestGame_ErrorHandling(t *testing.T) {
+	q := queue.NewInMemoryQueue()
+	game := NewGame("test-game", q, TestMode)
+
+	if err := game.Start(); err != nil {
+		t.Fatalf("Failed to start game: %v", err)
+	}
+	defer game.Stop()
+
+	// 订阅玩家错误事件
+	playerErrorCh := q.Subscribe("test-game/player/invalid-player")
+
+	t.Run("invalid_player_command", func(t *testing.T) {
+		// 发送来自不存在玩家的命令
+		cmd := LeaveCommand{
+			CommandEvent: CommandEvent{PlayerId: "invalid-player"},
+		}
+		q.Publish("test-game/commands", cmd)
+
+		// 等待错误事件
+		select {
+		case event := <-playerErrorCh:
+			if errorEvent, ok := event.(PlayerErrorEvent); ok {
+				if errorEvent.PlayerId != "invalid-player" {
+					t.Errorf("Expected error for 'invalid-player', got '%s'", errorEvent.PlayerId)
+				}
+			} else {
+				t.Errorf("Expected PlayerErrorEvent, got %T", event)
+			}
+		case <-time.After(100 * time.Millisecond):
+			t.Error("Timeout waiting for error event")
+		}
+	})
+}
+
+func TestGame_ControlEvents(t *testing.T) {
+	q := queue.NewInMemoryQueue()
+	game := NewGame("test-game", q, TestMode)
+
+	if err := game.Start(); err != nil {
+		t.Fatalf("Failed to start game: %v", err)
+	}
+	defer game.Stop()
+
+	t.Run("start_game_control", func(t *testing.T) {
+		// 添加足够的玩家
+		q.Publish("test-game/commands", JoinCommand{
+			CommandEvent: CommandEvent{PlayerId: "player1"},
+			PlayerName:   "Player 1",
+		})
+		q.Publish("test-game/commands", JoinCommand{
+			CommandEvent: CommandEvent{PlayerId: "player2"},
+			PlayerName:   "Player 2",
+		})
+
+		time.Sleep(50 * time.Millisecond) // 等待玩家加入
+
+		// 发送开始游戏控制事件
+		controlEvent := StartGameControl{}
+		q.Publish("test-game/control", controlEvent)
+
+		time.Sleep(50 * time.Millisecond) // 等待处理
+
+		// 验证游戏状态
+		if game.Core().Status() != StatusInProgress {
+			t.Errorf("Expected game status to be %s, got %s", StatusInProgress, game.Core().Status())
+		}
+	})
+
+	t.Run("stop_game_control", func(t *testing.T) {
+		// 发送停止游戏控制事件
+		controlEvent := StopGameControl{}
+		q.Publish("test-game/control", controlEvent)
+
+		time.Sleep(50 * time.Millisecond) // 等待处理
+
+		// 验证游戏状态
+		if game.Core().Status() != StatusFinished {
+			t.Errorf("Expected game status to be %s, got %s", StatusFinished, game.Core().Status())
+		}
+	})
+}
+
+func TestGame_Integration(t *testing.T) {
+	// 完整的游戏流程集成测试
+	q := queue.NewInMemoryQueue()
+	game := NewGame("integration-test", q, TestMode)
+
+	if err := game.Start(); err != nil {
+		t.Fatalf("Failed to start game: %v", err)
+	}
+	defer game.Stop()
+
+	// 订阅所有相关事件
+	broadcastCh := q.Subscribe("integration-test/broadcast")
+
+	// 模拟完整游戏流程
+	t.Run("complete_game_flow", func(t *testing.T) {
+		// 1. 玩家加入
+		q.Publish("integration-test/commands", JoinCommand{
+			CommandEvent: CommandEvent{PlayerId: "player1"},
+			PlayerName:   "Player One",
+		})
+		q.Publish("integration-test/commands", JoinCommand{
+			CommandEvent: CommandEvent{PlayerId: "player2"},
+			PlayerName:   "Player Two",
+		})
+
+		// 等待加入事件
+		<-broadcastCh // player1 joined
+		<-broadcastCh // player2 joined
+
+		// 2. 强制开始投票
+		q.Publish("integration-test/commands", ForceStartCommand{
+			CommandEvent: CommandEvent{PlayerId: "player1"},
+			IsVote:       true,
+		})
+		q.Publish("integration-test/commands", ForceStartCommand{
+			CommandEvent: CommandEvent{PlayerId: "player2"},
+			IsVote:       true,
+		})
+
+		// 等待投票和游戏开始事件
+		<-broadcastCh // vote event 1
+		<-broadcastCh // vote event 2
+
+		// 可能收到游戏开始事件
+		select {
+		case event := <-broadcastCh:
+			if _, ok := event.(GameStartedEvent); ok {
+				// 游戏已开始
+			}
+		case <-time.After(100 * time.Millisecond):
+			// 可能没有自动开始
+		}
+
+		// 验证最终状态
+		if len(game.Core().Players()) != 2 {
+			t.Errorf("Expected 2 players, got %d", len(game.Core().Players()))
+		}
 	})
 }

@@ -9,7 +9,7 @@ import (
 // TestBaseCore_NewBaseCore 测试 BaseCore 创建
 func TestBaseCore_NewBaseCore(t *testing.T) {
 	gameId := "test-game-1"
-	mode := Classic1v1
+	mode := TestMode
 
 	core := NewBaseCore(gameId, mode)
 
@@ -32,7 +32,7 @@ func TestBaseCore_NewBaseCore(t *testing.T) {
 
 // TestBaseCore_PlayerJoin 测试玩家加入功能
 func TestBaseCore_PlayerJoin(t *testing.T) {
-	core := NewBaseCore("test-game", Classic1v1)
+	core := NewBaseCore("test-game", TestMode)
 
 	t.Run("successful_join", func(t *testing.T) {
 		player := Player{
@@ -97,7 +97,7 @@ func TestBaseCore_PlayerJoin(t *testing.T) {
 // TestBaseCore_PlayerLeave 测试玩家离开功能
 func TestBaseCore_PlayerLeave(t *testing.T) {
 	t.Run("leave_before_game_start", func(t *testing.T) {
-		core := NewBaseCore("test-game", Classic1v1)
+		core := NewBaseCore("test-game", TestMode)
 
 		// 添加玩家
 		player1 := Player{Id: "player1", Name: "Player One"}
@@ -121,7 +121,7 @@ func TestBaseCore_PlayerLeave(t *testing.T) {
 	})
 
 	t.Run("leave_during_game", func(t *testing.T) {
-		core := NewBaseCore("test-game", Classic1v1)
+		core := NewBaseCore("test-game", TestMode)
 
 		// 添加玩家并开始游戏
 		player1 := Player{Id: "player1", Name: "Player One"}
@@ -160,7 +160,7 @@ func TestBaseCore_PlayerLeave(t *testing.T) {
 	})
 
 	t.Run("leave_nonexistent_player", func(t *testing.T) {
-		core := NewBaseCore("test-game", Classic1v1)
+		core := NewBaseCore("test-game", TestMode)
 
 		err := core.Leave("nonexistent")
 		if err == nil {
@@ -171,7 +171,7 @@ func TestBaseCore_PlayerLeave(t *testing.T) {
 
 // TestBaseCore_GetPlayer 测试获取玩家功能
 func TestBaseCore_GetPlayer(t *testing.T) {
-	core := NewBaseCore("test-game", Classic1v1)
+	core := NewBaseCore("test-game", TestMode)
 
 	player := Player{Id: "player1", Name: "Player One"}
 	core.Join(player)
@@ -202,7 +202,7 @@ func TestBaseCore_GetPlayer(t *testing.T) {
 // TestBaseCore_ForceStart 测试强制开始功能
 func TestBaseCore_ForceStart(t *testing.T) {
 	t.Run("force_start_with_enough_players", func(t *testing.T) {
-		core := NewBaseCore("test-game", Classic1v1)
+		core := NewBaseCore("test-game", TestMode)
 
 		// 添加足够的玩家
 		player1 := Player{Id: "player1", Name: "Player One"}
@@ -230,7 +230,7 @@ func TestBaseCore_ForceStart(t *testing.T) {
 	})
 
 	t.Run("force_start_insufficient_players", func(t *testing.T) {
-		core := NewBaseCore("test-game", Classic1v1)
+		core := NewBaseCore("test-game", TestMode)
 
 		// 只添加一个玩家
 		player1 := Player{Id: "player1", Name: "Player One"}
@@ -248,7 +248,7 @@ func TestBaseCore_ForceStart(t *testing.T) {
 	})
 
 	t.Run("force_start_cancel_vote", func(t *testing.T) {
-		core := NewBaseCore("test-game", Classic1v1)
+		core := NewBaseCore("test-game", TestMode)
 
 		player1 := Player{Id: "player1", Name: "Player One"}
 		player2 := Player{Id: "player2", Name: "Player Two"}
@@ -271,7 +271,7 @@ func TestBaseCore_ForceStart(t *testing.T) {
 
 // TestBaseCore_Status 测试状态相关功能
 func TestBaseCore_Status(t *testing.T) {
-	core := NewBaseCore("test-game", Classic1v1)
+	core := NewBaseCore("test-game", TestMode)
 
 	t.Run("initial_status", func(t *testing.T) {
 		if core.Status() != StatusWaiting {
@@ -303,7 +303,7 @@ func TestBaseCore_Status(t *testing.T) {
 
 // TestBaseCore_GetActivePlayerCount 测试活跃玩家计数
 func TestBaseCore_GetActivePlayerCount(t *testing.T) {
-	core := NewBaseCore("test-game", Classic1v1)
+	core := NewBaseCore("test-game", TestMode)
 
 	t.Run("no_players", func(t *testing.T) {
 		count := core.GetActivePlayerCount()
@@ -338,7 +338,7 @@ func TestBaseCore_GetActivePlayerCount(t *testing.T) {
 
 // TestBaseCore_IsGameReady 测试游戏就绪检查
 func TestBaseCore_IsGameReady(t *testing.T) {
-	core := NewBaseCore("test-game", Classic1v1)
+	core := NewBaseCore("test-game", TestMode)
 
 	t.Run("not_ready_no_players", func(t *testing.T) {
 		if core.IsGameReady() {
@@ -422,7 +422,7 @@ func TestBaseCore_TurnTimer(t *testing.T) {
 
 // TestBaseCore_EventHandlers 测试事件处理器
 func TestBaseCore_EventHandlers(t *testing.T) {
-	core := NewBaseCore("test-game", Classic1v1)
+	core := NewBaseCore("test-game", TestMode)
 
 	var broadcastEvents []queue.Event
 	var controlEvents []queue.Event

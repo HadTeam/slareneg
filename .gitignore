@@ -1,0 +1,20 @@
+# 二进制
+packages/server/server
+
+# 临时文件
+*.tmp
+*.tmp.*
+*.tmp/**
+*.tmp/**.*
+*.tmp/**/**
+*.tmp/**/**.*
+
+
+.vscode
+.idea
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local

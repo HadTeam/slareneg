@@ -1,108 +1,177 @@
-// 游戏模式测试程序
-// 作为独立程序运行以测试游戏模式功能
 package main
 
 import (
-	"fmt"
+	"context"
+	"encoding/json"
 	"log/slog"
+	"net/http"
 	"os"
-	"server/internal/game"
-	gamemap "server/internal/game/map"
-	"server/internal/queue"
+	"os/signal"
+	"syscall"
 	"time"
+
+	"server/internal/config"
+	"server/internal/wire"
 )
 
 func main() {
-	// 设置日志
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
+	cfg, err := config.LoadConfig("config.json")
+	if err != nil {
+		slog.Error("failed to load config", "error", err)
+		os.Exit(1)
+	}
+
+	if err := cfg.Validate(); err != nil {
+		slog.Error("invalid configuration", "error", err)
+		os.Exit(1)
+	}
+
+	setupLogging(cfg.Logging)
+	slog.Info("starting slareneg game server")
+
+	app, err := wire.InitializeApplication(cfg)
+	if err != nil {
+		slog.Error("failed to initialize application", "error", err)
+		os.Exit(1)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	if err := startServices(app, cfg); err != nil {
+		slog.Error("failed to start services", "error", err)
+		os.Exit(1)
+	}
+
+	select {
+	case sig := <-sigChan:
+		slog.Info("received signal, shutting down", "signal", sig)
+	case <-ctx.Done():
+		slog.Info("context cancelled, shutting down")
+	}
+
+	slog.Info("shutting down server")
+	stopServices(app)
+	slog.Info("server shutdown complete")
+}
+
+func startServices(app *wire.Application, cfg *config.Config) error {
+	go func() {
+		if err := app.Lobby.Start(); err != nil {
+			slog.Error("lobby service failed to start", "error", err)
+		}
+	}()
+
+	setupHTTPRoutes(app)
+
+	go func() {
+		slog.Info("starting HTTP server", "addr", cfg.GetServerAddr())
+
+		server := &http.Server{
+			Addr:         cfg.GetServerAddr(),
+			ReadTimeout:  cfg.Server.ReadTimeout,
+			WriteTimeout: cfg.Server.WriteTimeout,
+		}
+
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("HTTP server failed", "error", err)
+		}
+	}()
+
+	return nil
+}
+
+func setupHTTPRoutes(app *wire.Application) {
+	http.HandleFunc("/api/auth/register", app.AuthService.RegisterHandler)
+	http.HandleFunc("/api/auth/login", app.AuthService.LoginHandler)
+	http.HandleFunc("/ws", app.AuthService.AuthMiddleware(app.WSServer.HandleWebSocket))
+	http.HandleFunc("/health", healthCheckHandler(app))
+	http.HandleFunc("/api/cache/stats", app.AuthService.AuthMiddleware(cacheStatsHandler(app)))
+
+	staticDir := app.Config.Server.StaticDir
+	if _, err := os.Stat(staticDir); err == nil {
+		http.Handle("/", http.FileServer(http.Dir(staticDir)))
+		slog.Info("serving static files", "dir", staticDir)
+	}
+}
+
+func healthCheckHandler(app *wire.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		stats := app.Cache.GetCacheStats()
+		health := map[string]interface{}{
+			"status":    "ok",
+			"timestamp": time.Now().Unix(),
+			"cache":     stats,
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(health); err != nil {
+			slog.Error("failed to encode health response", "error", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+	}
+}
+
+func cacheStatsHandler(app *wire.Application) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		stats := app.Cache.GetCacheStats()
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(stats); err != nil {
+			slog.Error("failed to encode cache stats", "error", err)
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
+	}
+}
+
+func stopServices(app *wire.Application) {
+	if err := app.Lobby.Stop(); err != nil {
+		slog.Error("error stopping lobby service", "error", err)
+	}
+
+	if err := app.WSServer.StopServer(); err != nil {
+		slog.Error("error stopping websocket server", "error", err)
+	}
+}
+
+func setupLogging(cfg config.LoggingConfig) {
+	var level slog.Level
+	switch cfg.Level {
+	case "debug":
+		level = slog.LevelDebug
+	case "info":
+		level = slog.LevelInfo
+	case "warn":
+		level = slog.LevelWarn
+	case "error":
+		level = slog.LevelError
+	default:
+		level = slog.LevelInfo
+	}
+
+	opts := &slog.HandlerOptions{
+		Level: level,
+	}
+
+	var handler slog.Handler
+	if cfg.Format == "json" {
+		handler = slog.NewJSONHandler(os.Stdout, opts)
+	} else {
+		handler = slog.NewTextHandler(os.Stdout, opts)
+	}
+
+	logger := slog.New(handler)
 	slog.SetDefault(logger)
-
-	fmt.Println("=== Starting Game Mode Test ===")
-
-	// 创建消息队列
-	q := queue.NewInMemoryQueue()
-
-	// 创建游戏实例 (使用经典1v1模式)
-	gameInstance := game.NewGame("test-game-1", q, game.Classic1v1)
-
-	// 启动游戏事件处理
-	if err := gameInstance.Start(); err != nil {
-		fmt.Printf("Failed to start game: %v\n", err)
-		return
-	}
-
-	// 测试游戏模式功能
-	testGameMode(gameInstance, q)
-
-	// 等待一段时间观察效果
-	time.Sleep(2 * time.Second)
-
-	// 停止游戏
-	if err := gameInstance.Stop(); err != nil {
-		fmt.Printf("Failed to stop game: %v\n", err)
-	}
-
-	fmt.Println("Game mode test completed!")
-}
-
-func testGameMode(gameInstance *game.Game, q queue.Queue) {
-	fmt.Println("=== Testing Game Mode Features ===")
-
-	// 测试游戏模式信息
-	fmt.Printf("Testing game mode: Classic1v1\n")
-
-	// 模拟两个玩家加入
-	fmt.Println("\n--- Testing Player Join ---")
-	publishJoinCommand(q, "test-game-1", "player1", "Player One")
-	publishJoinCommand(q, "test-game-1", "player2", "Player Two")
-
-	time.Sleep(500 * time.Millisecond) // 等待事件处理
-
-	// 模拟强制开始投票
-	fmt.Println("\n--- Testing Force Start Vote ---")
-	publishForceStartCommand(q, "test-game-1", "player1", true)
-	publishForceStartCommand(q, "test-game-1", "player2", true)
-
-	time.Sleep(1 * time.Second) // 等待游戏开始
-
-	// 模拟移动操作
-	fmt.Println("\n--- Testing Game Actions ---")
-	publishMoveCommand(q, "test-game-1", "player1")
-
-	time.Sleep(500 * time.Millisecond)
-}
-
-// publishJoinCommand 发布加入游戏指令
-func publishJoinCommand(q queue.Queue, gameId, playerId, playerName string) {
-	cmd := game.JoinCommand{
-		CommandEvent: game.CommandEvent{PlayerId: playerId},
-		PlayerName:   playerName,
-	}
-	q.Publish(fmt.Sprintf("%s/commands", gameId), cmd)
-	fmt.Printf("Player %s (%s) join command sent\n", playerId, playerName)
-}
-
-// publishForceStartCommand 发布强制开始指令
-func publishForceStartCommand(q queue.Queue, gameId, playerId string, isVote bool) {
-	cmd := game.ForceStartCommand{
-		CommandEvent: game.CommandEvent{PlayerId: playerId},
-		IsVote:      isVote,
-	}
-	q.Publish(fmt.Sprintf("%s/commands", gameId), cmd)
-	fmt.Printf("Player %s force start vote: %v\n", playerId, isVote)
-}
-
-// publishMoveCommand 发布移动指令
-func publishMoveCommand(q queue.Queue, gameId, playerId string) {
-	// 发送移动指令，从位置(1,1)向右移动1个兵
-	cmd := game.MoveCommand{
-		CommandEvent: game.CommandEvent{PlayerId: playerId},
-		From:         gamemap.Pos{X: 1, Y: 1},
-		Direction:    game.MoveTowardsRight,
-		Troops:       1,
-	}
-	q.Publish(fmt.Sprintf("%s/commands", gameId), cmd)
-	fmt.Printf("Move command sent for player %s\n", playerId)
 }
