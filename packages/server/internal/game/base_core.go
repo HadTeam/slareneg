@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"math"
-	"math/rand"
 	"server/internal/game/block"
 	gamemap "server/internal/game/map"
 	"server/internal/queue"
@@ -654,124 +652,20 @@ func (gc *BaseCore) initializeMap() error {
 		Desc: "Generated map for game " + gc.gameId,
 	}
 
-	gc._map = gamemap.NewEmptyBaseMap(mapSize, mapInfo)
-	if gc._map == nil {
-		return errors.New("failed to create empty map")
+	players := make([]gamemap.Player, len(gc.players))
+	for i, p := range gc.players {
+		players[i] = gamemap.Player{
+			Index:    i,
+			Owner:    block.Owner(i),
+			IsActive: p.IsActive(),
+		}
 	}
 
-	if err := gc.generateMapContent(); err != nil {
-		return fmt.Errorf("failed to generate map content: %w", err)
+	generatedMap, err := gamemap.GenerateMap("base", mapSize, mapInfo, players)
+	if err != nil {
+		return fmt.Errorf("failed to generate map: %w", err)
 	}
 
+	gc._map = generatedMap
 	return nil
-}
-
-func (gc *BaseCore) generateMapContent() error {
-	size := gc._map.Size()
-
-	playerPositions := gc.generatePlayerStartPositions(size)
-
-	for i, player := range gc.players {
-		if player.IsActive() {
-			pos := playerPositions[i]
-			owner := block.Owner(i)
-
-			kingBlock := block.NewBlock(block.KingName, 1, owner)
-
-			if err := gc._map.SetBlock(pos, kingBlock); err != nil {
-				return fmt.Errorf("failed to set king block at %v: %w", pos, err)
-			}
-
-			directions := []gamemap.Pos{
-				{X: pos.X + 1, Y: pos.Y},
-				{X: pos.X - 1, Y: pos.Y},
-				{X: pos.X, Y: pos.Y + 1},
-				{X: pos.X, Y: pos.Y - 1},
-			}
-
-			for _, dir := range directions {
-				if size.IsPosValid(dir) {
-					soldierBlock := block.NewBlock(block.SoldierName, 1, owner)
-					gc._map.SetBlock(dir, soldierBlock)
-				}
-			}
-		}
-	}
-
-	gc.placeMountains(size, 0.1)
-
-	gc.placeNeutralCastles(size, 5)
-
-	return nil
-}
-
-func (gc *BaseCore) generatePlayerStartPositions(size gamemap.Size) []gamemap.Pos {
-	positions := make([]gamemap.Pos, len(gc.players))
-
-	switch len(gc.players) {
-	case 2:
-		positions[0] = gamemap.Pos{X: 3, Y: 3}
-		positions[1] = gamemap.Pos{X: size.Width - 2, Y: size.Height - 2}
-	case 3:
-		positions[0] = gamemap.Pos{X: 3, Y: 3}
-		positions[1] = gamemap.Pos{X: size.Width - 2, Y: 3}
-		positions[2] = gamemap.Pos{X: size.Width / 2, Y: size.Height - 2}
-	case 4:
-		positions[0] = gamemap.Pos{X: 3, Y: 3}
-		positions[1] = gamemap.Pos{X: size.Width - 2, Y: 3}
-		positions[2] = gamemap.Pos{X: 3, Y: size.Height - 2}
-		positions[3] = gamemap.Pos{X: size.Width - 2, Y: size.Height - 2}
-	default:
-		for i := range positions {
-			angle := float64(i) * 2 * math.Pi / float64(len(positions))
-			centerX := float64(size.Width) / 2
-			centerY := float64(size.Height) / 2
-			radius := float64(min(size.Width, size.Height)) / 3
-
-			x := centerX + radius*math.Cos(angle)
-			y := centerY + radius*math.Sin(angle)
-
-			positions[i] = gamemap.Pos{
-				X: uint16(max(1, min(int(size.Width), int(x)))),
-				Y: uint16(max(1, min(int(size.Height), int(y)))),
-			}
-		}
-	}
-
-	return positions
-}
-
-func (gc *BaseCore) placeMountains(size gamemap.Size, density float64) {
-	totalBlocks := int(size.Width * size.Height)
-	mountainCount := int(float64(totalBlocks) * density)
-
-	for i := 0; i < mountainCount; i++ {
-		x := uint16(rand.Intn(int(size.Width))) + 1
-		y := uint16(rand.Intn(int(size.Height))) + 1
-		pos := gamemap.Pos{X: x, Y: y}
-
-		existing, err := gc._map.Block(pos)
-		if err != nil || existing != nil {
-			continue
-		}
-
-		mountain := block.NewBlock(block.MountainName, 0, 0)
-		gc._map.SetBlock(pos, mountain)
-	}
-}
-
-func (gc *BaseCore) placeNeutralCastles(size gamemap.Size, count int) {
-	for i := 0; i < count; i++ {
-		x := uint16(rand.Intn(int(size.Width))) + 1
-		y := uint16(rand.Intn(int(size.Height))) + 1
-		pos := gamemap.Pos{X: x, Y: y}
-
-		existing, err := gc._map.Block(pos)
-		if err != nil || existing != nil {
-			continue
-		}
-
-		castle := block.NewBlock(block.CastleName, block.Num(rand.Intn(20)+10), 0)
-		gc._map.SetBlock(pos, castle)
-	}
 }
