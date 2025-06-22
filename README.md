@@ -22,82 +22,123 @@
 - 地图市场
 - 玩家排位机制（分数计算/排行榜规则）
 
+##### 架构设计
+
+后端游戏系统采用分层架构设计，主要分为两个核心层次：
+
+1. **事件转发层 (Game)**
+   - 负责事件的订阅、解析和转发
+   - 消费来自消息队列的player/control事件
+   - 调用GameCore的相应方法处理游戏逻辑
+   - 将GameCore返回的事件发布到相应的topic (broadcast/player/control)
+   - 处理游戏生命周期管理
+
+2. **游戏逻辑层 (GameCore/BaseCore)**
+   - 纯粹的游戏逻辑处理，无外部依赖
+   - 提供标准化的事件返回接口
+   - 处理玩家动作、回合机制、胜负判定等核心逻辑
+   - 使用统一的事件类型系统 (core/event.go)
+
+这种设计的优势：
+- **职责分离**：事件处理与游戏逻辑完全分离
+- **可测试性**：GameCore可以独立进行单元测试
+- **可扩展性**：可以轻松替换事件系统或游戏逻辑
+- **类型安全**：所有事件使用统一的类型定义
+
 ##### 大致数据流
 ```mermaid
 sequenceDiagram
-    participant Client as 客户端 Client
-    participant HTTP as HTTP Service
-    participant WS as WebSocket Service
-    participant Game as 游戏核心 GameCore
-    participant Queue as 消息队列 Queue
-    participant Cache as 缓存层 Cache<br/>(RAM/Redis)
-    participant DB as 数据库 DB<br/>(Postrges)
+    participant Client as 客户端
+    participant HTTP as 认证服务
+    participant WS as WebSocket网关 
+    participant Lobby as 游戏大厅
+    participant Game as 游戏核心服务
+    participant Queue as 消息队列
+    participant Cache as 缓存
+    participant DB as 数据库
 
-    %% 用户认证流程
-    Client->>HTTP: 注册/登录请求
-    HTTP->>DB: 验证用户凭据
-    DB-->>HTTP: 返回用户信息
-    HTTP->>Cache: 缓存用户会话
-    HTTP-->>Client: 返回JWT令牌
-
-    %% WebSocket连接建立
-    Client->>WS: 建立WebSocket连接
-    WS->>Cache: 验证JWT令牌
-    Cache-->>WS: 返回用户信息
-    WS->>Game: 玩家加入游戏房间
-    Game->>Cache: 更新房间状态
-    WS-->>Client: 连接成功
-
-    %% 游戏操作流程
-    Client->>WS: 发送游戏指令(移动/攻击/投降)
-    WS->>Queue: 指令入队列
-    
-    Queue->>Game: 消费指令
-    Note over Game: 1. 验证指令合法性<br/>2. 检查玩家权限<br/>3. 判断回合状态
-    
-    alt 指令有效
-        Game->>Cache: 更新游戏状态
-        Game->>Queue: 广播状态变更
-        Queue->>WS: 推送给所有玩家
-        WS-->>Client: 实时状态更新
-    else 指令无效
-        Game-->>WS: 返回错误信息
-        WS-->>Client: 显示错误提示
+    %% 1. 用户认证流程
+    alt 用户认证
+        Client->>HTTP: 发送注册/登录请求
+        HTTP->>DB: 验证用户凭据
+        DB-->>HTTP: 返回用户信息
+        HTTP->>Cache: 缓存用户会话
+        HTTP-->>Client: 返回JWT令牌
     end
 
-    %% 定时任务处理
-    rect rgb(240, 248, 255)
-        Note over Game: 定时任务模块 Timer Module
-        loop 每回合间隔
-            Game->>Game: 处理资源增长
-            Game->>Cache: 批量更新状态
-            Game->>Queue: 广播回合结束
-            Queue->>WS: 推送新回合开始
-            WS-->>Client: 回合状态更新
+    %% 2. 建立连接与游戏进入
+    Client->>WS: 携带JWT建立WebSocket连接
+    WS->>Cache: 验证JWT有效性
+    Cache-->>WS: 验证成功
+    WS-->>Client: 连接成功确认
+
+    Client->>WS: 请求加入游戏
+    WS->>Lobby: 转发加入请求
+    Lobby->>Cache: 查询/创建游戏房间
+    Lobby->>Game: 创建游戏实例
+    Game->>Game: 初始化游戏状态(可能要在此过程中请求数据库等以获取地图)
+    
+    %% 3. 玩家加入通知
+    Game->>Queue: 发布玩家加入事件
+    note right of Game: 发布到 `${room.id}/broadcast`
+    Queue-->>WS: 订阅者接收事件
+    note left of WS: 订阅 `${room.id}/broadcast`
+    
+    Lobby->>WS: 返回房间信息
+    WS-->>Client: 成功进入房间通知
+    WS-->>Client: 广播新玩家加入
+
+    %% 4. 核心游戏循环
+    alt 游戏进行中
+        Client->>WS: 发送游戏指令(如移动)
+        WS->>Queue: 将指令加入队列
+        note right of WS: 发布到 `${game.id}/commands`
+
+        Game->>Queue: 消费玩家指令
+        note left of Game: 订阅 `${game.id}/commands`
+        note right of Game: 处理流程:<br/>1. 验证指令<br/>2. 计算状态变更
+        Game->>Cache: 更新游戏快照
+
+        alt 有效指令
+            Game->>Queue: 发布游戏状态更新事件
+            note right of Game: 发布到 `${room.id}/broadcast`
+            Queue-->>WS: 订阅者接收事件
+            WS-->>Client: 广播最新状态
+        else 无效指令
+            Game->>Queue: 发布错误事件给特定玩家
+            note right of Game: 发布到 `${player.id}/notifications`
+            Queue-->>WS: 订阅者接收事件
+            WS-->>Client: 发送错误提示
+        end
+        
+        %% 游戏定时器/回合逻辑
+        loop 定时触发
+            Game->>Game: 内部处理回合逻辑
+            Game->>Queue: 发布新回合事件
+            note right of Game: 发布到 `${room.id}/broadcast`
+            Queue-->>WS: 订阅者接收事件
+            WS-->>Client: 广播新回合信息
         end
     end
 
-    %% 游戏结束流程
-    Game->>Game: 检查胜负条件
+    %% 5. 游戏结束与结算
     alt 游戏结束
-        Game->>DB: 保存游戏结果
-        Game->>Cache: 清理游戏状态
-        Game->>Queue: 广播游戏结束
-        Queue->>WS: 推送结算信息
-        WS-->>Client: 显示结算界面
+        Game->>Game: 检查结束条件
+        Game->>Queue: 发布游戏结束事件
+        note right of Game: 发布到 `${room.id}/broadcast`
+        Game->>DB: 持久化游戏结果
+        Game->>Cache: 清理游戏缓存
+        Queue-->>WS: 订阅者接收事件
+        WS-->>Client: 推送结算信息
     end
 
-    %% 异常处理
+    %% 6. 异常处理
     alt 玩家断线
-        WS->>Game: 玩家离线通知
-        Game->>Cache: 标记玩家状态
-        Game->>Queue: 广播玩家离线
-    end
-
-    %% 数据持久化
-    rect rgb(255, 248, 240)
-        Note over Cache,DB: 数据同步
-        Cache->>DB: 定期同步缓存数据
-        DB-->>Cache: 确认同步完成
+        WS->>Lobby: 通知玩家断线
+        Lobby->>Game: 通知游戏实例
+        Game->>Queue: 发布玩家离开事件
+        note right of Game: 发布到 `${room.id}/broadcast`
+        Queue-->>WS: 在线玩家接收事件
+        WS-->>Client: 广播玩家离开信息
     end
 ```

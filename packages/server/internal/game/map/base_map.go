@@ -39,9 +39,6 @@ func (m *BaseMap) SetBlock(pos Pos, b block.Block) error {
 	if !m.size.IsPosValid(pos) {
 		return errors.New("invalid position: " + pos.String())
 	}
-	if m.blocks[pos.Y-1][pos.X-1] != nil {
-		return errors.New("block already exists at position: " + pos.String())
-	}
 	m.blocks[pos.Y-1][pos.X-1] = b
 	return nil
 }
@@ -49,15 +46,20 @@ func (m *BaseMap) SetBlocks(blocks Blocks) error {
 	if len(blocks) != int(m.size.Height) || len(blocks[0]) != int(m.size.Width) {
 		return errors.New("blocks dimensions do not match map size: " + m.size.String())
 	}
-	for y, row := range blocks {
-		for x, b := range row {
-			if b != nil {
-				if err := m.SetBlock(Pos{X: uint16(x + 1), Y: uint16(y + 1)}, b); err != nil {
-					return err
+	if m.IsEmpty() {
+		m.blocks = make(Blocks, m.size.Height)
+	} else {
+		for y, row := range blocks {
+			for x, b := range row {
+				if b != nil {
+					if err := m.SetBlock(Pos{X: uint16(x + 1), Y: uint16(y + 1)}, b); err != nil {
+						return err
+					}
 				}
 			}
 		}
 	}
+
 	return nil
 }
 func (m *BaseMap) Size() Size {

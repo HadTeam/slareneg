@@ -55,7 +55,7 @@ func (p Pos) String() string {
 }
 
 func (s Size) IsPosValid(p Pos) bool {
-	return p.X > 0 && p.X <= s.Width && p.Y > 0 && p.Y <= s.Height
+	return p.X < s.Width && p.Y < s.Height
 }
 
 func (i Info) String() string {
