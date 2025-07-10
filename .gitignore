@@ -18,3 +18,7 @@ packages/server/server
 .env.development.local
 .env.test.local
 .env.production.local
+
+config.json
+config.yaml
+config.yml
