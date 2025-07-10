@@ -18,34 +18,34 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Host         string        `json:"host"`
-	Port         int           `json:"port"`
-	ReadTimeout  time.Duration `json:"readTimeout"`
-	WriteTimeout time.Duration `json:"writeTimeout"`
-	StaticDir    string        `json:"staticDir"`
+	Host         string   `json:"host"`
+	Port         int      `json:"port"`
+	ReadTimeout  Duration `json:"readTimeout"`
+	WriteTimeout Duration `json:"writeTimeout"`
+	StaticDir    string   `json:"staticDir"`
 }
 
 type AuthConfig struct {
-	JWTSecret      string        `json:"jwtSecret"`
-	TokenExpiry    time.Duration `json:"tokenExpiry"`
-	BCryptCost     int           `json:"bcryptCost"`
-	RateLimitRPS   int           `json:"rateLimitRPS"`
-	RateLimitBurst int           `json:"rateLimitBurst"`
+	JWTSecret      string   `json:"jwtSecret"`
+	TokenExpiry    Duration `json:"tokenExpiry"`
+	BCryptCost     int      `json:"bcryptCost"`
+	RateLimitRPS   int      `json:"rateLimitRPS"`
+	RateLimitBurst int      `json:"rateLimitBurst"`
 }
 
 type CacheConfig struct {
-	CleanupInterval time.Duration `json:"cleanupInterval"`
-	DefaultTTL      time.Duration `json:"defaultTTL"`
-	MaxMemoryMB     int           `json:"maxMemoryMB"`
+	CleanupInterval Duration `json:"cleanupInterval"`
+	DefaultTTL      Duration `json:"defaultTTL"`
+	MaxMemoryMB     int      `json:"maxMemoryMB"`
 }
 
 type GameConfig struct {
-	MaxRooms            int           `json:"maxRooms"`
-	MaxPlayersPerRoom   int           `json:"maxPlayersPerRoom"`
-	GameTimeout         time.Duration `json:"gameTimeout"`
-	ReconnectTimeout    time.Duration `json:"reconnectTimeout"`
-	HeartbeatInterval   time.Duration `json:"heartbeatInterval"`
-	MatchmakingInterval time.Duration `json:"matchmakingInterval"`
+	MaxRooms            int      `json:"maxRooms"`
+	MaxPlayersPerRoom   int      `json:"maxPlayersPerRoom"`
+	GameTimeout         Duration `json:"gameTimeout"`
+	ReconnectTimeout    Duration `json:"reconnectTimeout"`
+	HeartbeatInterval   Duration `json:"heartbeatInterval"`
+	MatchmakingInterval Duration `json:"matchmakingInterval"`
 }
 
 type DatabaseConfig struct {
@@ -76,29 +76,29 @@ func DefaultConfig() *Config {
 		Server: ServerConfig{
 			Host:         "0.0.0.0",
 			Port:         8080,
-			ReadTimeout:  15 * time.Second,
-			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  Duration(15 * time.Second),
+			WriteTimeout: Duration(15 * time.Second),
 			StaticDir:    "./static",
 		},
 		Auth: AuthConfig{
 			JWTSecret:      "your-secret-key-change-this-in-production",
-			TokenExpiry:    24 * time.Hour,
+			TokenExpiry:    Duration(24 * time.Hour),
 			BCryptCost:     12,
 			RateLimitRPS:   10,
 			RateLimitBurst: 20,
 		},
 		Cache: CacheConfig{
-			CleanupInterval: 10 * time.Minute,
-			DefaultTTL:      1 * time.Hour,
+			CleanupInterval: Duration(10 * time.Minute),
+			DefaultTTL:      Duration(1 * time.Hour),
 			MaxMemoryMB:     100,
 		},
 		Game: GameConfig{
 			MaxRooms:            100,
 			MaxPlayersPerRoom:   8,
-			GameTimeout:         30 * time.Minute,
-			ReconnectTimeout:    30 * time.Second,
-			HeartbeatInterval:   30 * time.Second,
-			MatchmakingInterval: 5 * time.Second,
+			GameTimeout:         Duration(30 * time.Minute),
+			ReconnectTimeout:    Duration(30 * time.Second),
+			HeartbeatInterval:   Duration(30 * time.Second),
+			MatchmakingInterval: Duration(5 * time.Second),
 		},
 		Database: DatabaseConfig{
 			Type:         "sqlite",
@@ -163,18 +163,18 @@ func (c *Config) loadFromEnv() {
 	}
 	if tokenExpiry := os.Getenv("TOKEN_EXPIRY"); tokenExpiry != "" {
 		if d, err := time.ParseDuration(tokenExpiry); err == nil {
-			c.Auth.TokenExpiry = d
+			c.Auth.TokenExpiry = Duration(d)
 		}
 	}
 
 	if cleanupInterval := os.Getenv("CACHE_CLEANUP_INTERVAL"); cleanupInterval != "" {
 		if d, err := time.ParseDuration(cleanupInterval); err == nil {
-			c.Cache.CleanupInterval = d
+			c.Cache.CleanupInterval = Duration(d)
 		}
 	}
 	if defaultTTL := os.Getenv("CACHE_DEFAULT_TTL"); defaultTTL != "" {
 		if d, err := time.ParseDuration(defaultTTL); err == nil {
-			c.Cache.DefaultTTL = d
+			c.Cache.DefaultTTL = Duration(d)
 		}
 	}
 
@@ -190,12 +190,12 @@ func (c *Config) loadFromEnv() {
 	}
 	if gameTimeout := os.Getenv("GAME_TIMEOUT"); gameTimeout != "" {
 		if d, err := time.ParseDuration(gameTimeout); err == nil {
-			c.Game.GameTimeout = d
+			c.Game.GameTimeout = Duration(d)
 		}
 	}
 	if reconnectTimeout := os.Getenv("GAME_RECONNECT_TIMEOUT"); reconnectTimeout != "" {
 		if d, err := time.ParseDuration(reconnectTimeout); err == nil {
-			c.Game.ReconnectTimeout = d
+			c.Game.ReconnectTimeout = Duration(d)
 		}
 	}
 

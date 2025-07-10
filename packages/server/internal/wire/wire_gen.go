@@ -14,6 +14,7 @@ import (
 	"server/internal/lobby"
 	"server/internal/queue"
 	"server/internal/websocket"
+	"time"
 )
 
 // Injectors from wire.go:
@@ -55,7 +56,7 @@ func provideJWTTokenService(cfg *config.Config) *auth.JWTTokenService {
 }
 
 func provideCacheService(cfg *config.Config) *cache.CacheService {
-	inMemoryCache := cache.NewInMemoryCache(cfg.Cache.CleanupInterval)
+	inMemoryCache := cache.NewInMemoryCache(time.Duration(cfg.Cache.CleanupInterval))
 	return cache.NewCacheService(inMemoryCache)
 }
 
