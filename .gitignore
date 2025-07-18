@@ -22,3 +22,5 @@ packages/server/server
 config.json
 config.yaml
 config.yml
+
+node_modules

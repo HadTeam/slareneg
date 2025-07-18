@@ -1,0 +1,14 @@
+{
+  "name": "slareneg",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "pnpm --filter webpage-solid dev",
+    "build": "pnpm --filter webpage-solid build",
+    "preview": "pnpm --filter webpage-solid preview",
+    "test": "pnpm --filter webpage-solid test"
+  },
+  "devDependencies": {
+    "typescript": "~5.8.3"
+  }
+}
