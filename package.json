@@ -3,10 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "pnpm --filter webpage-solid dev",
-    "build": "pnpm --filter webpage-solid build",
-    "preview": "pnpm --filter webpage-solid preview",
-    "test": "pnpm --filter webpage-solid test"
+    "dev": "pnpm --filter ui-playground dev",
+    "build": "pnpm --filter ui-playground build",
+    "preview": "pnpm --filter ui-playground preview",
+    "test": "pnpm --filter ui-playground test"
   },
   "devDependencies": {
     "typescript": "~5.8.3"

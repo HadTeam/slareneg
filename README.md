@@ -255,7 +255,7 @@ curl -X GET http://localhost:8080/api/map/random -o map.json
 
 2. Start the frontend:
    ```bash
-   cd packages/webpage-solid
+   cd packages/ui-playground
    pnpm run dev
    ```
 
