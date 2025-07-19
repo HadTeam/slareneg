@@ -1,0 +1,24 @@
+{
+  "apps": [
+    {
+      "name": "vite-server",
+      "script": "pnpm",
+      "args": "run dev -- --port 5173 --host",
+      "watch": true,
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+      "name": "backend-server",
+      "script": "pnpm",
+      "args": "run start:server",
+      "watch": true,
+      "env": {
+        "NODE_ENV": "development",
+        "PORT": "8080"
+      }
+    }
+  ]
+}
+

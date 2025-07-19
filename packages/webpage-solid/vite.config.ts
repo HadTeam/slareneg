@@ -4,12 +4,20 @@ import solid from 'vite-plugin-solid'
 
 export default defineConfig({
   plugins: [solid()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
-    transformMode: {
-      web: [/\.[jt]sx?$/],
+    testTransformMode: {
+      web: ['[jt]sx?'],
     },
     // Vitest requires explicit deps optimization for solid-js
     deps: {

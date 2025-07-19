@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createMockBlock, MockBlock } from './mockBlocks';
-import type { Block, AllowMove, Owner } from '@slareneg/shared-types';
+import { createMockBlock } from './mockBlocks';
+import type { Block, Owner } from '@slareneg/shared-types';
 
 describe('MockBlock', () => {
   describe('allowMove', () => {

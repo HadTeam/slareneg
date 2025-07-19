@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"server/internal/config"
+	serverhttp "server/internal/http"
 	"server/internal/wire"
 )
 
@@ -90,6 +91,7 @@ func setupHTTPRoutes(app *wire.Application) {
 	http.HandleFunc("/api/game/ws", app.AuthService.AuthMiddleware(app.WSServer.HandleWebSocket))
 	http.HandleFunc("/health", healthCheckHandler(app))
 	http.HandleFunc("/api/cache/stats", app.AuthService.AuthMiddleware(cacheStatsHandler(app)))
+	http.HandleFunc("/api/map/random", serverhttp.RandomMapHandler)
 
 	staticDir := app.Config.Server.StaticDir
 	if _, err := os.Stat(staticDir); err == nil {

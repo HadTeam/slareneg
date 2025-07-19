@@ -5,8 +5,8 @@ type Owner uint16
 type Name string
 
 type Meta struct {
-	Name        Name
-	Description string
+	Name        Name   `json:"name"`
+	Description string `json:"description"`
 }
 
 type AllowMove struct {

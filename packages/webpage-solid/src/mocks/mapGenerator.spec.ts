@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { generateMockMap } from './mockMap';
-import type { Block } from '@slareneg/shared-types';
 
 describe('generateMockMap', () => {
   it('should generate a 20x20 map', () => {
@@ -46,10 +45,9 @@ describe('generateMockMap', () => {
     }
     
     const totalBlocks = 20 * 20 * sampleSize;
-    const expectedAverage = totalBlocks / 5; // 5 block types
     
     // Each block type should appear roughly 20% of the time (±10%)
-    Object.entries(counts).forEach(([blockType, count]) => {
+    Object.entries(counts).forEach(([, count]) => {
       const percentage = (count / totalBlocks) * 100;
       expect(percentage).toBeGreaterThan(10); // At least 10%
       expect(percentage).toBeLessThan(30); // At most 30%
@@ -79,8 +77,8 @@ describe('generateMockMap', () => {
     const map = generateMockMap();
     let expectedNum = 0;
     
-    map.forEach((row, y) => {
-      row.forEach((block, x) => {
+    map.forEach((row) => {
+      row.forEach((block) => {
         expect(block.num()).toBe(expectedNum);
         expectedNum++;
       });

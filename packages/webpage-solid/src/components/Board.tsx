@@ -1,9 +1,10 @@
 import { For, createSignal, onMount, onCleanup } from 'solid-js';
 import type { Blocks, Size } from '@slareneg/shared-types';
 import Cell from './Cell';
+import { createMockBlock } from '../mocks/mockBlocks';
 
 interface BoardProps {
-  blocks: Blocks;
+  blocks?: Blocks;
   size: Size;
 }
 
@@ -90,7 +91,7 @@ function Board(props: BoardProps) {
             padding: '1px',
           }}
         >
-          <For each={blocks}>
+          <For each={blocks ? blocks : Array.from({length: size.height}).map(() => Array(size.width).fill(null).map(() => createMockBlock('blank', 0, 0)))}>
             {(row, y) => (
               <For each={row}>
                 {(block, x) => (

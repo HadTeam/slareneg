@@ -1,0 +1,28 @@
+
+> slareneg@1.0.0 dev /Users/corn/Code/slareneg
+> pnpm --filter webpage-solid dev
+
+
+> webpage-solid@0.0.0 dev /Users/corn/Code/slareneg/packages/webpage-solid
+> vite
+
+
+  VITE v7.0.5  ready in 362 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help
+
+> slareneg@1.0.0 dev /Users/corn/Code/slareneg
+> pnpm --filter webpage-solid dev
+
+
+> webpage-solid@0.0.0 dev /Users/corn/Code/slareneg/packages/webpage-solid
+> vite
+
+
+  VITE v7.0.5  ready in 348 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+  ➜  press h + enter to show help

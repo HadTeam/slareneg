@@ -1,46 +1,56 @@
-import { createSignal } from 'solid-js';
-import { A } from '@solidjs/router';
+import { createSignal, onMount, Show } from 'solid-js';
+import { useSearchParams, useNavigate } from '@solidjs/router';
 import Board from '../components/Board';
-import { generateMockMap } from '../mocks/mockMap';
-import type { Size } from '@slareneg/shared-types';
+import TopBar from '../components/TopBar';
+import { UploadPanel } from '../components/UploadPanel';
+import type { ExportedMap } from '@slareneg/shared-types';
 
 function TestBoard() {
-  const boardSize: Size = { width: 20, height: 20 };
-  const [blocks] = createSignal(generateMockMap());
+  const [search] = useSearchParams();
+  const navigate = useNavigate();
+  const [mapData, setMapData] = createSignal<ExportedMap | null>(null);
+
+  // Fetch random map if query param is set
+  onMount(async () => {
+    if (search.random === '1') {
+      try {
+        const response = await fetch('/api/map/random');
+        if (response.ok) {
+          const data = await response.json();
+          setMapData(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch random map:', error);
+      }
+    }
+  });
+
+  const handleGenerateRandom = () => {
+    navigate('?random=1');
+    window.location.reload(); // Force reload to trigger the fetch
+  };
 
   return (
-    <div style={{ 
-      height: '100vh',
-      display: 'flex',
-      'flex-direction': 'column',
-      margin: 0,
-      padding: 0,
-      overflow: 'hidden'
-    }}>
-      <div style={{ 
-        padding: '10px',
-        background: '#f0f0f0',
-        'border-bottom': '1px solid #ddd',
-        display: 'flex',
-        'align-items': 'center',
-        gap: '20px'
-      }}>
-        <A href="/" style={{
-          padding: '5px 15px',
-          background: '#666',
-          color: 'white',
-          'text-decoration': 'none',
-          'border-radius': '3px',
-          'font-size': '14px'
-        }}>
-          ← Back to Home
-        </A>
-        <div>
-          <h2 style={{ margin: '0 0 5px 0' }}>Test Board - Slareneg</h2>
-          <p style={{ margin: 0, 'font-size': '14px' }}>Click to select • Drag to move • Scroll to zoom</p>
-        </div>
-      </div>
-      <Board blocks={blocks()} size={boardSize} />
+    <div class="h-screen flex flex-col m-0 p-0 overflow-hidden">
+      <TopBar />
+      <Show
+        when={mapData()}
+        fallback={
+          <div class="flex-1 flex flex-col items-center justify-center p-8">
+            <div class="w-full max-w-xl mb-6">
+              <UploadPanel onLoad={setMapData} />
+            </div>
+            <button
+              onClick={handleGenerateRandom}
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Generate Random Map
+            </button>
+          </div>
+        }
+      >
+        <Board blocks={mapData()!.blocks} size={mapData()!.size} />
+      </Show>
     </div>
   );
 }

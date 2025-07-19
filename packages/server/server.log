@@ -1,0 +1,4 @@
+{"time":"2025-07-19T00:44:32.40993+08:00","level":"INFO","msg":"starting slareneg game server"}
+{"time":"2025-07-19T00:44:32.410071+08:00","level":"INFO","msg":"lobby service started"}
+{"time":"2025-07-19T00:44:32.410079+08:00","level":"INFO","msg":"starting HTTP server","addr":"0.0.0.0:8080"}
+signal: killed
