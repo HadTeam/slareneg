@@ -17,7 +17,7 @@ localhost:800 {
 
 	# 前端请求转发到 SolidJS 开发服务器
 	handle /* {
-		reverse_proxy localhost:3000
+		reverse_proxy localhost:5173
 	}
 
 	# 启用压缩

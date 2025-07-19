@@ -6,9 +6,19 @@
     "dev": "pnpm --filter ui-playground dev",
     "build": "pnpm --filter ui-playground build",
     "preview": "pnpm --filter ui-playground preview",
-    "test": "pnpm --filter ui-playground test"
+    "test": "pnpm --filter ui-playground test",
+    "start": "pnpm pm2 start pm2.config.js",
+    "stop": "pnpm pm2 stop all",
+    "restart": "pnpm pm2 restart all",
+    "logs": "pnpm pm2 logs",
+    "status": "pnpm pm2 status",
+    "kill": "pnpm pm2 kill",
+    "dev:backend": "cd packages/server && go run .",
+    "dev:frontend": "pnpm --filter ui-playground dev",
+    "dev:all": "pm2 start pm2.config.js && pm2 logs"
   },
   "devDependencies": {
-    "typescript": "~5.8.3"
+    "typescript": "~5.8.3",
+    "pm2": "^5.3.0"
   }
 }
