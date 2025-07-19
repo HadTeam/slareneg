@@ -96,9 +96,9 @@ function Board(props: BoardProps) {
               <For each={row}>
                 {(block, x) => (
                   <Cell 
-                    meta={block.meta()} 
-                    owner={block.owner()} 
-                    num={block.num()} 
+                    meta={block.meta} 
+                    owner={block.owner} 
+                    num={block.num} 
                     position={{ x: x(), y: y() }}
                     isSelected={selectedCell()?.x === x() && selectedCell()?.y === y()}
                     onSelect={() => {
