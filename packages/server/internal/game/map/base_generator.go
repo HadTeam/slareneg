@@ -98,6 +98,11 @@ func (g *BaseMapGenerator) generateContent(gameMap *BaseMap, players []Player) e
 		return err
 	}
 
+	// Fill all remaining empty spaces with blank blocks
+	if err := g.fillEmptySpaces(gameMap); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -195,6 +200,23 @@ func (g *BaseMapGenerator) generateTerrain(gameMap *BaseMap) error {
 		g.clearTerrain(gameMap)
 	}
 
+	return nil
+}
+
+func (g *BaseMapGenerator) fillEmptySpaces(gameMap *BaseMap) error {
+	size := gameMap.Size()
+	for y := uint16(1); y <= size.Height; y++ {
+		for x := uint16(1); x <= size.Width; x++ {
+			pos := Pos{X: x, Y: y}
+			existing, _ := gameMap.Block(pos)
+			if existing == nil {
+				blankBlock := block.NewBlock(block.BlankName, 0, 0)
+				if err := gameMap.SetBlock(pos, blankBlock); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	return nil
 }
 

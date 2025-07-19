@@ -14,7 +14,7 @@ var CastleMeta Meta
 var CastleName Name
 
 func init() {
-	CastleName = Register("castle", "", toBlockCastle)
+	CastleName = Register("castle", "Fortified structure that generates units", toBlockCastle)
 	CastleMeta = GetMetaByName[CastleName]
 }
 

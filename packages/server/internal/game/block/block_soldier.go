@@ -10,7 +10,7 @@ var SoldierMeta Meta
 var SoldierName Name
 
 func init() {
-	SoldierName = Register("soldier", "", toBlockSoldier)
+	SoldierName = Register("soldier", "Basic military unit", toBlockSoldier)
 	SoldierMeta = GetMetaByName[SoldierName]
 }
 
