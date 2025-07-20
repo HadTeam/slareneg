@@ -27,7 +27,7 @@ type GeneratorConfig struct {
 
 func DefaultGeneratorConfig() GeneratorConfig {
 	return GeneratorConfig{
-		MountainDensity:   0.5,
+		MountainDensity:   0.7,  // Increased from 0.5 to generate more mountains
 		CastleDensity:     0.5,
 		MinCastleDistance: 5,
 		Seed:              0,
