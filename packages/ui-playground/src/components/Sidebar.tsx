@@ -15,7 +15,7 @@ function Sidebar(props: SidebarProps) {
   return (
     <div class="w-64 bg-gray-100 border-r border-gray-300 flex flex-col h-full">
       <div class="p-4 border-b border-gray-300">
-        <h2 class="text-lg font-semibold mb-1">Test Board</h2>
+        <h2 class="text-lg font-semibold mb-1">Map Test Board</h2>
         <p class="text-xs text-gray-600">Click to select • Drag to move • Scroll to zoom</p>
       </div>
       
