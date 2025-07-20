@@ -6,7 +6,7 @@ const blockIcons: Record<string, string> = {
   blank: '',
   castle: '🏛', // Greek building as castle
   king: '♔',   // King chess piece
-  mountain: '▲', // Triangle for mountain
+  mountain: '⛰', // Mountain emoji
   soldier: '◆', // Diamond for soldier
 };
 
@@ -79,7 +79,7 @@ function Cell(props: CellProps) {
     >
       {icon && (
         <div style={{
-          'font-size': meta.name === 'mountain' ? '16px' : '20px',
+          'font-size': '24px',
           'line-height': '1',
         }}>
           {icon}
