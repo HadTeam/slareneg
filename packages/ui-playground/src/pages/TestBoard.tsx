@@ -35,10 +35,12 @@ function TestBoard() {
     }
   };
 
-  // Fetch random map if query param is set on mount
+  // Load map based on query params on mount
   onMount(async () => {
     if (search.random === '1') {
       await fetchRandomMap();
+    } else if (search.mock === '1') {
+      useMockData();
     }
   });
 
