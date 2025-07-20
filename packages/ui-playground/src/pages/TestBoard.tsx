@@ -55,6 +55,14 @@ function TestBoard() {
 
   const useMockData = () => {
     const mockBlocks = createTestBoard(20, 20);
+    // Convert Block objects to plain objects for ExportedMap
+    const plainBlocks = mockBlocks.map(row => 
+      row.map(block => ({
+        meta: block.meta(),
+        owner: block.owner(),
+        num: block.num()
+      }))
+    );
     const mockMap: ExportedMap = {
       size: { width: 20, height: 20 },
       info: {
@@ -62,7 +70,7 @@ function TestBoard() {
         name: 'Mock Test Map',
         desc: 'A test map with mock data'
       },
-      blocks: mockBlocks as any // Type assertion needed due to Block interface differences
+      blocks: plainBlocks as any
     };
     setMapData(mockMap);
     setSearch({ mock: '1' });
