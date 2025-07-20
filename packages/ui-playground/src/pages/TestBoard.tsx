@@ -12,26 +12,15 @@ function TestBoard() {
   const [loading, setLoading] = createSignal(false);
   const [boardRef, setBoardRef] = createSignal<{ fitToView: () => void } | null>(null);
 
-  // Mount state to window for debugging
-  (window as any).__testBoardState = {
-    getMapData: mapData,
-    setMapData,
-    getSearch: () => search,
-    setSearch
-  };
 
-  // Function to fetch random map
   const fetchRandomMap = async () => {
     setLoading(true);
-    // Clear existing map data to ensure UI updates
     setMapData(null);
     try {
-      // Add timestamp to force a new request and bypass any caching
       const response = await fetch(`/api/map/random?t=${Date.now()}`);
       if (response.ok) {
         const data = await response.json();
         setMapData(data);
-        // Update URL without reloading
         setSearch({ random: '1' });
       } else {
         console.error('Failed to fetch random map:', response.status);
@@ -43,7 +32,6 @@ function TestBoard() {
     }
   };
 
-  // Load map based on query params on mount
   onMount(async () => {
     if (search.random === '1') {
       await fetchRandomMap();
@@ -62,13 +50,9 @@ function TestBoard() {
   };
 
   const useMockData = () => {
-    console.log('useMockData called at', new Date().toISOString());
-    // Clear existing map data first to ensure UI updates
     setMapData(null);
-    // Use setTimeout to ensure the UI has time to react to the null state
     setTimeout(() => {
       const mockBlocks = createTestBoard(20, 20);
-      // Convert Block objects to plain objects for ExportedMap
       const plainBlocks = mockBlocks.map(row => 
         row.map(block => ({
           meta: block.meta(),
@@ -85,7 +69,6 @@ function TestBoard() {
         },
         blocks: plainBlocks as any
       };
-      console.log('Setting mock map with id:', mockMap.info.id);
       setMapData(mockMap);
       setSearch({ mock: '1' });
     }, 0);
