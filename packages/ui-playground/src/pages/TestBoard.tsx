@@ -12,6 +12,14 @@ function TestBoard() {
   const [loading, setLoading] = createSignal(false);
   const [boardRef, setBoardRef] = createSignal<{ fitToView: () => void } | null>(null);
 
+  // Mount state to window for debugging
+  (window as any).__testBoardState = {
+    getMapData: mapData,
+    setMapData,
+    getSearch: () => search,
+    setSearch
+  };
+
   // Function to fetch random map
   const fetchRandomMap = async () => {
     setLoading(true);
@@ -54,26 +62,33 @@ function TestBoard() {
   };
 
   const useMockData = () => {
-    const mockBlocks = createTestBoard(20, 20);
-    // Convert Block objects to plain objects for ExportedMap
-    const plainBlocks = mockBlocks.map(row => 
-      row.map(block => ({
-        meta: block.meta(),
-        owner: block.owner(),
-        num: block.num()
-      }))
-    );
-    const mockMap: ExportedMap = {
-      size: { width: 20, height: 20 },
-      info: {
-        id: 'mock-map',
-        name: 'Mock Test Map',
-        desc: 'A test map with mock data'
-      },
-      blocks: plainBlocks as any
-    };
-    setMapData(mockMap);
-    setSearch({ mock: '1' });
+    console.log('useMockData called at', new Date().toISOString());
+    // Clear existing map data first to ensure UI updates
+    setMapData(null);
+    // Use setTimeout to ensure the UI has time to react to the null state
+    setTimeout(() => {
+      const mockBlocks = createTestBoard(20, 20);
+      // Convert Block objects to plain objects for ExportedMap
+      const plainBlocks = mockBlocks.map(row => 
+        row.map(block => ({
+          meta: block.meta(),
+          owner: block.owner(),
+          num: block.num()
+        }))
+      );
+      const mockMap: ExportedMap = {
+        size: { width: 20, height: 20 },
+        info: {
+          id: `mock-map-${Date.now()}`,
+          name: 'Mock Test Map',
+          desc: `A test map with mock data (generated at ${new Date().toLocaleTimeString()})`
+        },
+        blocks: plainBlocks as any
+      };
+      console.log('Setting mock map with id:', mockMap.info.id);
+      setMapData(mockMap);
+      setSearch({ mock: '1' });
+    }, 0);
   };
 
   return (
