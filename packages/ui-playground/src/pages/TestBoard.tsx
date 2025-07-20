@@ -4,6 +4,7 @@ import Board from '../components/Board';
 import Sidebar from '../components/Sidebar';
 import { UploadPanel } from '../components/UploadPanel';
 import type { ExportedMap } from '@slareneg/shared-types';
+import { createTestBoard } from '../mocks/mockBlocks';
 
 function TestBoard() {
   const [search, setSearch] = useSearchParams();
@@ -50,12 +51,28 @@ function TestBoard() {
     setSearch({});
   };
 
+  const useMockData = () => {
+    const mockBlocks = createTestBoard(20, 20);
+    const mockMap: ExportedMap = {
+      size: { width: 20, height: 20 },
+      info: {
+        id: 'mock-map',
+        name: 'Mock Test Map',
+        desc: 'A test map with mock data'
+      },
+      blocks: mockBlocks as any // Type assertion needed due to Block interface differences
+    };
+    setMapData(mockMap);
+    setSearch({ mock: '1' });
+  };
+
   return (
     <div class="h-screen flex overflow-hidden">
       <Sidebar
         onClearMap={clearMap}
         onFitToView={() => boardRef()?.fitToView()}
         onGenerateRandom={handleGenerateRandom}
+        onUseMockData={useMockData}
         loading={loading()}
         hasMap={!!mapData()}
       />

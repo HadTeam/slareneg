@@ -4,17 +4,18 @@ interface SidebarProps {
   onClearMap?: () => void;
   onFitToView?: () => void;
   onGenerateRandom?: () => void;
+  onUseMockData?: () => void;
   loading?: boolean;
   hasMap?: boolean;
 }
 
 function Sidebar(props: SidebarProps) {
-  const { onClearMap, onFitToView, onGenerateRandom, loading = false, hasMap = false } = props;
+  const { onClearMap, onFitToView, onGenerateRandom, onUseMockData, loading = false, hasMap = false } = props;
 
   return (
     <div class="w-64 bg-gray-100 border-r border-gray-300 flex flex-col h-full">
       <div class="p-4 border-b border-gray-300">
-        <h2 class="text-lg font-semibold mb-1">Test Board - Slareneg</h2>
+        <h2 class="text-lg font-semibold mb-1">Test Board</h2>
         <p class="text-xs text-gray-600">Click to select • Drag to move • Scroll to zoom</p>
       </div>
       
@@ -36,6 +37,14 @@ function Sidebar(props: SidebarProps) {
             </button>
             
             <button
+              onClick={onGenerateRandom}
+              disabled={loading}
+              class="w-full px-3 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Loading...' : 'Generate New Map'}
+            </button>
+            
+            <button
               onClick={onClearMap}
               class="w-full px-3 py-2 bg-gray-600 text-white rounded text-sm hover:bg-gray-700 transition-colors"
             >
@@ -44,14 +53,26 @@ function Sidebar(props: SidebarProps) {
           </>
         )}
         
-        {!hasMap && onGenerateRandom && (
-          <button
-            onClick={onGenerateRandom}
-            disabled={loading}
-            class="w-full px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Loading...' : 'Generate Random Map'}
-          </button>
+        {!hasMap && (
+          <>
+            {onGenerateRandom && (
+              <button
+                onClick={onGenerateRandom}
+                disabled={loading}
+                class="w-full px-3 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Loading...' : 'Generate Random Map'}
+              </button>
+            )}
+            {onUseMockData && (
+              <button
+                onClick={onUseMockData}
+                class="w-full px-3 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 transition-colors"
+              >
+                Use Mock Data
+              </button>
+            )}
+          </>
         )}
       </div>
       
