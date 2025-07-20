@@ -14,6 +14,8 @@ function TestBoard() {
   // Function to fetch random map
   const fetchRandomMap = async () => {
     setLoading(true);
+    // Clear existing map data to ensure UI updates
+    setMapData(null);
     try {
       // Add timestamp to force a new request and bypass any caching
       const response = await fetch(`/api/map/random?t=${Date.now()}`);
