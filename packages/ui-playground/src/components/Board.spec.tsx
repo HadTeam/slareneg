@@ -43,8 +43,8 @@ describe('Board Component', () => {
     // Check that we have some of each block type
     const content = container.textContent || '';
     
-    // Mountain (▲)
-    expect(content).toContain('▲');
+    // Mountain (⛰)
+    expect(content).toContain('⛰');
     
     // Castle (🏛)
     expect(content).toContain('🏛');
