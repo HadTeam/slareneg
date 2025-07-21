@@ -35,7 +35,7 @@ type GeneratorConfig struct {
 // 包含默认的山脉密度、城堡密度、最小城堡距离和随机种子。
 func DefaultGeneratorConfig() GeneratorConfig {
 	return GeneratorConfig{
-		MountainDensity:   0.5,
+		MountainDensity:   0.7,  // Increased from 0.5 to generate more mountains
 		CastleDensity:     0.5,
 		MinCastleDistance: 5,
 		Seed:              0,

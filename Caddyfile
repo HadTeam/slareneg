@@ -1,0 +1,25 @@
+{
+	debug
+	http_port 800
+	admin off
+}
+
+localhost:800 {
+	# API 请求转发到 Go 服务器
+	handle /api/* {
+		reverse_proxy localhost:8080
+	}
+
+	# WebSocket 连接转发到 Go 服务器  
+	handle /ws* {
+		reverse_proxy localhost:8080
+	}
+
+	# 前端请求转发到 SolidJS 开发服务器
+	handle /* {
+		reverse_proxy localhost:5173
+	}
+
+	# 启用压缩
+	encode gzip
+}

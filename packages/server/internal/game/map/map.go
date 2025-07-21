@@ -6,8 +6,8 @@ import (
 )
 
 type Size struct {
-	Width  uint16
-	Height uint16
+	Width  uint16 `json:"width"`
+	Height uint16 `json:"height"`
 }
 
 type Pos struct {
@@ -16,9 +16,9 @@ type Pos struct {
 }
 
 type Info struct {
-	Id   string
-	Name string
-	Desc string
+	Id   string `json:"id"`
+	Name string `json:"name"`
+	Desc string `json:"desc"`
 }
 
 type Sight [][]bool // 2D slice for visibility, true if visible

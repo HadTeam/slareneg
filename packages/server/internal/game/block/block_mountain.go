@@ -8,7 +8,7 @@ var MountainMeta Meta
 var MountainName Name
 
 func init() {
-	MountainName = Register("mountain", "", toBlockMountain)
+	MountainName = Register("mountain", "Impassable mountain terrain", toBlockMountain)
 	MountainMeta = GetMetaByName[MountainName]
 }
 

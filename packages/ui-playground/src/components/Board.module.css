@@ -1,0 +1,59 @@
+.container {
+  overflow: hidden;
+  width: 100%;
+  flex: 1;
+  background: #2a2a2a;
+  position: relative;
+  user-select: none;
+}
+
+.boardWrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+}
+
+.grid {
+  display: grid;
+  gap: 1px;
+  background: #1a1a1a;
+  padding: 1px;
+  border-radius: 4px;
+}
+
+/* Responsive cell sizing */
+.cell {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  font-size: 20px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+/* Make cells responsive based on viewport */
+@media (max-width: 768px) {
+  .grid {
+    --cell-size: min(calc((100vw - 40px) / 20), 40px);
+  }
+  
+  .cell {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    --cell-size: min(calc((100vw - 20px) / 20), 30px);
+  }
+  
+  .cell {
+    font-size: 14px;
+  }
+}

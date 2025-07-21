@@ -11,7 +11,7 @@ var KingMeta Meta
 var KingName Name
 
 func init() {
-	KingName = Register("king", "", toBlockKing)
+	KingName = Register("king", "The king - capture to win", toBlockKing)
 	KingMeta = GetMetaByName[KingName]
 }
 

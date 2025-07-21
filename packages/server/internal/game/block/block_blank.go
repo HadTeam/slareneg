@@ -10,7 +10,7 @@ var BlankMeta Meta
 var BlankName Name
 
 func init() {
-	BlankName = Register("blank", "", toBlockBlank)
+	BlankName = Register("blank", "Empty terrain", toBlockBlank)
 	BlankMeta = GetMetaByName[BlankName]
 }
 

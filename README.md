@@ -175,3 +175,93 @@ sequenceDiagram
         WS-->>Client: 广播玩家离开信息
     end
 ```
+
+## Map JSON Contract & Test Board
+
+### Test Board
+
+The test board is available at `/test-board` and provides a development environment for testing map rendering and interactions.
+
+#### Features:
+- Upload custom map JSON files via drag-and-drop
+- Generate random maps using the backend API
+- Visualize map data with interactive board rendering
+- Dynamic top bar that adjusts height based on content
+
+### Map JSON Contract
+
+The map data follows this JSON structure:
+
+```json
+{
+  "size": {
+    "width": 20,
+    "height": 20
+  },
+  "info": {
+    "id": "generated-0",
+    "name": "Generated Map",
+    "desc": "Procedurally generated map"
+  },
+  "blocks": [
+    [
+      {
+        "num": 0,
+        "owner": 0,
+        "meta": {
+          "name": "",
+          "description": ""
+        }
+      },
+      // ... more blocks
+    ],
+    // ... more rows
+  ]
+}
+```
+
+#### Field Descriptions:
+- `size`: Map dimensions (width × height)
+- `info`: Map metadata including ID, name, and description
+- `blocks`: 2D array of block objects, where:
+  - `num`: Number of units on the block
+  - `owner`: Player ID who owns the block (0 for neutral)
+  - `meta`: Additional metadata for the block
+
+### Random Map Generation API
+
+**Endpoint**: `GET /api/map/random`
+
+**Example Usage**:
+```bash
+# Generate a random map
+curl -X GET http://localhost:8080/api/map/random -o map.json
+
+# Or use it directly in the test board by clicking "Generate Random Map"
+```
+
+**Response**: Returns a JSON object following the map contract above with:
+- Default size: 20×20
+- Two players configured
+- Procedurally generated terrain
+
+### Development Workflow
+
+1. Start the backend server:
+   ```bash
+   cd packages/server
+   go run .
+   ```
+
+2. Start the frontend:
+   ```bash
+   cd packages/ui-playground
+   pnpm run dev
+   ```
+
+3. Visit `http://localhost:5175/test-board` to access the test board
+
+4. Either:
+   - Click "Generate Random Map" to fetch from the API
+   - Drag and drop a JSON file following the map contract
+   - Append `?random=1` to the URL to auto-load a random map

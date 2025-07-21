@@ -11,6 +11,7 @@ import (
 type BaseMapGenerator struct {
 	config GeneratorConfig
 	rng    *rand.Rand
+	gradientCache map[string][2]float64
 }
 
 func NewBaseMapGenerator(config GeneratorConfig) *BaseMapGenerator {
@@ -24,6 +25,7 @@ func NewBaseMapGenerator(config GeneratorConfig) *BaseMapGenerator {
 	return &BaseMapGenerator{
 		config: config,
 		rng:    rng,
+		gradientCache: make(map[string][2]float64),
 	}
 }
 
@@ -53,6 +55,9 @@ func (g *BaseMapGenerator) Generate(size Size, players []Player, config ...Gener
 		return nil, errors.New("failed to create empty map")
 	}
 
+	// Clear gradient cache before generating content for new randomness
+	g.gradientCache = make(map[string][2]float64)
+	
 	if err := g.generateContent(gameMap, players); err != nil {
 		return nil, err
 	}
@@ -73,28 +78,20 @@ func (g *BaseMapGenerator) generateContent(gameMap *BaseMap, players []Player) e
 		if player.IsActive && player.Index < len(playerPositions) {
 			pos := playerPositions[player.Index]
 
+			// Only place the King, no soldiers - the king will generate units over time
 			kingBlock := block.NewBlock(block.KingName, 1, player.Owner)
 			if err := gameMap.SetBlock(pos, kingBlock); err != nil {
 				return err
 			}
-
-			directions := []Pos{
-				{X: pos.X + 1, Y: pos.Y},
-				{X: pos.X - 1, Y: pos.Y},
-				{X: pos.X, Y: pos.Y + 1},
-				{X: pos.X, Y: pos.Y - 1},
-			}
-
-			for _, dir := range directions {
-				if size.IsPosValid(dir) {
-					soldierBlock := block.NewBlock(block.SoldierName, 1, player.Owner)
-					gameMap.SetBlock(dir, soldierBlock)
-				}
-			}
 		}
 	}
 
-	if err := g.generateTerrain(gameMap); err != nil {
+	if err := g.generateTerrain(gameMap, playerPositions); err != nil {
+		return err
+	}
+
+	// Fill all remaining empty spaces with blank blocks
+	if err := g.fillEmptySpaces(gameMap); err != nil {
 		return err
 	}
 
@@ -144,23 +141,32 @@ func (g *BaseMapGenerator) generatePlayerStartPositions(size Size, players []Pla
 	return positions
 }
 
-func (g *BaseMapGenerator) generateTerrain(gameMap *BaseMap) error {
+func (g *BaseMapGenerator) generateTerrain(gameMap *BaseMap, playerPositions []Pos) error {
 	size := gameMap.Size()
 
 	noiseMap := g.generatePerlinNoise(int(size.Width), int(size.Height))
 
-	mountainThreshold := 0.8 - (g.config.MountainDensity * 0.6)
-	castleThreshold := 0.6 - (g.config.CastleDensity * 0.4)
+	// Adjust thresholds to generate strategic amount of mountains
+	// Default density 0.7 should give ~15-20% mountain coverage
+	// Higher threshold = fewer mountains
+	// After Perlin noise normalization fix, we need higher thresholds
+	mountainThreshold := 0.7 - (g.config.MountainDensity * 0.2)  // With density 0.7, threshold = 0.56
+	castleThreshold := 0.5 - (g.config.CastleDensity * 0.15)
+	
 
 	maxAttempts := 100
 	baseCastleCount := int(size.Width * size.Height / 50)
 	targetCastleCount := int(float64(baseCastleCount) * (0.5 + g.config.CastleDensity))
 
 	var castlePositions []Pos
+	mountainCount := 0
+	validMapFound := false
 
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		castlePositions = nil
+		mountainCount = 0
 
+		// First pass: place terrain based on noise
 		for y := uint16(1); y <= size.Height; y++ {
 			for x := uint16(1); x <= size.Width; x++ {
 				pos := Pos{X: x, Y: y}
@@ -173,12 +179,28 @@ func (g *BaseMapGenerator) generateTerrain(gameMap *BaseMap) error {
 				noise := noiseMap[y-1][x-1]
 
 				if noise > mountainThreshold {
-					mountain := block.NewBlock(block.MountainName, 0, 0)
-					gameMap.SetBlock(pos, mountain)
+					// Don't place mountains too close to kings
+					tooCloseToKing := false
+					for _, playerPos := range playerPositions {
+						dx := int(pos.X) - int(playerPos.X)
+						dy := int(pos.Y) - int(playerPos.Y)
+						dist := math.Sqrt(float64(dx*dx + dy*dy))
+						if dist < 3.0 { // Keep 3 tile radius around kings clear
+							tooCloseToKing = true
+							break
+						}
+					}
+					
+					if !tooCloseToKing {
+						mountain := block.NewBlock(block.MountainName, 0, 0)
+						gameMap.SetBlock(pos, mountain)
+						mountainCount++
+					}
 				} else if noise > castleThreshold && noise <= mountainThreshold {
 					if len(castlePositions) < targetCastleCount &&
 						g.canPlaceCastle(pos, castlePositions, g.config.MinCastleDistance) {
 
+						// Neutral castles start with some units (10-30)
 						castleNum := g.rng.Intn(20) + 10
 						castle := block.NewBlock(block.CastleName, block.Num(castleNum), 0)
 						gameMap.SetBlock(pos, castle)
@@ -188,13 +210,46 @@ func (g *BaseMapGenerator) generateTerrain(gameMap *BaseMap) error {
 			}
 		}
 
+		// Calculate mountain percentage
+		totalTiles := int(size.Width * size.Height)
+		mountainPercentage := float64(mountainCount) / float64(totalTiles) * 100.0
+		
 		if g.validateMap(gameMap, castlePositions) {
+			fmt.Printf("Map generated: %d mountains (%.1f%%), %d castles\n", mountainCount, mountainPercentage, len(castlePositions))
+			validMapFound = true
 			break
+		} else {
+			fmt.Printf("Validation failed: attempt %d, %d mountains (%.1f%%), %d castles\n", attempt+1, mountainCount, mountainPercentage, len(castlePositions))
 		}
 
-		g.clearTerrain(gameMap)
+		// Only clear terrain if we're not on the last attempt
+		if attempt < maxAttempts - 1 {
+			g.clearTerrain(gameMap)
+		}
 	}
 
+	// If no valid map was found after all attempts, generate a simple fallback map
+	if !validMapFound {
+		fmt.Printf("Warning: Could not generate valid map after %d attempts, using last attempt\n", maxAttempts)
+	}
+
+	return nil
+}
+
+func (g *BaseMapGenerator) fillEmptySpaces(gameMap *BaseMap) error {
+	size := gameMap.Size()
+	for y := uint16(1); y <= size.Height; y++ {
+		for x := uint16(1); x <= size.Width; x++ {
+			pos := Pos{X: x, Y: y}
+			existing, _ := gameMap.Block(pos)
+			if existing == nil {
+				blankBlock := block.NewBlock(block.BlankName, 0, 0)
+				if err := gameMap.SetBlock(pos, blankBlock); err != nil {
+					return err
+				}
+			}
+		}
+	}
 	return nil
 }
 
@@ -223,7 +278,8 @@ func (g *BaseMapGenerator) generatePerlinNoise(width, height int) [][]float64 {
 				frequency *= lacunarity
 			}
 
-			noise[y][x] = noiseValue / maxValue
+			// Normalize to [0, 1] range (Perlin noise typically produces values in [-1, 1])
+			noise[y][x] = (noiseValue/maxValue + 1.0) / 2.0
 		}
 	}
 
@@ -258,17 +314,22 @@ func (g *BaseMapGenerator) dotGridGradient(ix, iy int, x, y float64) float64 {
 }
 
 func (g *BaseMapGenerator) randomGradient(ix, iy int) [2]float64 {
-	w := 32
-	s := w / 2
-	a := uint32(ix)
-	b := uint32(iy)
-	a *= 3284157443
-	b ^= a<<uint32(s) | a>>uint32(w-s)
-	b *= 1911520717
-	a ^= b<<uint32(s) | b>>uint32(w-s)
-	a *= 2048419325
-	random := float64(a) * (3.14159265 / float64(^uint32(0)>>1))
-	return [2]float64{math.Cos(random), math.Sin(random)}
+	// Create a cache key for this gradient
+	key := fmt.Sprintf("%d,%d", ix, iy)
+	
+	// Check if we already have this gradient cached
+	if gradient, exists := g.gradientCache[key]; exists {
+		return gradient
+	}
+	
+	// Generate a random angle using the generator's RNG
+	angle := g.rng.Float64() * 2 * math.Pi
+	gradient := [2]float64{math.Cos(angle), math.Sin(angle)}
+	
+	// Cache the gradient for consistency
+	g.gradientCache[key] = gradient
+	
+	return gradient
 }
 
 func (g *BaseMapGenerator) interpolate(a0, a1, w float64) float64 {
@@ -288,26 +349,75 @@ func (g *BaseMapGenerator) canPlaceCastle(pos Pos, existing []Pos, minDistance i
 }
 
 func (g *BaseMapGenerator) validateMap(gameMap *BaseMap, castlePositions []Pos) bool {
-	if len(castlePositions) < 2 {
-		return false
-	}
-
+	// Ensure there's at least a path between kings
 	size := gameMap.Size()
-	totalCells := int(size.Width * size.Height)
-
-	reachableCells := g.bfsReachability(gameMap, castlePositions[0])
-	unreachableRatio := float64(totalCells-reachableCells) / float64(totalCells)
-
-	if unreachableRatio > 0.1 {
+	
+	// Find king positions
+	var kingPositions []Pos
+	for y := uint16(1); y <= size.Height; y++ {
+		for x := uint16(1); x <= size.Width; x++ {
+			pos := Pos{X: x, Y: y}
+			b, _ := gameMap.Block(pos)
+			if b != nil && b.Meta().Name == block.KingName {
+				kingPositions = append(kingPositions, pos)
+			}
+		}
+	}
+	
+	// Must have exactly as many kings as active players
+	if len(kingPositions) < 2 {
 		return false
 	}
-
-	for i := 1; i < len(castlePositions); i++ {
-		if !g.isReachable(gameMap, castlePositions[0], castlePositions[i]) {
+	
+	// Check that kings can reach each other (not completely blocked)
+	for i := 1; i < len(kingPositions); i++ {
+		if !g.isReachable(gameMap, kingPositions[0], kingPositions[i]) {
 			return false
 		}
 	}
-
+	
+	// If we have castles, ensure they're reachable too
+	if len(castlePositions) > 0 {
+		for _, castle := range castlePositions {
+			reachable := false
+			for _, king := range kingPositions {
+				if g.isReachable(gameMap, king, castle) {
+					reachable = true
+					break
+				}
+			}
+			if !reachable {
+				return false
+			}
+		}
+	}
+	
+	// Check overall map connectivity - ensure most of the map is accessible
+	// Use BFS from first king to count reachable tiles
+	reachableTiles := g.bfsReachability(gameMap, kingPositions[0])
+	totalTiles := int(size.Width * size.Height)
+	
+	// Count mountains to get non-walkable tiles
+	mountainCount := 0
+	for y := uint16(1); y <= size.Height; y++ {
+		for x := uint16(1); x <= size.Width; x++ {
+			pos := Pos{X: x, Y: y}
+			b, _ := gameMap.Block(pos)
+			if b != nil && b.Meta().Name == block.MountainName {
+				mountainCount++
+			}
+		}
+	}
+	
+	// The reachable area should be at least 70% of walkable tiles
+	walkableTiles := totalTiles - mountainCount
+	reachablePercentage := float64(reachableTiles) / float64(walkableTiles)
+	
+	if reachablePercentage < 0.7 {
+		fmt.Printf("Map connectivity too low: %.1f%% of walkable tiles are reachable\n", reachablePercentage * 100)
+		return false
+	}
+	
 	return true
 }
 

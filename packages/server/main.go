@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"server/internal/config"
+	serverhttp "server/internal/http"
 	"server/internal/wire"
 )
 
@@ -72,8 +73,8 @@ func startServices(app *wire.Application, cfg *config.Config) error {
 
 		server := &http.Server{
 			Addr:         cfg.GetServerAddr(),
-			ReadTimeout:  cfg.Server.ReadTimeout,
-			WriteTimeout: cfg.Server.WriteTimeout,
+			ReadTimeout:  time.Duration(cfg.Server.ReadTimeout),
+			WriteTimeout: time.Duration(cfg.Server.WriteTimeout),
 		}
 
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -87,9 +88,10 @@ func startServices(app *wire.Application, cfg *config.Config) error {
 func setupHTTPRoutes(app *wire.Application) {
 	http.HandleFunc("/api/auth/register", app.AuthService.RegisterHandler)
 	http.HandleFunc("/api/auth/login", app.AuthService.LoginHandler)
-	http.HandleFunc("/ws", app.AuthService.AuthMiddleware(app.WSServer.HandleWebSocket))
+	http.HandleFunc("/api/game/ws", app.AuthService.AuthMiddleware(app.WSServer.HandleWebSocket))
 	http.HandleFunc("/health", healthCheckHandler(app))
 	http.HandleFunc("/api/cache/stats", app.AuthService.AuthMiddleware(cacheStatsHandler(app)))
+	http.HandleFunc("/api/map/random", serverhttp.RandomMapHandler)
 
 	staticDir := app.Config.Server.StaticDir
 	if _, err := os.Stat(staticDir); err == nil {

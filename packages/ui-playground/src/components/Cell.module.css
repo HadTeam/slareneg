@@ -1,0 +1,108 @@
+.cell {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  border: 2px solid transparent;
+}
+
+.cell:hover {
+  transform: scale(1.05);
+}
+
+.cellSelected {
+  border-color: #fff !important;
+}
+
+.cellHovered {
+  border-color: var(--hover-color);
+}
+
+/* Different cell types */
+.blank {
+  background-color: #3a3a3a;
+}
+
+.castle {
+  background-color: #4a3a5a;
+}
+
+.king {
+  background-color: #5a4a3a;
+}
+
+.mountain {
+  background-color: #2a2a2a;
+}
+
+.soldier {
+  background-color: #3a4a5a;
+}
+
+.unknown,
+.fog {
+  background-color: #1a1a1a;
+}
+
+/* Owner colors override */
+.owner1 {
+  background-color: #4169E1 !important;
+  color: #fff;
+}
+
+.owner2 {
+  background-color: #DC143C !important;
+  color: #fff;
+}
+
+.owner3 {
+  background-color: #228B22 !important;
+  color: #fff;
+}
+
+.owner4 {
+  background-color: #FF8C00 !important;
+  color: #fff;
+}
+
+.icon {
+  font-size: 1.25em;
+  line-height: 1;
+}
+
+.iconMountain {
+  font-size: 1em;
+}
+
+.number {
+  font-size: 0.75em;
+  font-weight: bold;
+  margin-top: 0.125em;
+}
+
+/* Responsive sizing */
+@media (max-width: 768px) {
+  .icon {
+    font-size: 1.1em;
+  }
+  
+  .number {
+    font-size: 0.7em;
+  }
+}
+
+@media (max-width: 480px) {
+  .icon {
+    font-size: 1em;
+  }
+  
+  .number {
+    font-size: 0.65em;
+  }
+}
