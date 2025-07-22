@@ -3,6 +3,7 @@ package gamemap
 import (
 	"errors"
 	"fmt"
+	"math"
 )
 
 const MinMapSizeForSinglePlayer = 10
@@ -66,83 +67,7 @@ func (g *NewMapGenerator) Generate(size Size, players []Player) (Map, error) {
 	return result, nil
 }
 
-// Perlin 将给定范围自动切分为多个网格，对每个网格调用 PerlinSingleGrid，并汇总所有噪声结果。
-// 参数说明：
-//
-//	startX, startY: 总区域起始点的整数坐标（左下角）
-//	endX, endY: 总区域结束点的整数坐标（右上角）
-//	gridSize: 每个网格的边长（整数，单位与坐标一致）
-//	step: 采样步长（float64）
-//
-// 返回值：
-//
-//	指向二维 float64 切片的指针，包含整个区域的 Perlin 噪声值
-func Perlin(startX, startY, endX, endY, gridSize int, step float64) *[][]float64 {
-	// 校验范围能否被 gridSize 整除
-	if (endX-startX)%gridSize != 0 || (endY-startY)%gridSize != 0 {
-		panic("给定范围不能被 gridSize 整除")
-	}
-
-	xCount := int((float64(endX) - float64(startX)) / step)
-	yCount := int((float64(endY) - float64(startY)) / step)
-	results := make([][]float64, xCount)
-	for i := range results {
-		results[i] = make([]float64, yCount)
-	}
-	for gx := startX; gx < endX; gx += gridSize {
-		for gy := startY; gy < endY; gy += gridSize {
-			gridEndX := gx + gridSize
-			gridEndY := gy + gridSize
-			gridNoise := PerlinSingleGrid(gx, gy, gridEndX, gridEndY, step)
-			// 将当前网格的噪声结果汇总到总结果中
-			for xi, x := 0, float64(gx); x <= float64(gridEndX); x, xi = x+step, xi+1 {
-				globalXi := int((x - float64(startX)) / step)
-				if globalXi >= xCount {
-					break
-				}
-				for yi, y := 0, float64(gy); y <= float64(gridEndY); y, yi = y+step, yi+1 {
-					globalYi := int((y - float64(startY)) / step)
-					if globalYi >= yCount {
-						break
-					}
-					(*gridNoise)[xi][yi] = clamp((*gridNoise)[xi][yi], -1, 1) // 可选：归一化
-					results[globalXi][globalYi] = (*gridNoise)[xi][yi]
-				}
-			}
-		}
-	}
-	return &results
-}
-
-// clamp 用于将值限制在指定区间
-func clamp(val, min, max float64) float64 {
-	if val < min {
-		return min
-	}
-	if val > max {
-		return max
-	}
-	return val
-}
-
-// PerlinSingleGrid 生成一个二维网格的 Perlin 噪声值切片。
-// 参数说明：
-//
-//	startX, startY: 网格起始点的整数坐标（左下角）
-//	endX, endY: 网格结束点的整数坐标（右上角）
-//	step: 网格采样的步长（float64），决定采样精度
-//
-// 返回值：
-//
-//	指向二维 float64 切片的指针，每个元素为对应采样点的 Perlin 噪声值
-func PerlinSingleGrid(startX, startY, endX, endY int, step float64) *[][]float64 {
-	// 校验范围能否被 step 整除
-	xRange := float64(endX - startX)
-	yRange := float64(endY - startY)
-	if xRange/step != float64(int(xRange/step)) || yRange/step != float64(int(yRange/step)) {
-		panic("给定范围不能被 step 整除")
-	}
-
+func Perlin(startX, startY, endX, endY int, step float64) [][]float64 {
 	// 初始化结果切片
 	xCount := int((float64(endX)-float64(startX))/step) + 1
 	yCount := int((float64(endY)-float64(startY))/step) + 1
@@ -150,37 +75,48 @@ func PerlinSingleGrid(startX, startY, endX, endY int, step float64) *[][]float64
 	for i := range results {
 		results[i] = make([]float64, yCount)
 	}
-	// 左下格点
-	p00 := GridPoint{Point2: Point2{X: float64(startX), Y: float64(startY)}}
-	p00.Gradient = getGradient(startX, startY)
-	// 右下格点
-	p10 := GridPoint{Point2: Point2{X: float64(endX), Y: float64(startY)}}
-	p10.Gradient = getGradient(endX, startY)
-	// 左上格点
-	p01 := GridPoint{Point2: Point2{X: float64(startX), Y: float64(endY)}}
-	p01.Gradient = getGradient(startX, endY)
-	// 右上格点
-	p11 := GridPoint{Point2: Point2{X: float64(endX), Y: float64(endY)}}
-	p11.Gradient = getGradient(endX, endY)
 
-	for xi, x := 0, float64(startX); x <= float64(endX); x, xi = x+step, xi+1 {
-		for yi, y := 0, float64(startY); y <= float64(endY); y, yi = y+step, yi+1 {
+	for i := 0; i < xCount; i++ {
+		for j := 0; j < yCount; j++ {
+			x := float64(startX) + float64(i)*step
+			y := float64(startY) + float64(j)*step
+
+			// 边界检查，防止超出区间
+			if x > float64(endX) || y > float64(endY) {
+				continue
+			}
+
+			// 左下格点
+			floorX := math.Floor(x)
+			floorY := math.Floor(y)
+			p00 := GridPoint{Point2: Point2{X: floorX, Y: floorY}}
+			p00.Gradient = getGradient(int(p00.X), int(p00.Y))
+			// 右下格点
+			p10 := GridPoint{Point2: Point2{X: floorX + 1, Y: floorY}}
+			p10.Gradient = getGradient(int(p10.X), int(p10.Y))
+			// 左上格点
+			p01 := GridPoint{Point2: Point2{X: floorX, Y: floorY + 1}}
+			p01.Gradient = getGradient(int(p01.X), int(p01.Y))
+			// 右上格点
+			p11 := GridPoint{Point2: Point2{X: floorX + 1, Y: floorY + 1}}
+			p11.Gradient = getGradient(int(p11.X), int(p11.Y))
 			currentPoint := Point2{X: x, Y: y}
-			dx := x - float64(startX)
-			dy := y - float64(startY)
-			// 计算四个角点的点乘结果
-			dot00 := p00.Gradient.Dot(p00.VectorTo(currentPoint))
-			dot10 := p10.Gradient.Dot(p10.VectorTo(currentPoint))
-			dot01 := p01.Gradient.Dot(p01.VectorTo(currentPoint))
-			dot11 := p11.Gradient.Dot(p11.VectorTo(currentPoint))
-			// 计算插值
-			ro := lerp(dot00, dot10, fade(dx))
-			r1 := lerp(dot01, dot11, fade(dx))
-			// 最终结果
-			results[xi][yi] = lerp(ro, r1, fade(dy))
+			results[i][j] = PerlinSinglePoint(currentPoint, p00, p01, p10, p11)
 		}
 	}
-	return &results
+	return results
+}
+
+func PerlinSinglePoint(currentPoint Point2, gp00, gp01, gp10, gp11 GridPoint) float64 {
+	dot00 := gp00.Gradient.Dot(gp00.VectorTo(currentPoint))
+	dot10 := gp10.Gradient.Dot(gp10.VectorTo(currentPoint))
+	dot01 := gp01.Gradient.Dot(gp01.VectorTo(currentPoint))
+	dot11 := gp11.Gradient.Dot(gp11.VectorTo(currentPoint))
+	dx := currentPoint.X - gp00.X
+	ro := lerp(dot00, dot10, fade(dx))
+	r1 := lerp(dot01, dot11, fade(dx))
+	dy := currentPoint.Y - gp00.Y
+	return lerp(ro, r1, fade(dy))
 }
 
 // fade 函数用于平滑插值。
@@ -220,7 +156,7 @@ type GridPoint struct {
 }
 
 // 预生成扰动表（Permutation Table），用于哈希格点坐标
-var permutation = [256]uint8{
+var permutation = [256]int{
 	151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225,
 	140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148,
 	247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32,
@@ -266,5 +202,5 @@ func lerp(a, b, t float64) float64 {
 
 // 生成格点梯度向量
 func getGradient(x, y int) Vec2 {
-	return gradients[((permutation[x&255]+uint8(y))&255)%16]
+	return gradients[permutation[(permutation[x&255]+y)&255]%16]
 }
