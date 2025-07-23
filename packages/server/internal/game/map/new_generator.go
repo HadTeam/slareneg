@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"server/internal/game/block"
 )
 
-const MinMapSizeForSinglePlayer = 10
-
+// NewMapGenerator represents a new map generator with configuration parameters.
 type NewMapGenerator struct {
-	config GeneratorConfig // 配置参数
+	config               GeneratorConfig // Configuration parameters
+	precomputedGradients [][]Vec2        // Precomputed gradient vectors
+	gradientMapSize      int             // Size of the gradient vector table
 }
 
 func init() {
@@ -26,11 +28,34 @@ func init() {
 	})
 }
 
-// NewNewMapGenerator 参数 	config 用于初始化生成器配置。
+// NewNewMapGenerator creates a new map generator with the given configuration.
 func NewNewMapGenerator(config GeneratorConfig) *NewMapGenerator {
-	return &NewMapGenerator{
+	generator := &NewMapGenerator{
 		config: config,
 	}
+	// Initialize precomputed gradient vector table during initialization
+	generator.initPrecomputedGradients(100)
+	return generator
+}
+
+// initPrecomputedGradients precomputes the gradient vector table.
+func (g *NewMapGenerator) initPrecomputedGradients(size int) {
+	g.gradientMapSize = size
+	g.precomputedGradients = make([][]Vec2, size)
+	for i := range g.precomputedGradients {
+		g.precomputedGradients[i] = make([]Vec2, size)
+		for j := range g.precomputedGradients[i] {
+			g.precomputedGradients[i][j] = getGradient(i, j)
+		}
+	}
+}
+
+// getGradient gets the precomputed gradient vector, or calculates it in real-time if out of range.
+func (g *NewMapGenerator) getGradient(x, y int) Vec2 {
+	// Map coordinates to the range of the precomputed table
+	mapX := ((x % g.gradientMapSize) + g.gradientMapSize) % g.gradientMapSize
+	mapY := ((y % g.gradientMapSize) + g.gradientMapSize) % g.gradientMapSize
+	return g.precomputedGradients[mapX][mapY]
 }
 
 // Name returns the name of the generator.
@@ -38,14 +63,15 @@ func (g *NewMapGenerator) Name() string {
 	return "new"
 }
 
+// Generate creates a new map with the specified size and players.
 func (g *NewMapGenerator) Generate(size Size, players []Player) (Map, error) {
 	playerCount := len(players)
 
-	// 验证地图大小
+	// Validate map size
 	switch {
 	case size.Width < 10 || size.Height < 10:
 		return nil, errors.New("invalid map size: must be at least 10x10")
-	case size.Width*size.Height < uint16(playerCount)*MinMapSizeForSinglePlayer:
+	case size.Width*size.Height < uint16(playerCount)*10:
 		return nil, errors.New("invalid map size: too small for number of players")
 	case size.Width > 100 || size.Height > 100:
 		return nil, errors.New("invalid map size: must not exceed 100x100")
@@ -58,90 +84,216 @@ func (g *NewMapGenerator) Generate(size Size, players []Player) (Map, error) {
 		Desc: "Procedurally generated map",
 	}
 
-	// 创建一个新空基础地图
+	// Create a new empty base map
 	result := NewEmptyBaseMap(size, info)
 	if result == nil {
 		return nil, errors.New("failed to create empty base map")
 	}
-	// noise := Perlin(0, 0, int(size.Width), int(size.Height), 10, 0.1)
+
+	// Generate Perlin noise terrain
+	noiseMap := generatePerlinNoise(int(size.Width), int(size.Height))
+
+	// Generate player starting positions
+	playerPositions := g.generatePlayerStartPositions(size, players)
+
+	// Determine block type for each position
+	for y := uint16(0); y < size.Height; y++ {
+		for x := uint16(0); x < size.Width; x++ {
+			pos := Pos{X: x, Y: y}
+
+			// Check if this is a player starting position
+			isPlayerStart := false
+			for i, player := range players {
+				if player.IsActive && i < len(playerPositions) && playerPositions[i] == pos {
+					// Place player's king
+					kingBlock := block.NewBlock(block.KingName, 1, player.Owner)
+					if err := result.SetBlock(pos, kingBlock); err != nil {
+						return nil, err
+					}
+					isPlayerStart = true
+					break
+				}
+			}
+
+			if !isPlayerStart {
+				// Determine terrain type based on noise value
+				noiseValue := noiseMap[y][x]
+				blockToPlace := g.getBlockTypeFromNoise(noiseValue, pos)
+
+				if err := result.SetBlock(pos, blockToPlace); err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
 	return result, nil
 }
 
-func Perlin(startX, startY, endX, endY int, step float64) [][]float64 {
-	// 初始化结果切片
-	xCount := int((float64(endX)-float64(startX))/step) + 1
-	yCount := int((float64(endY)-float64(startY))/step) + 1
-	results := make([][]float64, xCount)
-	for i := range results {
-		results[i] = make([]float64, yCount)
+// getBlockTypeFromNoise determines the block type based on noise value and configuration thresholds.
+func (g *NewMapGenerator) getBlockTypeFromNoise(noiseValue float64, _ Pos) block.Block {
+	// Determine whether to generate mountains based on configured mountain density threshold
+	mountainThreshold := 1.0 - g.config.MountainDensity
+
+	// Determine whether to generate castles based on configured castle density threshold
+	castleThreshold := 1.0 - g.config.CastleDensity*0.1 // Castles should be relatively rare
+
+	switch {
+	case noiseValue > mountainThreshold:
+		// Generate mountains in high noise value areas
+		return block.NewBlock(block.MountainName, 0, 0)
+	case noiseValue > castleThreshold:
+		// Generate castles in medium-high noise value areas
+		return block.NewBlock(block.CastleName, 0, 0)
+	default:
+		// Generate blank terrain in other areas
+		return block.NewBlock(block.BlankName, 0, 0)
 	}
+}
 
-	for i := 0; i < xCount; i++ {
-		for j := 0; j < yCount; j++ {
-			x := float64(startX) + float64(i)*step
-			y := float64(startY) + float64(j)*step
+// generatePlayerStartPositions generates starting positions for players.
+func (g *NewMapGenerator) generatePlayerStartPositions(size Size, players []Player) []Pos {
+	positions := make([]Pos, len(players))
 
-			// 边界检查，防止超出区间
-			if x > float64(endX) || y > float64(endY) {
-				continue
-			}
+	// Simple uniform distribution strategy: distribute players on map edges
+	switch len(players) {
+	case 1:
+		positions[0] = Pos{X: size.Width / 2, Y: size.Height / 2}
+	case 2:
+		positions[0] = Pos{X: 1, Y: size.Height / 2}
+		positions[1] = Pos{X: size.Width - 2, Y: size.Height / 2}
+	case 3:
+		positions[0] = Pos{X: 1, Y: 1}
+		positions[1] = Pos{X: size.Width - 2, Y: 1}
+		positions[2] = Pos{X: size.Width / 2, Y: size.Height - 2}
+	case 4:
+		positions[0] = Pos{X: 1, Y: 1}
+		positions[1] = Pos{X: size.Width - 2, Y: 1}
+		positions[2] = Pos{X: 1, Y: size.Height - 2}
+		positions[3] = Pos{X: size.Width - 2, Y: size.Height - 2}
+	default:
+		// For more players, use circular distribution
+		centerX := float64(size.Width) / 2
+		centerY := float64(size.Height) / 2
+		radius := math.Min(centerX, centerY) * 0.8
 
-			// 左下格点
-			floorX := math.Floor(x)
-			floorY := math.Floor(y)
-			p00 := GridPoint{Point2: Point2{X: floorX, Y: floorY}}
-			p00.Gradient = getGradient(int(p00.X), int(p00.Y))
-			// 右下格点
-			p10 := GridPoint{Point2: Point2{X: floorX + 1, Y: floorY}}
-			p10.Gradient = getGradient(int(p10.X), int(p10.Y))
-			// 左上格点
-			p01 := GridPoint{Point2: Point2{X: floorX, Y: floorY + 1}}
-			p01.Gradient = getGradient(int(p01.X), int(p01.Y))
-			// 右上格点
-			p11 := GridPoint{Point2: Point2{X: floorX + 1, Y: floorY + 1}}
-			p11.Gradient = getGradient(int(p11.X), int(p11.Y))
-			currentPoint := Point2{X: x, Y: y}
-			results[i][j] = PerlinSinglePoint(currentPoint, p00, p01, p10, p11)
+		for i := range positions {
+			angle := 2 * math.Pi * float64(i) / float64(len(players))
+			x := centerX + radius*math.Cos(angle)
+			y := centerY + radius*math.Sin(angle)
+
+			// Ensure position is within map bounds
+			x = math.Max(1, math.Min(float64(size.Width-2), x))
+			y = math.Max(1, math.Min(float64(size.Height-2), y))
+
+			positions[i] = Pos{X: uint16(x), Y: uint16(y)}
 		}
 	}
-	return results
+
+	return positions
 }
 
-func PerlinSinglePoint(currentPoint Point2, gp00, gp01, gp10, gp11 GridPoint) float64 {
-	dot00 := gp00.Gradient.Dot(gp00.VectorTo(currentPoint))
-	dot10 := gp10.Gradient.Dot(gp10.VectorTo(currentPoint))
-	dot01 := gp01.Gradient.Dot(gp01.VectorTo(currentPoint))
-	dot11 := gp11.Gradient.Dot(gp11.VectorTo(currentPoint))
-	dx := currentPoint.X - gp00.X
-	ro := lerp(dot00, dot10, fade(dx))
-	r1 := lerp(dot01, dot11, fade(dx))
-	dy := currentPoint.Y - gp00.Y
-	return lerp(ro, r1, fade(dy))
+// generatePerlinNoise generates a Perlin noise map of the specified size.
+func generatePerlinNoise(width, height int) [][]float64 {
+	noiseMap := make([][]float64, height)
+	for i := range noiseMap {
+		noiseMap[i] = make([]float64, width)
+	}
+
+	// Generate noise values for each position
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			// Use a smaller scale factor for better terrain variation
+			scale := 0.1
+			point := Point2{X: float64(x) * scale, Y: float64(y) * scale}
+
+			// Generate layered noise
+			noiseValue := generateLayeredPerlinNoise(point, 4, 0.5, 2.0)
+			// Normalize to [0, 1] range
+			noiseMap[y][x] = (noiseValue + 1.0) * 0.5
+		}
+	}
+
+	return noiseMap
 }
 
-// fade 函数用于平滑插值。
+// generateLayeredPerlinNoise generates multi-layered overlapping noise.
+func generateLayeredPerlinNoise(point Point2, octaves int, persistence, lacunarity float64) float64 {
+	var total float64
+	var amplitude = 1.0
+	var frequency = 1.0
+	var maxValue = 0.0 // Used for normalization
+
+	for i := 0; i < octaves; i++ {
+		n := PerlinSinglePoint(Point2{X: point.X * frequency, Y: point.Y * frequency})
+		total += n * amplitude
+		maxValue += amplitude
+
+		amplitude *= persistence
+		frequency *= lacunarity
+	}
+
+	// Normalize result to stabilize range to [-1, 1]
+	return total / maxValue
+}
+
+// PerlinSinglePoint computes the Perlin noise value for a single point,
+// internally auto-calculating the four grid points.
+func PerlinSinglePoint(currentPoint Point2) float64 {
+	// Calculate grid point coordinates
+	floorX := int(math.Floor(currentPoint.X))
+	floorY := int(math.Floor(currentPoint.Y))
+
+	// Construct four grid points
+	p00 := GridPoint{Point2: Point2{X: float64(floorX), Y: float64(floorY)}}
+	p00.Gradient = getGradient(floorX, floorY)
+
+	p10 := GridPoint{Point2: Point2{X: float64(floorX + 1), Y: float64(floorY)}}
+	p10.Gradient = getGradient(floorX+1, floorY)
+
+	p01 := GridPoint{Point2: Point2{X: float64(floorX), Y: float64(floorY + 1)}}
+	p01.Gradient = getGradient(floorX, floorY+1)
+
+	p11 := GridPoint{Point2: Point2{X: float64(floorX + 1), Y: float64(floorY + 1)}}
+	p11.Gradient = getGradient(floorX+1, floorY+1)
+
+	// Calculate dot products
+	dot00 := p00.Gradient.Dot(p00.VectorTo(currentPoint))
+	dot10 := p10.Gradient.Dot(p10.VectorTo(currentPoint))
+	dot01 := p01.Gradient.Dot(p01.VectorTo(currentPoint))
+	dot11 := p11.Gradient.Dot(p11.VectorTo(currentPoint))
+
+	// Bilinear interpolation
+	dx := currentPoint.X - p00.X
+	ro := interpolation(dot00, dot10, fade(dx))
+	r1 := interpolation(dot01, dot11, fade(dx))
+	dy := currentPoint.Y - p00.Y
+	return interpolation(ro, r1, fade(dy))
+}
+
+// fade function for smooth interpolation.
 func fade(t float64) float64 {
 	return t * t * t * (t*(t*6-15) + 10)
 }
 
-// Vec2 表示一个二维向量。
+// Vec2 represents a two-dimensional vector.
 type Vec2 struct {
 	X float64
 	Y float64
 }
 
-// Dot 返回两个二维向量的点乘结果。
+// Dot returns the dot product of two two-dimensional vectors.
 func (v Vec2) Dot(other Vec2) float64 {
 	return v.X*other.X + v.Y*other.Y
 }
 
-// Point2 表示一个二维点。
+// Point2 represents a two-dimensional point.
 type Point2 struct {
 	X float64
 	Y float64
 }
 
-// VectorTo 返回从当前点到目标点的二维向量。
+// VectorTo returns the two-dimensional vector from the current point to the target point.
 func (p Point2) VectorTo(target Point2) Vec2 {
 	return Vec2{
 		X: target.X - p.X,
@@ -149,13 +301,13 @@ func (p Point2) VectorTo(target Point2) Vec2 {
 	}
 }
 
-// GridPoint 继承自 Point2，表示格点并包含梯度向量
+// GridPoint inherits from Point2, represents a grid point and contains a gradient vector.
 type GridPoint struct {
 	Point2
 	Gradient Vec2
 }
 
-// 预生成扰动表（Permutation Table），用于哈希格点坐标
+// Precomputed permutation table for hashing grid point coordinates
 var permutation = [256]int{
 	151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225,
 	140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148,
@@ -175,7 +327,7 @@ var permutation = [256]int{
 	222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180,
 }
 
-// 16个均匀分布的单位向量作为梯度方向
+// 16 uniformly distributed unit vectors as gradient directions
 var gradients = []Vec2{
 	{X: 1, Y: 0},
 	{X: 0.9239, Y: 0.3827},
@@ -195,12 +347,12 @@ var gradients = []Vec2{
 	{X: 0.9239, Y: -0.3827},
 }
 
-// 插值函数：线性插值
-func lerp(a, b, t float64) float64 {
+// interpolation function: linear interpolation
+func interpolation(a, b, t float64) float64 {
 	return a*(1-t) + b*t
 }
 
-// 生成格点梯度向量
+// getGradient generates gradient vectors for grid points
 func getGradient(x, y int) Vec2 {
 	return gradients[permutation[(permutation[x&255]+y)&255]%16]
 }
