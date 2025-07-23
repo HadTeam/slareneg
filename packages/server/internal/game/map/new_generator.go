@@ -99,7 +99,7 @@ func (g *NewMapGenerator) Generate(size Size, players []Player) (Map, error) {
 	// Determine block type for each position
 	for y := uint16(0); y < size.Height; y++ {
 		for x := uint16(0); x < size.Width; x++ {
-			pos := Pos{X: x, Y: y}
+			pos := Pos{X: x + 1, Y: y + 1}
 
 			// Check if this is a player starting position
 			isPlayerStart := false
